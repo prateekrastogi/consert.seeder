@@ -1,0 +1,44 @@
+{
+  "name": "artistSeed",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "popularity": {
+      "type": "number",
+      "required": true
+    },
+    "genres": {
+      "type": [
+        "string"
+      ],
+      "required": true
+    },
+    "spotifyId": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {
+    "getTopSpotifyArtists": {
+      "accepts": [],
+      "returns": [],
+      "description": "Put the top N spotify artists of various spotify genre seeds",
+      "http": [
+        {
+          "path": "/putTopSpotifyArtists",
+          "verb": "put"
+        }
+      ]
+    }
+  }
+}

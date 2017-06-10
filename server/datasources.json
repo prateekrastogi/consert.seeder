@@ -1,0 +1,12 @@
+{
+  "seeder": {
+    "host": "localhost",
+    "port": 27017,
+    "url": "${MONGODB_URL}",
+    "database": "seeder",
+    "password": "",
+    "name": "seeder",
+    "user": "",
+    "connector": "mongodb"
+  }
+}
