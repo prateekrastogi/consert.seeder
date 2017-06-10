@@ -29,7 +29,7 @@
   "relations": {},
   "acls": [],
   "methods": {
-    "getTopSpotifyArtists": {
+    "putTopSpotifyArtists": {
       "accepts": [],
       "returns": [],
       "description": "Put the top N spotify artists of various spotify genre seeds",
