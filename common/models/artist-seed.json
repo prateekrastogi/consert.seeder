@@ -10,17 +10,11 @@
       "type": "string",
       "required": true
     },
-    "popularity": {
-      "type": "number",
-      "required": true
-    },
-    "genres": {
-      "type": [
-        "string"
-      ],
-      "required": true
-    },
     "spotifyId": {
+      "type": "string",
+      "required": true
+    },
+    "genreSeed": {
       "type": "string",
       "required": true
     }
