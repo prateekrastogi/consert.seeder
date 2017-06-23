@@ -8,5 +8,11 @@
     "name": "seeder",
     "user": "",
     "connector": "mongodb"
+  },
+  "in-mem-persist": {
+    "name": "in-mem-persist",
+    "localStorage": "",
+    "file": "in-mem-persist.json",
+    "connector": "memory"
   }
 }
