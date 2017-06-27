@@ -16,6 +16,6 @@ RUN npm install --production
 
 #Finally setting container parameters
 ENV NODE_ENV 'production'
-ENV MONGODB_URL 'mongodb://mongo:27017/seeder'
+
 EXPOSE 3200
 CMD [ "npm", "start" ]
