@@ -11,8 +11,6 @@
   },
   "in-mem-persist": {
     "name": "in-mem-persist",
-    "localStorage": "",
-    "file": "",
     "connector": "memory"
   }
 }
