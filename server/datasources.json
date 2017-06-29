@@ -12,7 +12,7 @@
   "in-mem-persist": {
     "name": "in-mem-persist",
     "localStorage": "",
-    "file": "in-mem-persist.json",
+    "file": "",
     "connector": "memory"
   }
 }
