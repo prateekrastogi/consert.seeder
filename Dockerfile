@@ -1,4 +1,4 @@
-FROM node:8.1.2-alpine
+FROM node:6.11-alpine
 
 # Create app directory
 RUN mkdir -p /seeder
