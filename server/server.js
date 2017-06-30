@@ -3,10 +3,17 @@
 var loopback = require('loopback');
 var boot = require('loopback-boot');
 var app = module.exports = loopback();
+var appInsights = require('applicationinsights');
 
+appInsights.setup('67bd10a3-b710-4074-a9d6-3fc0aac0e6c5')
+  .setAutoDependencyCorrelation(true)
+  .setAutoCollectRequests(true)
+  .setAutoCollectPerformance(true)
+  .setAutoCollectExceptions(true)
+  .setAutoCollectDependencies(true)
+  .start();
 
 app.start = function () {
-
   // start the web server
   return app.listen(function () {
     app.emit('started');
