@@ -3,7 +3,9 @@
 // This file is licensed under the Artistic License 2.0.
 // License text available at https://opensource.org/licenses/Artistic-2.0
 
-module.exports = function enableAuthentication (server) {
+module.exports = function enableAuthentication (app) {
   // enable authentication
-  // server.enableAuth()
+  if (app.get('env') === 'production') {
+    app.enableAuth()
+  }
 }
