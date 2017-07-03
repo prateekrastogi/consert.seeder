@@ -10,7 +10,7 @@ module.exports = function(artistSeed) {
 
   artistSeed.putTopSpotifyArtists = function(callback) {
     var isSuccess = true;
-    var { authPromise, spotifyApi } = loginAssist.spotifyLogin();
+    var {authPromise, spotifyApi} = loginAssist.spotifyLogin();
 
     authPromise.then(function(data) {
       return spotifyApi.getAvailableGenreSeeds();
