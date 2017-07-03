@@ -6,7 +6,7 @@
     "node": ">=4"
   },
   "scripts": {
-    "lint": "eslint .",
+    "lint": "standard .",
     "start": "node .",
     "posttest": "npm run lint && nsp check"
   },
@@ -24,9 +24,8 @@
     "strong-error-handler": "^2.0.0"
   },
   "devDependencies": {
-    "eslint": "^3.17.1",
-    "eslint-config-loopback": "^8.0.0",
-    "nsp": "^2.1.0"
+    "nsp": "^2.1.0",
+    "standard": "^10.0.2"
   },
   "repository": {
     "type": "",
