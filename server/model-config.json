@@ -16,5 +16,29 @@
   "artistSeed": {
     "dataSource": "seeder",
     "public": true
+  },
+  "user": {
+    "dataSource": "in-mem-persist",
+    "public": true
+  },
+  "User": {
+    "dataSource": "in-mem-persist",
+    "public": false
+  },
+  "AccessToken": {
+    "dataSource": "in-mem-persist",
+    "public": false
+  },
+  "ACL": {
+    "dataSource": "in-mem-persist",
+    "public": false
+  },
+  "RoleMapping": {
+    "dataSource": "in-mem-persist",
+    "public": false
+  },
+  "Role": {
+    "dataSource": "in-mem-persist",
+    "public": false
   }
 }

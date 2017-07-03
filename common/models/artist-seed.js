@@ -1,6 +1,6 @@
 'use strict'
 
-const loginAssist = require('../../lib/loginAssist')
+const loginAssist = require('../../lib/login-assist')
 
 module.exports = function (artistSeed) {
   /**

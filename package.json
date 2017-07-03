@@ -29,7 +29,9 @@
     "standard": "^10.0.2"
   },
   "standard": {
-    "envs": [ "node" ]
+    "envs": [
+      "node"
+    ]
   },
   "repository": {
     "type": "",
