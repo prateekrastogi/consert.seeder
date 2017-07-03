@@ -6,7 +6,8 @@
     "node": ">=4"
   },
   "scripts": {
-    "lint": "standard .",
+    "lint": "standard",
+    "lint-fix": "standard --fix",
     "start": "node .",
     "posttest": "npm run lint && nsp check"
   },
@@ -26,6 +27,9 @@
   "devDependencies": {
     "nsp": "^2.1.0",
     "standard": "^10.0.2"
+  },
+  "standard": {
+    "envs": [ "node" ]
   },
   "repository": {
     "type": "",

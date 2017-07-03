@@ -1,6 +1,6 @@
 'use strict'
 
-var loginAssist = require('../../lib/loginAssist')
+const loginAssist = require('../../lib/loginAssist')
 
 module.exports = function (artistSeed) {
   /**
@@ -9,11 +9,9 @@ module.exports = function (artistSeed) {
    */
 
   artistSeed.putTopSpotifyArtists = async function (callback) {
-    var isSuccess = true
-    var {authPromise, spotifyApi} = loginAssist.spotifyLogin()
-
-    await authPromise
-    var data = await spotifyApi.getAvailableGenreSeeds()
+    let isSuccess = true
+    const spotifyApi = await loginAssist.spotifyLogin()
+    let data = await spotifyApi.getAvailableGenreSeeds()
     console.log(data)
 
     // TODO
