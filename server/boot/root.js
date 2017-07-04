@@ -1,0 +1,9 @@
+/**
+ * Created by rprat on 04-07-2017.
+ */
+
+module.exports = function (app) { // Install a `/` route that returns app status
+  var router = app.loopback.Router()
+  router.get('/', app.loopback.status())
+  app.use(router)
+}
