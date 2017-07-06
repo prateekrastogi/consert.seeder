@@ -13,10 +13,6 @@
     "spotifyId": {
       "type": "string",
       "required": true
-    },
-    "genreSeed": {
-      "type": "string",
-      "required": true
     }
   },
   "validations": [],

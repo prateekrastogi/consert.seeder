@@ -1,6 +1,8 @@
 'use strict'
 
 const loginAssist = require('../../lib/login-assist')
+const _ = require('lodash')
+const async = require('async')
 
 module.exports = function (artistSeed) {
   /**
@@ -11,8 +13,22 @@ module.exports = function (artistSeed) {
   artistSeed.putTopSpotifyArtists = async function (callback) {
     let isSuccess = true
     const spotifyApi = await loginAssist.spotifyLogin()
-    let data = await spotifyApi.getAvailableGenreSeeds()
-    console.log(data)
+    const {genres} = (await spotifyApi.getAvailableGenreSeeds()).body
+    let recommendedArtist
+
+    async.eachSeries(genres, async (value) => {
+      const genreRecommendedTracks = (await spotifyApi.getRecommendations({
+        seed_genres: [value],
+        limit: 100
+      })).body.tracks
+
+      const genreRecommendedArtists = _.flatMap(genreRecommendedTracks, (track) => {
+        return track.artists
+      })
+      recommendedArtist = _.concat(recommendedArtist, genreRecommendedArtists)
+    }, (err) => {
+      console.log(recommendedArtist)
+    })
 
     // TODO
     callback(null, isSuccess)
