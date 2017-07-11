@@ -20,22 +20,21 @@
     }
   },
   "validations": [],
-  "relations": {
-  },
+  "relations": {},
   "acls": [
     {
+      "accessType": "*",
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "DENY",
-      "property": "create",
-      "accessType": "*"
+      "property": "create"
     },
     {
+      "accessType": "*",
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "DENY",
-      "property": "verify",
-      "accessType": "*"
+      "property": "verify"
     },
     {
       "principalType": "ROLE",
@@ -44,25 +43,25 @@
       "property": "confirm"
     },
     {
+      "accessType": "EXECUTE",
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "DENY",
-      "property": "resetPassword",
-      "accessType": "EXECUTE"
+      "property": "resetPassword"
     },
     {
+      "accessType": "EXECUTE",
       "principalType": "ROLE",
       "principalId": "$authenticated",
       "permission": "DENY",
-      "property": "changePassword",
-      "accessType": "EXECUTE"
+      "property": "changePassword"
     },
     {
+      "accessType": "EXECUTE",
       "principalType": "ROLE",
       "principalId": "$authenticated",
       "permission": "DENY",
-      "property": "setPassword",
-      "accessType": "EXECUTE"
+      "property": "setPassword"
     }
   ],
   "methods": {}

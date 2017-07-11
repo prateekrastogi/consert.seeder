@@ -40,5 +40,9 @@
   "Role": {
     "dataSource": "in-mem-persist",
     "public": false
+  },
+  "enrichedArtists": {
+    "dataSource": "seeder",
+    "public": true
   }
 }

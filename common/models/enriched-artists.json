@@ -1,7 +1,7 @@
 {
-  "name": "artistSeed",
+  "name": "enrichedArtists",
   "base": "PersistedModel",
-  "idInjection": false,
+  "idInjection": true,
   "options": {
     "validateUpsert": true
   },
@@ -10,24 +10,13 @@
       "type": "string",
       "id": true,
       "required": true
-    },
-    "name": {
-      "type": "string",
-      "required": false
     }
   },
   "validations": [],
   "relations": {},
-  "acls": [
-    {
-      "accessType": "*",
-      "principalType": "ROLE",
-      "principalId": "$unauthenticated",
-      "permission": "DENY"
-    }
-  ],
+  "acls": [],
   "methods": {
-    "putTopSpotifyArtists": {
+    "putEnrichedArtists": {
       "accepts": [],
       "returns": [
         {
@@ -37,10 +26,10 @@
           "description": "Describes whether operations are successful"
         }
       ],
-      "description": "Put the top N spotify artists of various spotify genre seeds",
+      "description": "Retrives enriched artists data by calling spotify Api.",
       "http": [
         {
-          "path": "/putTopSpotifyArtists",
+          "path": "/putEnrichedArtists",
           "verb": "put"
         }
       ]
