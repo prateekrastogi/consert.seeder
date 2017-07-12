@@ -14,12 +14,22 @@ module.exports = function (enrichedArtists) {
     const artistList = Rx.Observable.from(sample.sampleData)
 
     artistList.mergeMap(artist => Rx.Observable.zip(spotifyApi, Rx.Observable.of(artist).pluck('id')))
-      .mergeMap(([spotifyApi, artist]) => Rx.Observable.fromPromise(spotifyApi.getArtistAlbums(artist)).pluck('body', 'items'))
+      .mergeMap(([spotifyApi, artistId]) => {
+        const artist = Rx.Observable.fromPromise(spotifyApi.getArtist(artistId)).pluck('body')
+
+        const artistTopTracks = Rx.Observable.fromPromise(spotifyApi.getArtistTopTracks(artistId, 'US')).pluck('body', 'tracks')
+
+        const artistRelatedArtist = Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artistId)).pluck('body', 'artists')
+
+        const artistAlbums = Rx.Observable.fromPromise(spotifyApi.getArtistAlbums(artistId, {limit: 50})).pluck('body', 'items')
+
+        return Rx.Observable.merge(artistAlbums)
+      })
       .subscribe(x => console.log(x))
 
     const combinedApiArtist = Rx.Observable.zip(spotifyApi, artistList)
 
-    //combinedApiArtist.subscribe(x => console.log(x))
+    // combinedApiArtist.subscribe(x => console.log(x))
     // TODO
     callback(null, isSuccess)
   }
