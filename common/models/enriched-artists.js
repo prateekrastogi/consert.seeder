@@ -21,10 +21,13 @@ module.exports = function (enrichedArtists) {
 
         const artistRelatedArtists = Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artistId)).pluck('body', 'artists')
 
-        const artistAlbums = Rx.Observable.fromPromise(spotifyApi.getArtistAlbums(artistId, {
-          market: 'US',
-          limit: 50
-        })).pluck('body', 'items')
+        const artistAlbums = Rx.Observable.range(0, 3).mergeMap((i) => {
+          return Rx.Observable.fromPromise(spotifyApi.getArtistAlbums(artistId, {
+            market: 'US',
+            limit: 50,
+            offset: (i * 50),
+          })).pluck('body', 'items')
+        }, 3)
 
         const album = artistAlbums.concatMap((albums) => {
           return Rx.Observable.from(albums)
@@ -55,7 +58,7 @@ module.exports = function (enrichedArtists) {
           return {album, albumTracksWithAudioFeature}
         })
 
-        return Rx.Observable.merge(artistAlbums)
+        return Rx.Observable.merge(album)
       })
       .subscribe(x => console.log(x))
 

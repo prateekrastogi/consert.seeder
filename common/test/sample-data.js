@@ -4,7 +4,13 @@
 'use strict'
 
 module.exports = {
-  sampleData: [{id: '7rPqFVgJYARiFsLDlN6W6y', name: 'Toquinho'},
+  sampleData: [{id: '0k17h0D3J5VfsdmQ1iZtE9', name: 'Pink Floyd'},
+    {id: '1Yox196W7bzVNZI7RBaPnf', name: 'Megadeth'},
+    {id: '2ye2Wgw4gimLv2eAKyk1NB', name: 'Metallica'},
+    {id: '0MG4LXIw7n4x0wjDc6WYXk', name: 'This Will Destroy You'},
+    {id: '0L8ExT028jH3ddEcZwqJJ5', name: 'Red Hot Chili Peppers'},
+    {id: '5NXHXK6hOCotCF8lvGM1I0', name: 'Porcupine Tree'},
+    {id: '7rPqFVgJYARiFsLDlN6W6y', name: 'Toquinho'},
     {id: '77ZUbcdoU5KCPHNUl8bgQy', name: 'João Gilberto'},
     {id: '6FNc1pq9apWBGVjGUEd9tK', name: 'Danilo Caymmi'},
     {id: '6fV3ZNUY8BCP45yuCWWDez', name: 'Dori Caymmi'},
