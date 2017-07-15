@@ -1,8 +1,8 @@
 {
   "name": "enrichedArtists",
   "base": "PersistedModel",
-  "idInjection": false,
   "strict": false,
+  "idInjection": false,
   "options": {
     "validateUpsert": false
   },
@@ -31,6 +31,24 @@
       "http": [
         {
           "path": "/putEnrichedArtists",
+          "verb": "put"
+        }
+      ]
+    },
+    "setEnrichedArtistsForReCrawl": {
+      "accepts": [],
+      "returns": [
+        {
+          "arg": "isSuccess",
+          "type": "boolean",
+          "root": false,
+          "description": "It represents whether call to api successfully started the method execution"
+        }
+      ],
+      "description": "It set the enrichedArtists for Re-Crawl if it has been already crawled earlier",
+      "http": [
+        {
+          "path": "/setEnrichedArtistsForReCrawl",
           "verb": "put"
         }
       ]

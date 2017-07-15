@@ -1,3 +1,4 @@
+// To do Use uncrawled artist instead of sample artist while preparing for deployment in prod
 'use strict'
 
 const Rx = require('rxjs')
@@ -7,9 +8,11 @@ const app = require('../../server/server')
 const sample = require('../test/sample-data')
 
 module.exports = function (enrichedArtists) {
-  enrichedArtists.putEnrichedArtists = function (callback) {
+  enrichedArtists.putEnrichedArtists = async function (callback) {
     let isSuccess
+    let count = 0
     const artistSeed = app.models.artistSeed
+    const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
 
     const spotifyApi = Rx.Observable.fromPromise(loginAssist.spotifyLogin())
     const artistList = Rx.Observable.from(sample.sampleData)
@@ -76,11 +79,40 @@ module.exports = function (enrichedArtists) {
         return enrichedArtist
       }, 2)
       .subscribe(async (x) => {
-        console.log(x)
-        await enrichedArtists.create(x)
-        console.log(`Successfully added/replaced the artist ${x.artist.name}`)
+        count++
+        let artistSeedInstance = await artistSeed.findById(x.id)
+        await enrichedArtists.replaceOrCreate(x)
+        artistSeedInstance.isCrawled = true
+        await artistSeed.replaceOrCreate(artistSeedInstance)
+        console.log(`Successfully added/replaced the artist: ${x.artist.name}`)
+        console.log(`Total artists added/replaced in the running execution: ${count}`)
       })
 
+    // TODO
+    callback(null, isSuccess)
+  }
+
+  enrichedArtists.setEnrichedArtistsForReCrawl = async function (callback) {
+    let count = 0
+    const isSuccess = true
+    const artistSeed = app.models.artistSeed
+
+    const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
+
+    if (uncrawledArtists.length === 0) {
+      let crawledArtists = await artistSeed.find()
+      const tbCrawled = _.map(crawledArtists, ({id, name, isCrawled}) => {
+        return {id, name, isCrawled: false}
+      })
+
+      Rx.Observable.from(tbCrawled).concatMap((artist) => {
+        return Rx.Observable.fromPromise(artistSeed.replaceOrCreate(artist))
+      }).subscribe(x => {
+        count++
+        console.log(`Added artist ${x.name} in pending crawl list`)
+        console.log(`Total artists added in the pending crawl list: ${count}`)
+      })
+    }
     // TODO
     callback(null, isSuccess)
   }
