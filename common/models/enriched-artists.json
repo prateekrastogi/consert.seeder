@@ -1,9 +1,10 @@
 {
   "name": "enrichedArtists",
   "base": "PersistedModel",
-  "idInjection": true,
+  "idInjection": false,
+  "strict": false,
   "options": {
-    "validateUpsert": true
+    "validateUpsert": false
   },
   "properties": {
     "id": {
