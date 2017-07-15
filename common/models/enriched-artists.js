@@ -10,14 +10,16 @@ const sample = require('../test/sample-data')
 module.exports = function (enrichedArtists) {
   enrichedArtists.putEnrichedArtists = async function (callback) {
     let isSuccess
+    let apiSelectionIndex = 0
     let count = 0
     const artistSeed = app.models.artistSeed
     const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
 
-    const spotifyApi = Rx.Observable.interval(333).concatMap((interval) => {
-      const selectionIndex = (interval % 3)
-      console.log(selectionIndex)
-      return Rx.Observable.fromPromise(loginAssist.spotifyLogin(selectionIndex))
+    // Each execution of spotifyApi in artistList is independent of each other. So, using local variable for state instead of Rx.Observable.interval() and then concatMap
+    const spotifyApi = Rx.Observable.range(0, 1).concatMap((integer) => {
+      apiSelectionIndex++
+      apiSelectionIndex = (apiSelectionIndex % 3)
+      return Rx.Observable.fromPromise(loginAssist.spotifyLogin(apiSelectionIndex))
     })
 
     const artistList = Rx.Observable.from(sample.sampleData)
