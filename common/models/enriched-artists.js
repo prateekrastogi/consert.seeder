@@ -10,21 +10,15 @@ const sample = require('../test/sample-data')
 module.exports = function (enrichedArtists) {
   enrichedArtists.putEnrichedArtists = async function (callback) {
     let isSuccess
-    let apiSelectionIndex = 0
     let count = 0
     const artistSeed = app.models.artistSeed
     const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
 
-    // Each execution of spotifyApi in artistList is independent of each other. So, using local remote-method variable for state instead of Rx.Observable.interval() and then concatMap
-    const spotifyApi = Rx.Observable.range(0, 1).concatMap((integer) => {
-      apiSelectionIndex++
-      apiSelectionIndex = (apiSelectionIndex % 3)
-      return Rx.Observable.fromPromise(loginAssist.spotifyLogin(apiSelectionIndex))
-    })
+    const spotifyApi = Rx.Observable.fromPromise(loginAssist.spotifyLogin())
 
     const artistList = Rx.Observable.from(sample.sampleData)
 
-    artistList.concatMap(artist => Rx.Observable.zip(spotifyApi, Rx.Observable.of(artist).pluck('id')))
+    artistList.concatMap((artist) => Rx.Observable.zip(spotifyApi, Rx.Observable.of(artist).pluck('id')))
       .mergeMap(([spotifyApi, artistId]) => {
         const artist = Rx.Observable.fromPromise(spotifyApi.getArtist(artistId)).pluck('body')
           .map((artist) => truncateFullArtist(artist))
@@ -83,7 +77,7 @@ module.exports = function (enrichedArtists) {
           return {id, artist, albums, topTracks, relatedArtists}
         })
 
-        return artist
+        return enrichedArtist
       }, 2)
       .subscribe(async (x) => {
         count++
