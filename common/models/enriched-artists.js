@@ -14,16 +14,16 @@ module.exports = function (enrichedArtists) {
     const artistSeed = app.models.artistSeed
     const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
 
-    // Generating token sequentially from different registered apps to get the higher limit
-    const spotifyApi = Rx.Observable.range(0, 3).concatMap((i) => Rx.Observable.fromPromise(loginAssist.spotifyLogin()))
-
     const artistList = Rx.Observable.from(sample.sampleData)
 
     // Assigning different spotify app access tokens to emitted artists in round-robin fashion to get higher limit
     const artistListWithSpotifyToken = artistList.pluck('id').bufferCount(3).concatMap((artistBuffer) => {
+      // Generating token sequentially from different registered apps to get the higher limit
+      let spotifyApi = Rx.Observable.timer(1000).concatMap((i) => Rx.Observable.fromPromise(loginAssist.spotifyLogin()))
+
       const bufferedObservable = Rx.Observable.from(artistBuffer)
       return Rx.Observable.zip(spotifyApi, bufferedObservable)
-    })
+    }).do(x => console.log(x))
 
     artistListWithSpotifyToken
       .mergeMap(([spotifyApi, artistId]) => {
