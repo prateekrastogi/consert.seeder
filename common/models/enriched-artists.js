@@ -13,7 +13,7 @@ module.exports = function (enrichedArtists) {
     const artistSeed = app.models.artistSeed
     const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
 
-    const spotifyApi = Rx.Observable.timer(0, 1000).concatMap((i) => Rx.Observable.fromPromise(loginAssist.spotifyLogin()))
+    const spotifyApi = Rx.Observable.timer(0, 1200).concatMap((i) => Rx.Observable.fromPromise(loginAssist.spotifyLogin()))
     const artistList = Rx.Observable.from(uncrawledArtists)
 
     const artistListWithSpotifyToken = Rx.Observable.zip(spotifyApi, artistList.pluck('id'))
@@ -58,7 +58,7 @@ module.exports = function (enrichedArtists) {
         })
 
         return enrichedArtist
-      }, 3)
+      }, 2)
       .subscribe(async (x) => {
         count++
         let artistSeedInstance = await artistSeed.findById(x.id)
