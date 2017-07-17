@@ -1,4 +1,3 @@
-// To do Use uncrawled artist instead of sample artist while preparing for deployment in prod
 'use strict'
 
 const Rx = require('rxjs')
@@ -14,16 +13,10 @@ module.exports = function (enrichedArtists) {
     const artistSeed = app.models.artistSeed
     const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
 
-    const artistList = Rx.Observable.from(sample.sampleData)
+    const spotifyApi = Rx.Observable.timer(0, 1000).concatMap((i) => Rx.Observable.fromPromise(loginAssist.spotifyLogin()))
+    const artistList = Rx.Observable.from(uncrawledArtists)
 
-    // Assigning different spotify app access tokens to emitted artists in round-robin fashion to get higher limit
-    const artistListWithSpotifyToken = artistList.pluck('id').bufferCount(3).concatMap((artistBuffer) => {
-      // Generating token sequentially from different registered apps to get the higher limit
-      let spotifyApi = Rx.Observable.timer(1000).concatMap((i) => Rx.Observable.fromPromise(loginAssist.spotifyLogin()))
-
-      const bufferedObservable = Rx.Observable.from(artistBuffer)
-      return Rx.Observable.zip(spotifyApi, bufferedObservable)
-    }).do(x => console.log(x))
+    const artistListWithSpotifyToken = Rx.Observable.zip(spotifyApi, artistList.pluck('id'))
 
     artistListWithSpotifyToken
       .mergeMap(([spotifyApi, artistId]) => {
@@ -33,7 +26,15 @@ module.exports = function (enrichedArtists) {
         const id = artist.pluck('id')
 
         const artistTopTracks = Rx.Observable.fromPromise(spotifyApi.getArtistTopTracks(artistId, 'US')).pluck('body', 'tracks')
-          .map((topTracks) => _.map(topTracks, (topTrack) => truncateFullTrack(topTrack)))
+          .map((topTracks) => _.map(topTracks, (topTrack) => truncateFullTrack(topTrack))).concatMap((topTracks) => Rx.Observable.from(topTracks))
+
+        const artistTopTrackFeatures = artistTopTracks.pluck('id').bufferCount(100)
+          .concatMap((topTracksId) => Rx.Observable.fromPromise(spotifyApi.getAudioFeaturesForTracks(topTracksId))).pluck('body', 'audio_features')
+          .concatMap(features => Rx.Observable.from(features))
+
+        const artistTopTracksWithAudioFeatures = Rx.Observable.zip(artistTopTracks, artistTopTrackFeatures, (track, audioFeatures) => {
+          return {track, audioFeatures}
+        }).reduce((accum, curr) => _.concat(accum, curr))
 
         const artistRelatedArtists = Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artistId)).pluck('body', 'artists')
           .map((relatedArtists) => _.map(relatedArtists, (relatedArtist) => truncateFullArtist(relatedArtist)))
@@ -46,46 +47,18 @@ module.exports = function (enrichedArtists) {
           })).pluck('body', 'items')
         })
 
-        const album = artistAlbums.concatMap((albums) => {
-          return Rx.Observable.from(albums)
-        }).map((album) => truncateSimplifiedAlbum(album))
+        const artistDetailedAlbums = artistAlbums.concatMap((albums) => Rx.Observable.from(albums).pluck('id'))
+          .bufferCount(20).concatMap((bufferedAlbums) => {
+            return spotifyApi.getAlbums(bufferedAlbums)
+          }).pluck('body', 'albums').map((albums) => _.map(albums, (album) => truncateFullAlbum(album)))
+          .reduce((accum, curr) => _.concat(accum, curr))
 
-        const albumTracks = album.pluck('id').concatMap((id) => {
-          return Rx.Observable.fromPromise(spotifyApi.getAlbumTracks(id, {limit: 50}))
-        }).pluck('body', 'items')
-
-        const albumTracksWithAudioFeatures = albumTracks.concatMap((tracks) => {
-          const albumTrack = Rx.Observable.from(tracks).map((track) => truncateSimplifiedTrack(track))
-
-          const trackId = albumTrack.pluck('id')
-
-          const trackAudioFeature = trackId
-            .concatMap((id) => {
-              return Rx.Observable.fromPromise(spotifyApi.getAudioFeaturesForTrack(id)).pluck('body')
-                .map((audioFeatures) => truncateTrackAudioFeature(audioFeatures))
-            })
-
-          const albumTrackWithAudioFeature = Rx.Observable.zip(albumTrack, trackAudioFeature, (albumTrack, trackAudioFeature) => {
-            return {albumTrack, trackAudioFeature}
-          })
-
-          const albumTracksWithAudioFeatures = albumTrackWithAudioFeature.reduce((accum, curr) => _.concat(accum, curr))
-
-          return albumTracksWithAudioFeatures
-        })
-
-        const albumWithFeatureAnalyzedTracks = Rx.Observable.zip(album, albumTracksWithAudioFeatures, (album, albumTracksWithAudioFeatures) => {
-          return {album, albumTracksWithAudioFeatures}
-        })
-
-        const albums = albumWithFeatureAnalyzedTracks.reduce((accum, curr) => _.concat(accum, curr))
-
-        const enrichedArtist = Rx.Observable.zip(id, artist, albums, artistTopTracks, artistRelatedArtists, (id, artist, albums, topTracks, relatedArtists) => {
+        const enrichedArtist = Rx.Observable.zip(id, artist, artistDetailedAlbums, artistTopTracksWithAudioFeatures, artistRelatedArtists, (id, artist, albums, topTracks, relatedArtists) => {
           return {id, artist, albums, topTracks, relatedArtists}
         })
 
         return enrichedArtist
-      }, 2)
+      }, 3)
       .subscribe(async (x) => {
         count++
         let artistSeedInstance = await artistSeed.findById(x.id)
@@ -140,6 +113,23 @@ module.exports = function (enrichedArtists) {
       id,
       name,
       type,
+      artists: slimArtists
+    }
+    return slimAlbum
+  }
+
+  function truncateFullAlbum ({album_type, genres, id, name, popularity, release_date, tracks, artists}) {
+    const slimArtists = _.map(artists, (artist) => truncateSimplifiedArtist(artist))
+    // As tracks returned are wrqpped inside a paging objects (No need for next until 27 tracks for sure)
+    // Also, dropping the track objects from the album to keep the size of output small i.e. not searching yt based on it
+    const slimTracks = _.map((tracks.items), (track) => truncateSimplifiedTrack(track))
+    const slimAlbum = {
+      album_type,
+      genres,
+      id,
+      name,
+      popularity,
+      release_date,
       artists: slimArtists
     }
     return slimAlbum
