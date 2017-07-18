@@ -5,6 +5,7 @@
 
 module.exports = {
   sampleData: [{id: '0k17h0D3J5VfsdmQ1iZtE9', name: 'Pink Floyd'},
+    {id: '00UjhwImIUB9HpqExsjgUf', name: 'Russell Brand'},
     {id: '1Yox196W7bzVNZI7RBaPnf', name: 'Megadeth'},
     {id: '2ye2Wgw4gimLv2eAKyk1NB', name: 'Metallica'},
     {id: '0MG4LXIw7n4x0wjDc6WYXk', name: 'This Will Destroy You'},

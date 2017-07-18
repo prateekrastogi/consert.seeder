@@ -14,11 +14,20 @@ module.exports = function (enrichedArtists) {
     const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
 
     const spotifyApi = Rx.Observable.timer(0, 1200).concatMap((i) => Rx.Observable.fromPromise(loginAssist.spotifyLogin()))
-    const artistList = Rx.Observable.from(uncrawledArtists)
+    const artistList = Rx.Observable.from(sample.sampleData)
 
     const artistListWithSpotifyToken = Rx.Observable.zip(spotifyApi, artistList.pluck('id'))
 
     artistListWithSpotifyToken
+      .do(async ([spotifyApi, artistId]) => {
+        /* Marking the artist to be crawled here coz if the artist doesn't have any top tracks or albums,then enriched artist
+         zip doesn't emit any values, so the subscribe part is not triggered. Thus, those artist are re-crawled on re-start */
+
+        let artistSeedInstance = await artistSeed.findById(artistId)
+        artistSeedInstance.isCrawled = true
+        await artistSeed.replaceOrCreate(artistSeedInstance)
+        console.log(`Crawling the artist: ${artistSeedInstance.name}`)
+      })
       .mergeMap(([spotifyApi, artistId]) => {
         const artist = Rx.Observable.fromPromise(spotifyApi.getArtist(artistId)).pluck('body')
           .map((artist) => truncateFullArtist(artist))
@@ -61,10 +70,7 @@ module.exports = function (enrichedArtists) {
       }, 2)
       .subscribe(async (x) => {
         count++
-        let artistSeedInstance = await artistSeed.findById(x.id)
         await enrichedArtists.replaceOrCreate(x)
-        artistSeedInstance.isCrawled = true
-        await artistSeed.replaceOrCreate(artistSeedInstance)
         console.log(`Successfully added/replaced the artist: ${x.artist.name}`)
         console.log(`Total artists added/replaced in the running execution: ${count}`)
       })
