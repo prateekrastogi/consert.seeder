@@ -11,6 +11,11 @@
       "type": "string",
       "id": true,
       "required": true
+    },
+    "isCrawled": {
+      "type": "boolean",
+      "required": false,
+      "default": false
     }
   },
   "validations": [],
