@@ -1,0 +1,31 @@
+{
+  "name": "ytVideos",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {},
+  "validations": [],
+  "relations": {
+    "enrichedArtists": {
+      "type": "hasAndBelongsToMany",
+      "model": "enrichedArtists",
+      "foreignKey": ""
+    }
+  },
+  "acls": [],
+  "methods": {
+    "putArtistsLive": {
+      "accepts": [],
+      "returns": [],
+      "description": "search and save artists related live performances",
+      "http": [
+        {
+          "path": "/putArtistsLive",
+          "verb": "put"
+        }
+      ]
+    }
+  }
+}

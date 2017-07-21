@@ -13,10 +13,6 @@
       "./mixins"
     ]
   },
-  "artistSeed": {
-    "dataSource": "seeder",
-    "public": true
-  },
   "user": {
     "dataSource": "in-mem-persist",
     "public": true
@@ -41,7 +37,15 @@
     "dataSource": "in-mem-persist",
     "public": false
   },
+  "artistSeed": {
+    "dataSource": "seeder",
+    "public": true
+  },
   "enrichedArtists": {
+    "dataSource": "seeder",
+    "public": true
+  },
+  "ytVideos": {
     "dataSource": "seeder",
     "public": true
   }

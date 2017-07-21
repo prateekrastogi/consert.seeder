@@ -8,7 +8,7 @@ const sample = require('../test/sample-data')
 
 module.exports = function (enrichedArtists) {
   enrichedArtists.putEnrichedArtists = async function (callback) {
-    let isSuccess
+    let isSuccess = true
     let count = 0
     const artistSeed = app.models.artistSeed
     const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
