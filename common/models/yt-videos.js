@@ -10,14 +10,14 @@ module.exports = function (ytVideos) {
 
   ytVideos.putArtistsLive = async function (callback) {
     const enrichedArtists = app.models.enrichedArtists
-
     const filter = {
-      where: {and: [{or: [{isCrawled: false}, {isCrawled: {exists: false}}]}, {'artist.popularity': {'gte': 70}}, {'artist.popularity': {'lt': 100}}]},
+      where: {and: [{or: [{isCrawled: false}, {isCrawled: {exists: false}}]}, {'artist.popularity': {'gte': 20}}, {'artist.popularity': {'lt': 44}}]},
       fields: {artist: true}
     }
 
     const artists = await enrichedArtists.find(filter)
-    console.log(artists)
+
+    console.log(JSON.stringify(artists, null, 1))
     // TODO
     callback(null)
   }
