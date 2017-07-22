@@ -11,8 +11,8 @@ module.exports = function (ytVideos) {
   ytVideos.putArtistsLive = async function (callback) {
     const enrichedArtists = app.models.enrichedArtists
     const filter = {
-      where: {and: [{or: [{isCrawled: false}, {isCrawled: {exists: false}}]}, {'artist.popularity': {'gte': 20}}, {'artist.popularity': {'lt': 100}}]},
-      fields: {id: true, artist: true, topTracks: true}
+      where: {and: [{or: [{isCrawled: false}, {isCrawled: {exists: false}}]}, {'artist.popularity': {'gte': 30}}, {'artist.popularity': {'lt': 100}}]},
+      fields: {albums: true}
     }
 
     const artists = await enrichedArtists.find(filter)
@@ -30,7 +30,7 @@ module.exports = function (ytVideos) {
       return {name, popularity}
     })
 
-    const art = _.compact(_.filter(truncatedAlbums, (track) => track.popularity > 70 && track.popularity < 100))
+    const art = _.compact(_.filter(truncatedAlbums, (album) => album.popularity > 70 && album.popularity < 100))
 
     console.log(JSON.stringify(art, null, 1))
     // TODO
