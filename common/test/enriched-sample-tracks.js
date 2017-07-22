@@ -5,7 +5,7 @@
 'use strict'
 
 module.exports = {
-  // Tracks with popularity between 70-100 (approx total: 1700 out of total 600,000 top tracks for artist in popularity 20-100)
+  // Tracks with popularity between 70-100 (approx total: 1700 out of total 600,000 top tracks for all the artists in popularity range 20-100)
   aGradeTracks: [{
     'album': {
       'album_type': 'album',
