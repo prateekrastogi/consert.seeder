@@ -757,7 +757,7 @@ module.exports = {
     'type': 'track'
   }],
 
-  // Tracks with popularity between 50-60 (approx total: 17000)
+  // Tracks with popularity between 50-60 (approx total: 18000)
   cGradeTracks: [{
     'album': {
       'album_type': 'single',
@@ -1113,7 +1113,7 @@ module.exports = {
     'type': 'track'
   }],
 
-  // Tracks with popularity between 40-50 (approx total: 43000)
+  // Tracks with popularity between 40-50 (approx total: 48,000)
   dGradeTracks: [{
     'album': {
       'album_type': 'album',
@@ -1358,7 +1358,7 @@ module.exports = {
     'type': 'track'
   }],
 
-  // Tracks with popularity between 20-40 (approx total: 227,000)
+  // Tracks with popularity between 20-40 (approx total: 230,000)
   eGradeTracks: [ {
     'album': {
       'album_type': 'single',

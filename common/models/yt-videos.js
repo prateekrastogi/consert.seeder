@@ -9,31 +9,43 @@ module.exports = function (ytVideos) {
   const youtube = loginAssist.ytLogin()
 
   ytVideos.putArtistsLive = async function (callback) {
-    const enrichedArtists = app.models.enrichedArtists
-    const filter = {
-      where: {and: [{or: [{isCrawled: false}, {isCrawled: {exists: false}}]}, {'artist.popularity': {'gte': 30}}, {'artist.popularity': {'lt': 100}}]},
-      fields: {albums: true}
-    }
+    const artists = await findArtistsByPopularity(30, 100)
+    putArtistsAlbumsLive(artists)
+    /* */
+    // TODO
+    callback(null)
+  }
 
-    const artists = await enrichedArtists.find(filter)
-
+  function putArtistsTopTracksLive (artists) {
     const tracks = _.flatMapDeep(artists, (artist) => {
       const track = _.flatMap(_.compact(artist.topTracks), track => track.track)
       return track
     })
-    const truncatedTracks = _.map(_.compact(tracks), ({name, popularity}) => {
-      return {name, popularity}
+    const truncatedTracks = _.map(_.compact(tracks), ({id, name, popularity}) => {
+      return {id, name, popularity}
     })
 
-    const albums = _.flatMapDeep(artists, (artist) => artist.albums)
-    const truncatedAlbums = _.map(_.compact(albums), ({name, popularity}) => {
-      return {name, popularity}
+    const uniqueTruncatedTracks = _.uniqBy(truncatedTracks, 'id')
+    console.log(JSON.stringify(uniqueTruncatedTracks, null, 1))
+  }
+
+  function putArtistsAlbumsLive (artists) {
+    const albums = _.flatMapDeep(artists, artist => artist.albums)
+    const truncatedAlbums = _.map(_.compact(albums), ({name, popularity, id}) => {
+      return {name, popularity, id}
     })
+    const uniqueTruncatedAlbums = _.uniqBy(albums, 'id')
+    const topAlbums = _.filter(uniqueTruncatedAlbums, album => album.popularity >= 26 && album.popularity < 40)
+    console.log(JSON.stringify(topAlbums, null, 1))
+  }
 
-    const art = _.compact(_.filter(truncatedAlbums, (album) => album.popularity > 70 && album.popularity < 100))
-
-    console.log(JSON.stringify(art, null, 1))
-    // TODO
-    callback(null)
+  async function findArtistsByPopularity (lowerBound, upperBound) {
+    const enrichedArtists = app.models.enrichedArtists
+    const filter = {
+      where: {and: [{or: [{isCrawled: false}, {isCrawled: {exists: false}}]}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
+      fields: {id: false, artists: false, topTracks: false, albums: true}
+    }
+    const artists = await enrichedArtists.find(filter)
+    return artists
   }
 }

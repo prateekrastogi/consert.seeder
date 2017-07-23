@@ -4,7 +4,6 @@ const Rx = require('rxjs')
 const _ = require('lodash')
 const loginAssist = require('../../lib/login-assist')
 const app = require('../../server/server')
-const sample = require('../test/sample-data')
 
 module.exports = function (enrichedArtists) {
   enrichedArtists.putEnrichedArtists = async function (callback) {
