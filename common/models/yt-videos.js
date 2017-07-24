@@ -47,7 +47,7 @@ module.exports = function (ytVideos) {
 
   function getYtPlaylistItems (id) {
     const itemsFunction = Rx.Observable.bindNodeCallback(youtube.getPlayListsItemsById)
-    return itemsFunction(id, 50)
+    return itemsFunction(id, 5)
   }
 
   function searchYt (query, maxresults, type) {
