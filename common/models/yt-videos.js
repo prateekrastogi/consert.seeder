@@ -10,7 +10,13 @@ module.exports = function (ytVideos) {
 
   ytVideos.putArtistsLive = async function (callback) {
     const artists = await findArtistsByPopularity(70, 100)
-    putArtistsAlbumsLive(artists)
+    // putArtistsAlbumsLive(artists)
+
+    const ytVideos = searchYt('justin bieber live', 5, 'playlist')
+    ytVideos.pluck('id', 'playlistId').concatMap((id) => {
+      return getYtPlaylistItems(id)
+    }).subscribe(x => console.log(x))
+
     /* */
     // TODO
     callback(null)
@@ -39,13 +45,43 @@ module.exports = function (ytVideos) {
     console.log(JSON.stringify(uniqueTruncatedAlbums, null, 1))
   }
 
+  function getYtPlaylistItems (id) {
+    const itemsFunction = Rx.Observable.bindNodeCallback(youtube.getPlayListsItemsById)
+    return itemsFunction(id, 50)
+  }
+
+  function searchYt (query, maxresults, type) {
+    const resultModules = maxresults % 50
+    const resultDivision = _.floor(maxresults / 50)
+    let nextPageToken
+    const searchObservable = Rx.Observable.bindNodeCallback(youtube.search)
+
+    const moduloResults = searchObservable(query, resultModules, {regionCode: 'US', type: type}).do((result) => {
+      nextPageToken = result.nextPageToken
+    }).pluck('items').concatMap((results) => Rx.Observable.from(results))
+
+    const divisionResults = Rx.Observable.zip(Rx.Observable.range(1, resultDivision), Rx.Observable.timer(0, 1000))
+      .concatMap(([range, timer]) => {
+        const searchResults = searchObservable(query, 50, {
+          pageToken: nextPageToken,
+          regionCode: 'US',
+          type: type
+        }).do((result) => {
+          nextPageToken = result.nextPageToken
+        }).concatMap(result => Rx.Observable.from(result.items))
+        return searchResults
+      })
+    return Rx.Observable.concat(moduloResults, divisionResults)
+  }
+
   async function findArtistsByPopularity (lowerBound, upperBound) {
     const enrichedArtists = app.models.enrichedArtists
     const filter = {
       where: {and: [{or: [{isCrawled: false}, {isCrawled: {exists: false}}]}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
       fields: {id: true, artists: true, topTracks: true, albums: true}
     }
-    const artists = await enrichedArtists.find(filter)
+    const artists = await
+      enrichedArtists.find(filter)
     return artists
   }
 }
