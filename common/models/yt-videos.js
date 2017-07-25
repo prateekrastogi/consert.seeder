@@ -11,12 +11,10 @@ module.exports = function (ytVideos) {
   ytVideos.putArtistsLive = async function (callback) {
     const artists = await findArtistsByPopularity(70, 100)
     // putArtistsAlbumsLive(artists)
-    /*
-     const ytVideos = searchYt('justin bieber live', 1, 'playlist')
-     ytVideos.pluck('id', 'playlistId').concatMap((id) => {
-     return getYtPlaylistItems(id)
-     }).subscribe(x => console.log(x))
-     */
+    const ytVideos = searchYt('justin bieber live', 3, 'playlist')
+    ytVideos.pluck('id', 'playlistId').concatMap((id) => {
+      return getYtPlaylistItems(id)
+    }).subscribe(x => console.log(x))
 
     getYtPlaylistItems('PLpUZ5waMZ6aMURwkm4_4927KTEpJHOT2S')
     // TODO
@@ -49,17 +47,17 @@ module.exports = function (ytVideos) {
   function getYtPlaylistItems (id) {
     let nextPageToken
     const itemsFunction = Rx.Observable.bindNodeCallback(youtube.getPlayListsItemsById)
-    const itemInitialResult = itemsFunction(id, 1).do(x => {
+    const itemInitialResult = itemsFunction(id, 50).do(x => {
       nextPageToken = x.nextPageToken
     }).pluck('items').concatMap(result => Rx.Observable.from(result))
 
     const itemSubsequentResults = Rx.Observable.range(1, 100).concatMap(x => {
-      const itemResult = itemsFunction(id, 10, {pageToken: nextPageToken}).takeWhile(x => nextPageToken).do(x => { nextPageToken = x.nextPageToken })
+      const itemResult = itemsFunction(id, 50, {pageToken: nextPageToken}).takeWhile(x => nextPageToken).do(x => { nextPageToken = x.nextPageToken })
       return itemResult
     }).pluck('items').concatMap(result => Rx.Observable.from(result))
 
     const playlistItems = Rx.Observable.concat(itemInitialResult, itemSubsequentResults)
-    playlistItems.subscribe(x => console.log(x))
+    return playlistItems
   }
 
   function searchYt (query, maxresults, type) {
@@ -72,7 +70,7 @@ module.exports = function (ytVideos) {
       nextPageToken = result.nextPageToken
     }).pluck('items').concatMap((results) => Rx.Observable.from(results))
 
-    const divisionResults = Rx.Observable.zip(Rx.Observable.range(1, resultDivision), Rx.Observable.timer(0, 1000))
+    const divisionResults = Rx.Observable.zip(Rx.Observable.range(1, resultDivision), Rx.Observable.timer(0, 100))
       .concatMap(([range, timer]) => {
         const searchResults = searchObservable(query, 50, {
           pageToken: nextPageToken,
