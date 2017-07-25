@@ -11,13 +11,14 @@ module.exports = function (ytVideos) {
   ytVideos.putArtistsLive = async function (callback) {
     const artists = await findArtistsByPopularity(70, 100)
     // putArtistsAlbumsLive(artists)
+    /*
+     const ytVideos = searchYt('justin bieber live', 1, 'playlist')
+     ytVideos.pluck('id', 'playlistId').concatMap((id) => {
+     return getYtPlaylistItems(id)
+     }).subscribe(x => console.log(x))
+     */
 
-    const ytVideos = searchYt('justin bieber live', 5, 'playlist')
-    ytVideos.pluck('id', 'playlistId').concatMap((id) => {
-      return getYtPlaylistItems(id)
-    }).subscribe(x => console.log(x))
-
-    /* */
+    getYtPlaylistItems('PLpUZ5waMZ6aMURwkm4_4927KTEpJHOT2S')
     // TODO
     callback(null)
   }
@@ -46,8 +47,19 @@ module.exports = function (ytVideos) {
   }
 
   function getYtPlaylistItems (id) {
+    let nextPageToken
     const itemsFunction = Rx.Observable.bindNodeCallback(youtube.getPlayListsItemsById)
-    return itemsFunction(id, 5)
+    const itemInitialResult = itemsFunction(id, 1).do(x => {
+      nextPageToken = x.nextPageToken
+    }).pluck('items').concatMap(result => Rx.Observable.from(result))
+
+    const itemSubsequentResults = Rx.Observable.range(1, 100).concatMap(x => {
+      const itemResult = itemsFunction(id, 10, {pageToken: nextPageToken}).takeWhile(x => nextPageToken).do(x => { nextPageToken = x.nextPageToken })
+      return itemResult
+    }).pluck('items').concatMap(result => Rx.Observable.from(result))
+
+    const playlistItems = Rx.Observable.concat(itemInitialResult, itemSubsequentResults)
+    playlistItems.subscribe(x => console.log(x))
   }
 
   function searchYt (query, maxresults, type) {
