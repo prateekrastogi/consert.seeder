@@ -4,6 +4,7 @@ const app = require('../../server/server')
 const Rx = require('rxjs')
 const _ = require('lodash')
 const loginAssist = require('../../lib/login-assist')
+const classifier = require('../../lib/classifier').logClassifier()
 
 module.exports = function (ytVideos) {
   const youtube = loginAssist.ytLogin()
@@ -11,7 +12,12 @@ module.exports = function (ytVideos) {
   ytVideos.putArtistsLive = async function (callback) {
     const artists = await findArtistsByPopularity(70, 100)
     // putArtistsAlbumsLive(artists)
-    searchYtVideos('Beastie Boys live', 239)
+    classifier.train()
+    searchYtVideos('diplo live', 50).subscribe(x => {
+      const classy = classifier.getClassifications((x.snippet.title + x.snippet.description))
+      console.log(classy)
+      console.log(x.snippet.title)
+    })
 
     /* ytVideos.pluck('id', 'videoId').bufferCount(10).concatMap((id) => {
      return getVideos(id.join())
