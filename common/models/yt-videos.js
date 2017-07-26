@@ -11,37 +11,20 @@ module.exports = function (ytVideos) {
   ytVideos.putArtistsLive = async function (callback) {
     const artists = await findArtistsByPopularity(70, 100)
     // putArtistsAlbumsLive(artists)
-    const ytVideos = searchYt('justin bieber live', 3, 'playlist')
-    ytVideos.pluck('id', 'playlistId').concatMap((id) => {
-      return getYtPlaylistItems(id)
-    }).subscribe(x => console.log(x))
+    searchYtVideos('Beastie Boys live', 239)
 
-    getYtPlaylistItems('PLpUZ5waMZ6aMURwkm4_4927KTEpJHOT2S')
+    /* ytVideos.pluck('id', 'videoId').bufferCount(10).concatMap((id) => {
+     return getVideos(id.join())
+     }).subscribe(x => console.log(JSON.stringify(x, null, 2)))*/
+
+//    getYtPlaylistItems('PLpUZ5waMZ6aMURwkm4_4927KTEpJHOT2S')
     // TODO
     callback(null)
   }
 
-  function putArtistsTopTracksLive (artists) {
-    const tracks = _.flatMapDeep(artists, (artist) => {
-      const track = _.flatMap(_.compact(artist.topTracks), track => track.track)
-      return track
-    })
-    const truncatedTracks = _.map(_.compact(tracks), ({id, name, popularity}) => {
-      return {id, name, popularity}
-    })
-
-    const uniqueTruncatedTracks = _.uniqBy(truncatedTracks, 'id')
-    console.log(JSON.stringify(uniqueTruncatedTracks, null, 1))
-  }
-
-  function putArtistsAlbumsLive (artists) {
-    const albums = _.flatMapDeep(artists, artist => artist.albums)
-    const truncatedAlbums = _.map(_.compact(albums), ({name, popularity, id}) => {
-      return {name, popularity, id}
-    })
-    const uniqueTruncatedAlbums = _.uniqBy(truncatedAlbums, 'id')
-    // const topAlbums = _.filter(uniqueTruncatedAlbums, album => album.popularity >= 26 && album.popularity < 40)
-    console.log(JSON.stringify(uniqueTruncatedAlbums, null, 1))
+  function getVideos (ids) {
+    const videoCaller = Rx.Observable.bindNodeCallback(youtube.getById)
+    return videoCaller(ids)
   }
 
   function getYtPlaylistItems (id) {
@@ -58,6 +41,20 @@ module.exports = function (ytVideos) {
 
     const playlistItems = Rx.Observable.concat(itemInitialResult, itemSubsequentResults)
     return playlistItems
+  }
+
+  function searchYtVideos (query, maxresults) {
+    const ytVideos = searchYt(query, maxresults, 'video')
+
+    const videoContentDetailsAndStats = ytVideos.pluck('id', 'videoId').bufferCount(50).concatMap((ids) => {
+      return getVideos(ids.join())
+    }).pluck('items').concatMap((item) => Rx.Observable.from(item))
+
+    const detailedYtVideos = Rx.Observable.zip(ytVideos, videoContentDetailsAndStats, (video, detailedStat) => {
+      detailedStat.snippet = video.snippet
+      return detailedStat
+    })
+    return detailedYtVideos
   }
 
   function searchYt (query, maxresults, type) {
@@ -93,5 +90,28 @@ module.exports = function (ytVideos) {
     const artists = await
       enrichedArtists.find(filter)
     return artists
+  }
+
+  function putArtistsTopTracksLive (artists) {
+    const tracks = _.flatMapDeep(artists, (artist) => {
+      const track = _.flatMap(_.compact(artist.topTracks), track => track.track)
+      return track
+    })
+    const truncatedTracks = _.map(_.compact(tracks), ({id, name, popularity}) => {
+      return {id, name, popularity}
+    })
+
+    const uniqueTruncatedTracks = _.uniqBy(truncatedTracks, 'id')
+    console.log(JSON.stringify(uniqueTruncatedTracks, null, 1))
+  }
+
+  function putArtistsAlbumsLive (artists) {
+    const albums = _.flatMapDeep(artists, artist => artist.albums)
+    const truncatedAlbums = _.map(_.compact(albums), ({name, popularity, id}) => {
+      return {name, popularity, id}
+    })
+    const uniqueTruncatedAlbums = _.uniqBy(truncatedAlbums, 'id')
+    // const topAlbums = _.filter(uniqueTruncatedAlbums, album => album.popularity >= 26 && album.popularity < 40)
+    console.log(JSON.stringify(uniqueTruncatedAlbums, null, 1))
   }
 }
