@@ -13,7 +13,7 @@ module.exports = function (ytVideos) {
     const artists = await findArtistsByPopularity(70, 100)
     // putArtistsAlbumsLive(artists)
     classifier.train()
-    searchYtVideos('music video', 200).subscribe(x => {
+    searchYtVideos('sigur ros live', 200).subscribe(x => {
       const classy = classifier.getClassifications((x.snippet.title))
       console.log(classy)
       console.log(x.snippet.title)
