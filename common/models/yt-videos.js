@@ -12,20 +12,19 @@ module.exports = function (ytVideos) {
   ytVideos.putArtistsLive = async function (callback) {
     const artists = await findArtistsByPopularity(70, 100)
     // putArtistsAlbumsLive(artists)
-/*
+
     classifier.train()
-    searchYtVideos('metallica live', 200).subscribe(x => {
+    searchYtVideos('red sparowes live', 200).subscribe(x => {
       const classy = classifier.getClassifications((x.snippet.title))
       console.log(classy)
       console.log(x.snippet.title)
     })
-*/
 
     /* ytVideos.pluck('id', 'videoId').bufferCount(10).concatMap((id) => {
      return getVideos(id.join())
      }).subscribe(x => console.log(JSON.stringify(x, null, 2)))*/
 
-   getYtPlaylistItems('PLE23710E948D187C0').subscribe(x => console.log(x))
+    //  getYtPlaylistItems('PLE23710E948D187C0').subscribe(x => console.log(x))
     // TODO
     callback(null)
   }
