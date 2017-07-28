@@ -13,10 +13,7 @@ module.exports = function (ytVideos) {
     const artists = await findArtistsByPopularity(70, 100)
     // putArtistsAlbumsLive(artists)
 
-    classifier.train()
-    searchYtVideos('red sparowes live', 200).subscribe(x => {
-      const classy = classifier.getClassifications((x.snippet.title))
-      console.log(classy)
+    searchYtVideos('lana del rey live', 200).subscribe(x => {
       console.log(x.snippet.title)
     })
 
@@ -24,7 +21,7 @@ module.exports = function (ytVideos) {
      return getVideos(id.join())
      }).subscribe(x => console.log(JSON.stringify(x, null, 2)))*/
 
-    //  getYtPlaylistItems('PLE23710E948D187C0').subscribe(x => console.log(x))
+    // getYtPlaylistVideos('PLE23710E948D187C0').subscribe(x => console.log(x))
     // TODO
     callback(null)
   }
@@ -46,12 +43,26 @@ module.exports = function (ytVideos) {
       return itemResult
     }).pluck('items').concatMap(result => Rx.Observable.from(result))
 
-    const playlistItems = Rx.Observable.concat(itemInitialResult, itemSubsequentResults)
+    const playlistItems = Rx.Observable.concat(itemInitialResult, itemSubsequentResults).filter(result => filterVideoByTitle(result))
     return playlistItems
   }
 
+  function getYtPlaylistVideos (id) {
+    const playlistItems = getYtPlaylistItems(id)
+
+    const videoContentDetailsAndStats = playlistItems.pluck('snippet', 'resourceId', 'videoId').bufferCount(50).concatMap((ids) => {
+      return getVideos(ids.join())
+    }).pluck('items').concatMap((item) => Rx.Observable.from(item))
+
+    const playlistVideos = Rx.Observable.zip(playlistItems, videoContentDetailsAndStats, (playlistItem, detailedStat) => {
+      detailedStat.snippet = playlistItem.snippet
+      return detailedStat
+    })
+    return playlistVideos
+  }
+
   function searchYtVideos (query, maxresults) {
-    const ytVideos = searchYt(query, maxresults, 'video')
+    const ytVideos = searchYt(query, maxresults, 'video').filter(result => filterVideoByTitle(result))
 
     const videoContentDetailsAndStats = ytVideos.pluck('id', 'videoId').bufferCount(50).concatMap((ids) => {
       return getVideos(ids.join())
@@ -97,6 +108,17 @@ module.exports = function (ytVideos) {
     const artists = await
       enrichedArtists.find(filter)
     return artists
+  }
+
+  function filterVideoByTitle (video) {
+    let canAccept = false
+    const classification = classifier.getClassifications(video.snippet.title)
+    _.forEach(classification, (result) => {
+      if (result.label === 'accept' && result.value >= 0.5) {
+        canAccept = true
+      }
+    })
+    return canAccept
   }
 
   function putArtistsTopTracksLive (artists) {
