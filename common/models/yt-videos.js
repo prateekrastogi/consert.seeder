@@ -6,6 +6,9 @@ const _ = require('lodash')
 const loginAssist = require('../../lib/login-assist')
 const classifier = require('../../lib/classifier').logClassifier()
 
+// Building search cache to minimize network calls and its associated cost
+let searchCache = []
+
 module.exports = function (ytVideos) {
   const youtube = loginAssist.ytLogin()
 
@@ -74,7 +77,6 @@ module.exports = function (ytVideos) {
       return getVideos(ids.join())
     }).pluck('items').concatMap((item) => Rx.Observable.from(item))
 
-    // TODO: Each independent execution of observable issues separate api calls so we are incurring calls while zipping and getting video stats.
     const detailedYtVideos = Rx.Observable.zip(ytVideos, videoContentDetailsAndStats, (video, detailedStat) => {
       detailedStat.snippet = video.snippet
       return detailedStat
@@ -83,6 +85,13 @@ module.exports = function (ytVideos) {
   }
 
   function searchYt (query, maxresults, type) {
+    /* Each independent execution of observable issues separate api calls so we are incurring calls while zipping and getting video stats.
+     * Cache for the a query expires after just single hit coz zipping involves only two independent executions, if needed more in future change here */
+    const cachedResult = _.remove(searchCache, ['query', query])
+    if (cachedResult.length !== 0) {
+      return cachedResult[0].result
+    }
+
     const resultModules = maxresults % 50
     const resultDivision = _.floor(maxresults / 50)
     let nextPageToken
@@ -103,7 +112,12 @@ module.exports = function (ytVideos) {
         }).concatMap(result => Rx.Observable.from(result.items))
         return searchResults
       })
-    return Rx.Observable.concat(moduloResults, divisionResults)
+    const searchResult = Rx.Observable.concat(moduloResults, divisionResults)
+
+    // Building the cache
+    searchCache = _.concat(searchCache, {query: query, result: searchResult})
+
+    return searchResult
   }
 
   async function findArtistsByPopularity (lowerBound, upperBound) {
