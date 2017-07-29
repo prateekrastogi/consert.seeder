@@ -13,8 +13,11 @@ module.exports = function (ytVideos) {
     const artists = await findArtistsByPopularity(70, 100)
     // putArtistsAlbumsLive(artists)
 
-    searchYtVideos('lana del rey live', 200).subscribe(x => {
-      console.log(x.snippet.title)
+    let count = 0
+    const queries = ['lana del rey live', 'lana del rey concert', 'lana del rey live performance']
+    searchYtVideos(queries, 200).subscribe(x => {
+      console.log(count)
+      count++
     })
 
     /* ytVideos.pluck('id', 'videoId').bufferCount(10).concatMap((id) => {
@@ -61,13 +64,17 @@ module.exports = function (ytVideos) {
     return playlistVideos
   }
 
-  function searchYtVideos (query, maxresults) {
-    const ytVideos = searchYt(query, maxresults, 'video').filter(result => filterVideoByTitle(result))
+  function searchYtVideos (queries, maxresults) {
+    const queryObservable = Rx.Observable.from(queries)
+
+    const ytVideos = queryObservable.mergeMap(query => searchYt(query, maxresults, 'video').filter(result => filterVideoByTitle(result)))
+      .distinct(value => value.id.videoId)
 
     const videoContentDetailsAndStats = ytVideos.pluck('id', 'videoId').bufferCount(50).concatMap((ids) => {
       return getVideos(ids.join())
     }).pluck('items').concatMap((item) => Rx.Observable.from(item))
 
+    // TODO: Each independent execution of observable issues separate api calls so we are incurring calls while zipping and getting video stats.
     const detailedYtVideos = Rx.Observable.zip(ytVideos, videoContentDetailsAndStats, (video, detailedStat) => {
       detailedStat.snippet = video.snippet
       return detailedStat
@@ -103,10 +110,9 @@ module.exports = function (ytVideos) {
     const enrichedArtists = app.models.enrichedArtists
     const filter = {
       where: {and: [{or: [{isCrawled: false}, {isCrawled: {exists: false}}]}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
-      fields: {id: true, artists: true, topTracks: true, albums: true}
+      fields: {id: true, artist: true, topTracks: true, albums: true}
     }
-    const artists = await
-      enrichedArtists.find(filter)
+    const artists = await enrichedArtists.find(filter)
     return artists
   }
 
