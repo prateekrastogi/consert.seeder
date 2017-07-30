@@ -41,7 +41,7 @@ module.exports = function (ytVideos) {
       if (prevCrawledArtistId !== result.artistId && prevCrawledArtistId !== undefined) {
         let enrichedArtistInstance = await enrichedArtists.findById(prevCrawledArtistId)
         enrichedArtistInstance.areArtistVideosCrawled = true
-        await enrichedArtists.replaceOrCreate(enrichedArtistInstance)
+       // / await enrichedArtists.replaceOrCreate(enrichedArtistInstance)
       }
 
       prevCrawledArtistId = result.artistId
@@ -168,7 +168,7 @@ module.exports = function (ytVideos) {
     const enrichedArtists = app.models.enrichedArtists
     const filter = {
       where: {and: [{or: [{areArtistVideosCrawled: false}, {areArtistVideosCrawled: {exists: false}}]}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
-      fields: {id: true, artist: true, topTracks: true, albums: true}
+      fields: {id: true, artist: true, topTracks: false, albums: false}
     }
     const artists = await enrichedArtists.find(filter)
     return artists
