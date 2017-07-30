@@ -15,7 +15,7 @@ module.exports = function (ytVideos) {
 
   ytVideos.putArtistsVideosLive = async function (callback) {
     const enrichedArtists = app.models.enrichedArtists
-    const artists = await findArtistsByPopularity(70, 100)
+    const artists = await findVideoUnCrawledArtistsByPopularity(70, 100)
 
     const topArtists = Rx.Observable.from(artists)
     let prevCrawledArtistId
@@ -164,7 +164,7 @@ module.exports = function (ytVideos) {
     return searchResult
   }
 
-  async function findArtistsByPopularity (lowerBound, upperBound) {
+  async function findVideoUnCrawledArtistsByPopularity (lowerBound, upperBound) {
     const enrichedArtists = app.models.enrichedArtists
     const filter = {
       where: {and: [{or: [{areArtistVideosCrawled: false}, {areArtistVideosCrawled: {exists: false}}]}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
