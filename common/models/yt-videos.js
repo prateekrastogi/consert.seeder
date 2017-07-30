@@ -6,30 +6,63 @@ const _ = require('lodash')
 const loginAssist = require('../../lib/login-assist')
 const classifier = require('../../lib/classifier').logClassifier()
 
-// Building search cache to minimize network calls and its associated cost
+// Building caches to minimize network calls and its associated cost
 let searchCache = []
+let playlistItemCache = []
 
 module.exports = function (ytVideos) {
   const youtube = loginAssist.ytLogin()
 
-  ytVideos.putArtistsLive = async function (callback) {
+  ytVideos.putArtistsVideosLive = async function (callback) {
+    const enrichedArtists = app.models.enrichedArtists
     const artists = await findArtistsByPopularity(70, 100)
-    // putArtistsAlbumsLive(artists)
 
+    const topArtists = Rx.Observable.from(artists)
+    let prevCrawledArtistId
     let count = 0
-    const queries = ['lana del rey live', 'lana del rey concert', 'lana del rey live performance']
-    searchYtVideos(queries, 200).subscribe(x => {
-      console.log(count)
+
+    topArtists.concatMap((artist) => {
+      const artistName = artist.artist.name
+      console.log(`Total artists crawled: ${count}`)
       count++
+      console.log(`Crawling the artist: ${artistName}`)
+      const queries = [`${artistName} live`, `${artistName} concert`, `${artistName} live performance`]
+
+      const videoResult = searchYtVideos(queries, 3)
+
+      const resultWithArtistId = videoResult.map(result => {
+        return {result: result, artistId: artist.id}
+      })
+      return resultWithArtistId
+    }).subscribe(async (result) => {
+      const updatedVideo = await videoObjectUpdater(result.result, {artists: result.artistId})
+      await ytVideos.replaceOrCreate(updatedVideo)
+
+      if (prevCrawledArtistId !== result.artistId && prevCrawledArtistId !== undefined) {
+        let enrichedArtistInstance = await enrichedArtists.findById(prevCrawledArtistId)
+        enrichedArtistInstance.areArtistVideosCrawled = true
+        await enrichedArtists.replaceOrCreate(enrichedArtistInstance)
+      }
+
+      prevCrawledArtistId = result.artistId
     })
 
-    /* ytVideos.pluck('id', 'videoId').bufferCount(10).concatMap((id) => {
-     return getVideos(id.join())
-     }).subscribe(x => console.log(JSON.stringify(x, null, 2)))*/
-
-    // getYtPlaylistVideos('PLE23710E948D187C0').subscribe(x => console.log(x))
     // TODO
     callback(null)
+  }
+
+  async function videoObjectUpdater (video, {artists, albums, tracks}) {
+    const videoInstance = await ytVideos.findById(video.id)
+    if (videoInstance !== null) {
+      artists = _.union(artists, videoInstance.artists)
+      albums = _.union(albums, videoInstance.albums)
+      tracks = _.union(tracks, videoInstance.tracks)
+    }
+
+    video.artists = _.castArray(artists)
+    video.albums = _.castArray(albums)
+    video.tracks = _.castArray(tracks)
+    return video
   }
 
   function getVideos (ids) {
@@ -38,6 +71,11 @@ module.exports = function (ytVideos) {
   }
 
   function getYtPlaylistItems (id) {
+    const cachedResult = _.remove(playlistItemCache, ['id', id])
+    if (cachedResult.length !== 0) {
+      return cachedResult[0].items
+    }
+
     let nextPageToken
     const itemsFunction = Rx.Observable.bindNodeCallback(youtube.getPlayListsItemsById)
     const itemInitialResult = itemsFunction(id, 50).do(x => {
@@ -50,13 +88,19 @@ module.exports = function (ytVideos) {
     }).pluck('items').concatMap(result => Rx.Observable.from(result))
 
     const playlistItems = Rx.Observable.concat(itemInitialResult, itemSubsequentResults).filter(result => filterVideoByTitle(result))
+
+    // Building the cache
+    playlistItemCache = _.concat(playlistItemCache, {id: id, items: playlistItems})
+
     return playlistItems
   }
 
   function getYtPlaylistVideos (id) {
     const playlistItems = getYtPlaylistItems(id)
 
-    const videoContentDetailsAndStats = playlistItems.pluck('snippet', 'resourceId', 'videoId').bufferCount(50).concatMap((ids) => {
+    const playlistIds = getYtPlaylistItems(id).pluck('snippet', 'resourceId', 'videoId').bufferCount(50)
+
+    const videoContentDetailsAndStats = playlistIds.concatMap((ids) => {
       return getVideos(ids.join())
     }).pluck('items').concatMap((item) => Rx.Observable.from(item))
 
@@ -123,7 +167,7 @@ module.exports = function (ytVideos) {
   async function findArtistsByPopularity (lowerBound, upperBound) {
     const enrichedArtists = app.models.enrichedArtists
     const filter = {
-      where: {and: [{or: [{isCrawled: false}, {isCrawled: {exists: false}}]}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
+      where: {and: [{or: [{areArtistVideosCrawled: false}, {areArtistVideosCrawled: {exists: false}}]}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
       fields: {id: true, artist: true, topTracks: true, albums: true}
     }
     const artists = await enrichedArtists.find(filter)

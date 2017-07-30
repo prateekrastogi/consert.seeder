@@ -12,7 +12,12 @@
       "id": true,
       "required": true
     },
-    "isCrawled": {
+    "areArtistVideosCrawled": {
+      "type": "boolean",
+      "required": false,
+      "default": false
+    },
+    "areArtistPlayListsCrawled": {
       "type": "boolean",
       "required": false,
       "default": false

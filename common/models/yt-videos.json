@@ -5,24 +5,39 @@
   "options": {
     "validateUpsert": true
   },
-  "properties": {},
-  "validations": [],
-  "relations": {
-    "enrichedArtists": {
-      "type": "hasAndBelongsToMany",
-      "model": "enrichedArtists",
-      "foreignKey": ""
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": true,
+      "required": true
+    },
+    "artists": {
+      "type": [
+        "string"
+      ]
+    },
+    "albums": {
+      "type": [
+        "string"
+      ]
+    },
+    "tracks": {
+      "type": [
+        "string"
+      ]
     }
   },
+  "validations": [],
+  "relations": {},
   "acls": [],
   "methods": {
-    "putArtistsLive": {
+    "putArtistsVideosLive": {
       "accepts": [],
       "returns": [],
       "description": "search and save artists related live performances",
       "http": [
         {
-          "path": "/putArtistsLive",
+          "path": "/putArtistsVideosLive",
           "verb": "put"
         }
       ]
