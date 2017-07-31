@@ -18,7 +18,6 @@ module.exports = function (ytVideos) {
     const artists = await findVideoUnCrawledArtistsByPopularity(70, 100)
 
     const topArtists = Rx.Observable.from(artists)
-    let prevCrawledArtistId
     let count = 0
 
     topArtists.concatMap((artist) => {
