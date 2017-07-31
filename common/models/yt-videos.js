@@ -28,23 +28,28 @@ module.exports = function (ytVideos) {
       console.log(`Crawling the artist: ${artistName}`)
       const queries = [`${artistName} live`, `${artistName} concert`, `${artistName} live performance`]
 
-      const videoResult = searchYtVideos(queries, 3)
+      const videoResult = searchYtVideos(queries, 150)
+
+      const enrichedArtistInstance = Rx.Observable.fromPromise(enrichedArtists.findById(artist.id))
+
+      const enrichedArtistVideoCrawledSetter = enrichedArtistInstance.map((enrichedArtist) => {
+        enrichedArtist.areArtistVideosCrawled = true
+        return enrichedArtist
+      }).concatMap((updatedEnrichedArtist) => Rx.Observable.fromPromise(enrichedArtists.replaceOrCreate(updatedEnrichedArtist)))
+        .concatMap((obj) => Rx.Observable.empty())
 
       const resultWithArtistId = videoResult.map(result => {
         return {result: result, artistId: artist.id}
       })
-      return resultWithArtistId
+
+      // Marking the artist as crawled after all its search result returned.
+      const resultWithArtistIdAndCrawlMarked = Rx.Observable.concat(resultWithArtistId, enrichedArtistVideoCrawledSetter)
+
+      return resultWithArtistIdAndCrawlMarked
     }).subscribe(async (result) => {
       const updatedVideo = await videoObjectUpdater(result.result, {artists: result.artistId})
       await ytVideos.replaceOrCreate(updatedVideo)
-
-      if (prevCrawledArtistId !== result.artistId && prevCrawledArtistId !== undefined) {
-        let enrichedArtistInstance = await enrichedArtists.findById(prevCrawledArtistId)
-        enrichedArtistInstance.areArtistVideosCrawled = true
-       // / await enrichedArtists.replaceOrCreate(enrichedArtistInstance)
-      }
-
-      prevCrawledArtistId = result.artistId
+      console.log(result.artistId)
     })
 
     // TODO
