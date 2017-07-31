@@ -55,23 +55,18 @@ module.exports = function (ytVideos) {
     callback(null)
   }
 
-  async function videoObjectUpdater (video, {artists, albums, tracks}) {
-    const videoInstance = await ytVideos.findById(video.id)
-    if (videoInstance !== null) {
-      artists = _.union(artists, videoInstance.artists)
-      albums = _.union(albums, videoInstance.albums)
-      tracks = _.union(tracks, videoInstance.tracks)
-    }
+  ytVideos.setArtistsByPopularityForVideoReCrawl = async function (lowerBound, upperBound, callback) {
+    const artistIds = await findVideoCrawledArtistsByPopularity(lowerBound, upperBound)
+    const enrichedArtists = app.models.enrichedArtists
 
-    video.artists = _.castArray(artists)
-    video.albums = _.castArray(albums)
-    video.tracks = _.castArray(tracks)
-    return video
-  }
+    Rx.Observable.from(artistIds).pluck('id').concatMap(id => Rx.Observable.fromPromise(enrichedArtists.findById(id)))
+      .concatMap((enrichedArtistInstance) => {
+        enrichedArtistInstance.areArtistVideosCrawled = false
+        return Rx.Observable.fromPromise(enrichedArtists.replaceOrCreate(enrichedArtistInstance))
+      }).subscribe((artist) => console.log(`Successfully marked ${artist.artist.name} for re-crawl`))
 
-  function getVideos (ids) {
-    const videoCaller = Rx.Observable.bindNodeCallback(youtube.getById)
-    return videoCaller(ids)
+    // TODO
+    callback(null)
   }
 
   function getYtPlaylistItems (id) {
@@ -168,14 +163,9 @@ module.exports = function (ytVideos) {
     return searchResult
   }
 
-  async function findVideoUnCrawledArtistsByPopularity (lowerBound, upperBound) {
-    const enrichedArtists = app.models.enrichedArtists
-    const filter = {
-      where: {and: [{or: [{areArtistVideosCrawled: false}, {areArtistVideosCrawled: {exists: false}}]}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
-      fields: {id: true, artist: true, topTracks: false, albums: false}
-    }
-    const artists = await enrichedArtists.find(filter)
-    return artists
+  function getVideos (ids) {
+    const videoCaller = Rx.Observable.bindNodeCallback(youtube.getById)
+    return videoCaller(ids)
   }
 
   function filterVideoByTitle (video) {
@@ -187,6 +177,40 @@ module.exports = function (ytVideos) {
       }
     })
     return canAccept
+  }
+
+  async function videoObjectUpdater (video, {artists, albums, tracks}) {
+    const videoInstance = await ytVideos.findById(video.id)
+    if (videoInstance !== null) {
+      artists = _.union(artists, videoInstance.artists)
+      albums = _.union(albums, videoInstance.albums)
+      tracks = _.union(tracks, videoInstance.tracks)
+    }
+
+    video.artists = _.castArray(artists)
+    video.albums = _.castArray(albums)
+    video.tracks = _.castArray(tracks)
+    return video
+  }
+
+  async function findVideoUnCrawledArtistsByPopularity (lowerBound, upperBound) {
+    const enrichedArtists = app.models.enrichedArtists
+    const filter = {
+      where: {and: [{or: [{areArtistVideosCrawled: false}, {areArtistVideosCrawled: {exists: false}}]}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
+      fields: {id: true, artist: true, topTracks: false, albums: false}
+    }
+    const artists = await enrichedArtists.find(filter)
+    return artists
+  }
+
+  async function findVideoCrawledArtistsByPopularity (lowerBound, upperBound) {
+    const enrichedArtists = app.models.enrichedArtists
+    const filter = {
+      where: {and: [{'areArtistVideosCrawled': true}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
+      fields: {id: true, artist: false, topTracks: false, albums: false}
+    }
+    const artists = await enrichedArtists.find(filter)
+    return artists
   }
 
   function putArtistsTopTracksLive (artists) {
