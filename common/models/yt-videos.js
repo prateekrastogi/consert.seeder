@@ -13,9 +13,25 @@ let playlistItemCache = []
 module.exports = function (ytVideos) {
   const youtube = loginAssist.ytLogin()
 
-  ytVideos.putArtistsVideosLive = async function (callback) {
+  ytVideos.putArtistsVideosLive = async function (lowerBound, upperBound, callback) {
     const enrichedArtists = app.models.enrichedArtists
-    const artists = await findVideoUnCrawledArtistsByPopularity(70, 100)
+    let maxResults  // max results per search query
+
+    switch (lowerBound) {
+      case 70:
+        maxResults = 150
+        break
+      case 60:
+        maxResults = 100
+        break
+      case 44:
+        maxResults = 50
+        break
+      default:
+        maxResults = 50
+    }
+
+    const artists = await findVideoUnCrawledArtistsByPopularity(lowerBound, upperBound)
 
     const topArtists = Rx.Observable.from(artists)
     let count = 0
@@ -27,7 +43,7 @@ module.exports = function (ytVideos) {
       console.log(`Crawling the artist: ${artistName}`)
       const queries = [`${artistName} live`, `${artistName} concert`, `${artistName} live performance`]
 
-      const videoResult = searchYtVideos(queries, 150)
+      const videoResult = searchYtVideos(queries, maxResults)
 
       const enrichedArtistInstance = Rx.Observable.fromPromise(enrichedArtists.findById(artist.id))
 
@@ -48,7 +64,6 @@ module.exports = function (ytVideos) {
     }).subscribe(async (result) => {
       const updatedVideo = await videoObjectUpdater(result.result, {artists: result.artistId})
       await ytVideos.replaceOrCreate(updatedVideo)
-      console.log(result.artistId)
     })
 
     // TODO
@@ -63,7 +78,7 @@ module.exports = function (ytVideos) {
       .concatMap((enrichedArtistInstance) => {
         enrichedArtistInstance.areArtistVideosCrawled = false
         return Rx.Observable.fromPromise(enrichedArtists.replaceOrCreate(enrichedArtistInstance))
-      }).subscribe((artist) => console.log(`Successfully marked ${artist.artist.name} for re-crawl`))
+      }).subscribe((artist) => console.log(`Artist marked for re-crawling: ${artist.artist.name}`))
 
     // TODO
     callback(null)

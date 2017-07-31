@@ -32,7 +32,26 @@
   "acls": [],
   "methods": {
     "putArtistsVideosLive": {
-      "accepts": [],
+      "accepts": [
+        {
+          "arg": "lowerBound",
+          "type": "number",
+          "required": true,
+          "description": "Lower Bound of artist popularity",
+          "http": {
+            "source": "query"
+          }
+        },
+        {
+          "arg": "upperBound",
+          "type": "number",
+          "required": true,
+          "description": "Upper Bound of artist popularity",
+          "http": {
+            "source": "query"
+          }
+        }
+      ],
       "returns": [],
       "description": "search and save artists related live performances",
       "http": [
