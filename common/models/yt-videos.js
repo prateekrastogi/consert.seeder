@@ -19,7 +19,7 @@ module.exports = function (ytVideos) {
 
     switch (lowerBound) {
       case 70:
-        maxResults = 150
+        maxResults = 100
         break
       case 60:
         maxResults = 100
