@@ -4,6 +4,7 @@ const app = require('../../server/server')
 const Rx = require('rxjs')
 const _ = require('lodash')
 const loginAssist = require('../../lib/login-assist')
+const dbQueries = require('../../lib/reusable-db-queries')
 const classifier = require('../../lib/classifier').logClassifier()
 
 // Building caches to minimize network calls and its associated cost
@@ -31,7 +32,7 @@ module.exports = function (ytVideos) {
         maxResults = 50
     }
 
-    const artists = await findVideoUnCrawledArtistsByPopularity(lowerBound, upperBound)
+    const artists = await dbQueries.findVideoUnCrawledArtistsByPopularity(lowerBound, upperBound)
 
     const topArtists = Rx.Observable.from(artists)
     let count = 0
@@ -71,7 +72,7 @@ module.exports = function (ytVideos) {
   }
 
   ytVideos.setArtistsByPopularityForVideoReCrawl = async function (lowerBound, upperBound, callback) {
-    const artistIds = await findVideoCrawledArtistsByPopularity(lowerBound, upperBound)
+    const artistIds = await dbQueries.findVideoCrawledArtistsByPopularity(lowerBound, upperBound)
     const enrichedArtists = app.models.enrichedArtists
 
     Rx.Observable.from(artistIds).pluck('id').concatMap(id => Rx.Observable.fromPromise(enrichedArtists.findById(id)))
@@ -206,26 +207,6 @@ module.exports = function (ytVideos) {
     video.albums = _.castArray(albums)
     video.tracks = _.castArray(tracks)
     return video
-  }
-
-  async function findVideoUnCrawledArtistsByPopularity (lowerBound, upperBound) {
-    const enrichedArtists = app.models.enrichedArtists
-    const filter = {
-      where: {and: [{or: [{areArtistVideosCrawled: false}, {areArtistVideosCrawled: {exists: false}}]}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
-      fields: {id: true, artist: true, topTracks: false, albums: false}
-    }
-    const artists = await enrichedArtists.find(filter)
-    return artists
-  }
-
-  async function findVideoCrawledArtistsByPopularity (lowerBound, upperBound) {
-    const enrichedArtists = app.models.enrichedArtists
-    const filter = {
-      where: {and: [{'areArtistVideosCrawled': true}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
-      fields: {id: true, artist: false, topTracks: false, albums: false}
-    }
-    const artists = await enrichedArtists.find(filter)
-    return artists
   }
 
   function putArtistsTopTracksLive (artists) {

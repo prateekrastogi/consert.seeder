@@ -48,5 +48,9 @@
   "ytVideos": {
     "dataSource": "seeder",
     "public": true
+  },
+  "recombee": {
+    "dataSource": null,
+    "public": true
   }
 }
