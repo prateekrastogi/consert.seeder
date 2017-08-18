@@ -6,5 +6,20 @@
     "name": "seeder",
     "user": "",
     "connector": "mongodb"
+  },
+  "elasticsearch": {
+    "name": "elasticsearch",
+    "connector": "es",
+    "index": "backend",
+    "hosts": [
+      {
+        "host": "10.55.250.250",
+        "port": 9200
+      }
+    ],
+    "apiVersion": "5.0",
+    "defaultSize": 50,
+    "log": "trace",
+    "requestTimeout": 30000
   }
 }

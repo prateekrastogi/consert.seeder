@@ -69,6 +69,24 @@
           "verb": "put"
         }
       ]
+    },
+    "setItemProperties": {
+      "accepts": [],
+      "returns": [
+        {
+          "arg": "isSuccess",
+          "type": "boolean",
+          "root": false,
+          "description": "Returns whether request has been successful"
+        }
+      ],
+      "description": "sets the itemProperties of recombee database items",
+      "http": [
+        {
+          "path": "/setItemProperties",
+          "verb": "post"
+        }
+      ]
     }
   }
 }

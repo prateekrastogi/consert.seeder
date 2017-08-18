@@ -30,4 +30,15 @@ module.exports = function (Recombee) {
 
     callback(null)
   }
+
+  /**
+   * sets the itemProperties of recombee database items
+   * @param {Function(Error, boolean)} callback
+   */
+
+  Recombee.setItemProperties = function (callback) {
+    var isSuccess
+    // TODO
+    callback(null, isSuccess)
+  }
 }
