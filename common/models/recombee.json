@@ -72,14 +72,7 @@
     },
     "setItemProperties": {
       "accepts": [],
-      "returns": [
-        {
-          "arg": "isSuccess",
-          "type": "boolean",
-          "root": false,
-          "description": "Returns whether request has been successful"
-        }
-      ],
+      "returns": [],
       "description": "sets the itemProperties of recombee database items",
       "http": [
         {

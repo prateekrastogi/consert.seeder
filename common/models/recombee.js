@@ -49,8 +49,7 @@ module.exports = function (Recombee) {
       console.log(result)
     })
 */
-    //recombeeQueries.resetDatabase()
-    recombeeQueries.setItemProperties()
+    recombeeQueries.resetDatabase()
     callback(null)
   }
 
@@ -60,8 +59,7 @@ module.exports = function (Recombee) {
    */
 
   Recombee.setItemProperties = function (callback) {
-    var isSuccess
-    // TODO
-    callback(null, isSuccess)
+    recombeeQueries.setItemProperties().subscribe(x => console.log(x), e => console.error(e))
+    callback(null)
   }
 }
