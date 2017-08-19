@@ -1,7 +1,7 @@
 'use strict'
 
 const loginAssist = require('../../lib/login-assist')
-const dbQueries = require('../../lib/enrichedArtists-db-queries')
+const dbQueries = require('../../lib/db-queries')
 const recombeeQueries = require('../../lib/recombee-queries')
 const recombeeRqs = require('recombee-api-client').requests
 const Rx = require('rxjs')
@@ -49,7 +49,6 @@ module.exports = function (Recombee) {
       console.log(result)
     })
 */
-    recombeeQueries.resetDatabase()
     callback(null)
   }
 
