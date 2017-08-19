@@ -4,7 +4,7 @@ const app = require('../../server/server')
 const Rx = require('rxjs')
 const _ = require('lodash')
 const loginAssist = require('../../lib/login-assist')
-const dbQueries = require('../../lib/reusable-db-queries')
+const enrichedArtistsdbQueries = require('../../lib/enrichedArtists-db-queries')
 const classifier = require('../../lib/classifier').logClassifier()
 
 // Building caches to minimize network calls and its associated cost
@@ -32,7 +32,7 @@ module.exports = function (ytVideos) {
         maxResults = 50
     }
 
-    const artists = await dbQueries.findVideoUnCrawledArtistsByPopularity(lowerBound, upperBound)
+    const artists = await enrichedArtistsdbQueries.findVideoUnCrawledArtistsByPopularity(lowerBound, upperBound)
 
     const topArtists = Rx.Observable.from(artists)
     let count = 0
@@ -72,7 +72,7 @@ module.exports = function (ytVideos) {
   }
 
   ytVideos.setArtistsByPopularityForVideoReCrawl = async function (lowerBound, upperBound, callback) {
-    const artistIds = await dbQueries.findVideoCrawledArtistsByPopularity(lowerBound, upperBound)
+    const artistIds = await enrichedArtistsdbQueries.findVideoCrawledArtistsByPopularity(lowerBound, upperBound)
     const enrichedArtists = app.models.enrichedArtists
 
     Rx.Observable.from(artistIds).pluck('id').concatMap(id => Rx.Observable.fromPromise(enrichedArtists.findById(id)))
