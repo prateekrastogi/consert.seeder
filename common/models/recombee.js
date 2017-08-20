@@ -16,15 +16,17 @@ module.exports = function (recombee) {
    */
 
   recombee.seedPastShows = async function (lowerBound, upperBound, callback) {
-    const videos = await dbQueries.findRecombeeUnSyncedYtVideosInBatches(10, 49)
-    recombeeClient.send(new recombeeRqs.GetItemValues('0k17h0D3J5VfsdmQ1iZtE9'), (err, result) => {
-      console.log(err)
-      console.log(result)
-    })
-    recombeeClient.send(new recombeeRqs.ListItems(), (err, result) => {
-      console.log(err)
-      console.log(result)
-    })
+    /*    const videos = await dbQueries.findRecombeeUnSyncedYtVideosInBatches(10, 49)
+        recombeeClient.send(new recombeeRqs.GetItemValues('0k17h0D3J5VfsdmQ1iZtE9'), (err, result) => {
+          console.log(err)
+          console.log(result)
+        })
+        recombeeClient.send(new recombeeRqs.ListItems(), (err, result) => {
+          console.log(err)
+          console.log(result)
+        })*/
+
+    recombeeQueries.resetDatabase()
     // TODO
     callback(null)
   }
@@ -61,27 +63,7 @@ module.exports = function (recombee) {
       const result = Rx.Observable.concat(itemPropertyAddRequest, dbUpdateRequest)
       return result
     }).subscribe()
-    /*
-       recombeeClient.send(new recombeeRqs.AddItem('ss2'), (err, result) => {
-          console.log(err)
-          console.log(result)
-        })
-    recombeeClient.send(new recombeeRqs.AddItemProperty('random-detail', 'int'), (err, result) => {
-      console.log(err)
-      console.log(result)
-    })
 
-    recombeeClient.send(new recombeeRqs.SetItemValues('ss2', {'das': 70, 'fuck': 'alka'}, {
-      'cascadeCreate': true
-    }), (err, result) => {
-      console.log(err)
-      console.log(result)
-    })
-    recombeeClient.send(new recombeeRqs.GetItemValues('ss0'), (err, result) => {
-      console.log(err)
-      console.log(result)
-    })
-*/
     callback(null)
   }
 
@@ -94,4 +76,24 @@ module.exports = function (recombee) {
     recombeeQueries.setItemProperties().subscribe(x => console.log(x), e => console.error(e))
     callback(null)
   }
+
+  /**
+   * sets the artists in a popularity for re-sync with recombee item catalog
+   * @param {Function(Error)} callback
+   */
+
+  recombee.setArtistsForRecombeeReSyncByPopularity = function (lowerBound, upperBound, callback) {
+    const enrichedArtists = app.models.enrichedArtists
+
+    Rx.Observable.fromPromise(dbQueries.findRecombeeSyncedArtistsByPopularity(lowerBound, upperBound))
+      .concatMap(artists => Rx.Observable.from(artists)).concatMap(({id}) => Rx.Observable.fromPromise(enrichedArtists.findById(id)))
+      .map((artist) => {
+        artist.isArtistRecombeeSynced = false
+        return artist
+      }).concatMap(artist => Rx.Observable.fromPromise(enrichedArtists.replaceOrCreate(artist)))
+      .subscribe(({artist}) => console.log(`Artist marked for Recombee Re-sync: ${artist.name}`))
+
+    callback(null)
+  }
+
 }

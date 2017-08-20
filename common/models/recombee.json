@@ -80,6 +80,36 @@
           "verb": "post"
         }
       ]
+    },
+    "setArtistsForRecombeeReSyncByPopularity": {
+      "accepts": [
+        {
+          "arg": "lowerBound",
+          "type": "number",
+          "required": true,
+          "description": "Lower Bound of artist popularity",
+          "http": {
+            "source": "query"
+          }
+        },
+        {
+          "arg": "upperBound",
+          "type": "number",
+          "required": true,
+          "description": "Upper Bound of artist popularity",
+          "http": {
+            "source": "query"
+          }
+        }
+      ],
+      "returns": [],
+      "description": "sets the artists in a popularity for re-sync with recombee item catalog",
+      "http": [
+        {
+          "path": "/setArtistsForRecombeeReSyncByPopularity",
+          "verb": "put"
+        }
+      ]
     }
   }
 }
