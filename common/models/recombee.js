@@ -1,5 +1,6 @@
 'use strict'
 
+const app = require('../../server/server')
 const loginAssist = require('../../lib/login-assist')
 const dbQueries = require('../../lib/db-queries')
 const recombeeQueries = require('../../lib/recombee-queries')
@@ -7,16 +8,16 @@ const recombeeRqs = require('recombee-api-client').requests
 const Rx = require('rxjs')
 const _ = require('lodash')
 
-module.exports = function (Recombee) {
+module.exports = function (recombee) {
   const recombeeClient = loginAssist.recombeeLogin()
   /**
    * Seeds the past recorded concerts in recombee for recommendations
    * @param {Function(Error)} callback
    */
 
-  Recombee.seedPastShows = async function (lowerBound, upperBound, callback) {
-    const artists = await dbQueries.findVideoCrawledArtistsByPopularity(lowerBound, upperBound)
-
+  recombee.seedPastShows = async function (lowerBound, upperBound, callback) {
+    const artists = await dbQueries.findRecombeeUnSyncedArtistsByPopularity(lowerBound, upperBound)
+    const videos = await dbQueries.findRecombeeUnSyncedYtVideosInBatches(10, 49)
     // TODO
     callback(null)
   }
@@ -26,8 +27,33 @@ module.exports = function (Recombee) {
    * @param {Function(Error)} callback
    */
 
-  Recombee.seedArtists = async function (lowerBound, upperBound, callback) {
-    const artists = await dbQueries.findVideoCrawledArtistsByPopularity(lowerBound, upperBound)
+  recombee.seedArtists = function (lowerBound, upperBound, callback) {
+    const artists = Rx.Observable.fromPromise(dbQueries.findRecombeeUnSyncedArtistsByPopularity(lowerBound, upperBound))
+
+    artists.concatMap(artists => Rx.Observable.from(artists)).map(value => {
+      const {artist, id} = value
+      const recombeeArtist = {
+        'itemType': 'artist',
+        'artists-ids': [artist.id],
+        'artists-genres': artist.genres,
+        'artists-names': [artist.name],
+        'artists-popularity': [`${artist.popularity}`],
+        'artists-followers': [`${artist.followers.total}`],
+        'artists-type': artist.type
+      }
+      return {recombeeArtist, id}
+    }).concatMap(({recombeeArtist, id}) => {
+      const itemPropertyAddRequest = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.SetItemValues(id, recombeeArtist, {'cascadeCreate': true})))
+
+      const enrichedArtists = app.models.enrichedArtists
+      const dbUpdateRequest = Rx.Observable.fromPromise(enrichedArtists.findById(id)).map(artist => {
+        artist.isArtistRecombeeSynced = true
+        return artist
+      }).concatMap(artist => Rx.Observable.fromPromise(enrichedArtists.replaceOrCreate(artist))).map(({artist}) => console.log(`Added in Recombee, artistItem: ${artist.name}`))
+
+      const result = Rx.Observable.concat(itemPropertyAddRequest, dbUpdateRequest)
+      return result
+    }).subscribe()
     /*
        recombeeClient.send(new recombeeRqs.AddItem('ss2'), (err, result) => {
           console.log(err)
@@ -57,7 +83,7 @@ module.exports = function (Recombee) {
    * @param {Function(Error, boolean)} callback
    */
 
-  Recombee.setItemProperties = function (callback) {
+  recombee.setItemProperties = function (callback) {
     recombeeQueries.setItemProperties().subscribe(x => console.log(x), e => console.error(e))
     callback(null)
   }
