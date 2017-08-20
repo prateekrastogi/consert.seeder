@@ -16,8 +16,15 @@ module.exports = function (recombee) {
    */
 
   recombee.seedPastShows = async function (lowerBound, upperBound, callback) {
-    const artists = await dbQueries.findRecombeeUnSyncedArtistsByPopularity(lowerBound, upperBound)
     const videos = await dbQueries.findRecombeeUnSyncedYtVideosInBatches(10, 49)
+    recombeeClient.send(new recombeeRqs.GetItemValues('0k17h0D3J5VfsdmQ1iZtE9'), (err, result) => {
+      console.log(err)
+      console.log(result)
+    })
+    recombeeClient.send(new recombeeRqs.ListItems(), (err, result) => {
+      console.log(err)
+      console.log(result)
+    })
     // TODO
     callback(null)
   }
