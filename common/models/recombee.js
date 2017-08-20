@@ -51,16 +51,22 @@ module.exports = function (recombee) {
         'artists-type': artist.type
       }
       return {recombeeArtist, id}
-    }).concatMap(({recombeeArtist, id}) => {
-      const itemPropertyAddRequest = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.SetItemValues(id, recombeeArtist, {'cascadeCreate': true})))
+    }).bufferCount(100).concatMap(bufferedValues => {
+      const rqs = _.map(bufferedValues, ({recombeeArtist, id}) => new recombeeRqs.SetItemValues(id, recombeeArtist, {'cascadeCreate': true}))
+      const itemPropertyAddBatchRequest = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.Batch(rqs)))
 
       const enrichedArtists = app.models.enrichedArtists
-      const dbUpdateRequest = Rx.Observable.fromPromise(enrichedArtists.findById(id)).map(artist => {
-        artist.isArtistRecombeeSynced = true
-        return artist
-      }).concatMap(artist => Rx.Observable.fromPromise(enrichedArtists.replaceOrCreate(artist))).map(({artist}) => console.log(`Added in Recombee, artistItem: ${artist.name}`))
+      const ids = _.map(bufferedValues, ({id}) => id)
 
-      const result = Rx.Observable.concat(itemPropertyAddRequest, dbUpdateRequest)
+      const dbUpdateBatchRequest = Rx.Observable.from(ids).concatMap(id => {
+        const dbUpdateRequest = Rx.Observable.fromPromise(enrichedArtists.findById(id)).map(artist => {
+          artist.isArtistRecombeeSynced = true
+          return artist
+        }).concatMap(artist => Rx.Observable.fromPromise(enrichedArtists.replaceOrCreate(artist))).map(({artist}) => console.log(`Adding in Recombee, artistItem: ${artist.name}`))
+        return dbUpdateRequest
+      })
+
+      const result = Rx.Observable.concat(itemPropertyAddBatchRequest, dbUpdateBatchRequest)
       return result
     }).subscribe()
 
