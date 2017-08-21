@@ -7,6 +7,9 @@ const loginAssist = require('../../lib/login-assist')
 const dbQueries = require('../../lib/db-queries')
 const classifier = require('../../lib/classifier').logClassifier()
 
+const MAX_PER_REQUEST_ITEMS = 50
+const MAGIC_SEED_FOR_ALL_POSSIBLE_PLAYLIST_SIZES = 100
+
 // Building caches to minimize network calls and its associated cost
 let searchCache = []
 let playlistItemCache = []
@@ -93,12 +96,12 @@ module.exports = function (ytVideos) {
 
     let nextPageToken
     const itemsFunction = Rx.Observable.bindNodeCallback(youtube.getPlayListsItemsById)
-    const itemInitialResult = itemsFunction(id, 50).do(x => {
+    const itemInitialResult = itemsFunction(id, MAX_PER_REQUEST_ITEMS).do(x => {
       nextPageToken = x.nextPageToken
     }).pluck('items').concatMap(result => Rx.Observable.from(result))
 
-    const itemSubsequentResults = Rx.Observable.range(1, 100).concatMap(x => {
-      const itemResult = itemsFunction(id, 50, {pageToken: nextPageToken}).takeWhile(x => nextPageToken).do(x => { nextPageToken = x.nextPageToken })
+    const itemSubsequentResults = Rx.Observable.range(1, MAGIC_SEED_FOR_ALL_POSSIBLE_PLAYLIST_SIZES).concatMap(x => {
+      const itemResult = itemsFunction(id, MAX_PER_REQUEST_ITEMS, {pageToken: nextPageToken}).takeWhile(x => nextPageToken).do(x => { nextPageToken = x.nextPageToken })
       return itemResult
     }).pluck('items').concatMap(result => Rx.Observable.from(result))
 
@@ -113,7 +116,7 @@ module.exports = function (ytVideos) {
   function getYtPlaylistVideos (id) {
     const playlistItems = getYtPlaylistItems(id)
 
-    const playlistIds = getYtPlaylistItems(id).pluck('snippet', 'resourceId', 'videoId').bufferCount(50)
+    const playlistIds = getYtPlaylistItems(id).pluck('snippet', 'resourceId', 'videoId').bufferCount(MAX_PER_REQUEST_ITEMS)
 
     const videoContentDetailsAndStats = playlistIds.concatMap((ids) => {
       return getVideos(ids.join())
@@ -132,7 +135,7 @@ module.exports = function (ytVideos) {
     const ytVideos = queryObservable.mergeMap(query => searchYt(query, maxresults, 'video').filter(result => filterVideoByTitle(result)))
       .distinct(value => value.id.videoId)
 
-    const videoContentDetailsAndStats = ytVideos.pluck('id', 'videoId').bufferCount(50).concatMap((ids) => {
+    const videoContentDetailsAndStats = ytVideos.pluck('id', 'videoId').bufferCount(MAX_PER_REQUEST_ITEMS).concatMap((ids) => {
       return getVideos(ids.join())
     }).pluck('items').concatMap((item) => Rx.Observable.from(item))
 
@@ -151,8 +154,8 @@ module.exports = function (ytVideos) {
       return cachedResult[0].result
     }
 
-    const resultModules = maxresults % 50
-    const resultDivision = _.floor(maxresults / 50)
+    const resultModules = maxresults % MAX_PER_REQUEST_ITEMS
+    const resultDivision = _.floor(maxresults / MAX_PER_REQUEST_ITEMS)
     let nextPageToken
     const searchObservable = Rx.Observable.bindNodeCallback(youtube.search)
 
@@ -162,7 +165,7 @@ module.exports = function (ytVideos) {
 
     const divisionResults = Rx.Observable.zip(Rx.Observable.range(1, resultDivision), Rx.Observable.timer(0, 100))
       .concatMap(([range, timer]) => {
-        const searchResults = searchObservable(query, 50, {
+        const searchResults = searchObservable(query, MAX_PER_REQUEST_ITEMS, {
           pageToken: nextPageToken,
           regionCode: 'US',
           type: type

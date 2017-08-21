@@ -8,6 +8,10 @@ const recombeeRqs = require('recombee-api-client').requests
 const Rx = require('rxjs')
 const _ = require('lodash')
 
+const MAX_BATCH = 10000
+const WAIT_TILL_NEXT_REQUEST = 10000
+let count = 0
+
 module.exports = function (recombee) {
   const recombeeClient = loginAssist.recombeeLogin()
   /**
@@ -15,18 +19,22 @@ module.exports = function (recombee) {
    * @param {Function(Error)} callback
    */
 
-  recombee.seedPastShows = async function (lowerBound, upperBound, callback) {
-    /*    const videos = await dbQueries.findRecombeeUnSyncedYtVideosInBatches(10, 49)
-        recombeeClient.send(new recombeeRqs.GetItemValues('0k17h0D3J5VfsdmQ1iZtE9'), (err, result) => {
-          console.log(err)
-          console.log(result)
-        })
-        recombeeClient.send(new recombeeRqs.ListItems(), (err, result) => {
-          console.log(err)
-          console.log(result)
-        })*/
+  recombee.seedPastShows = async function (callback) {
+    const ytVideos = app.models.ytVideos
+    const videos = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
+      return Rx.Observable.fromPromise(dbQueries.findRecombeeUnSyncedYtVideosInBatches(MAX_BATCH, i * MAX_BATCH))
+        .concatMap(unsyncedVideos => Rx.Observable.from(unsyncedVideos))
+    })
 
-    recombeeQueries.resetDatabase()
+    videos.map(video => {
+      const {id} = video
+      const recombeeItem = recombeeQueries.convertVideoToRecombeeVideo(video)
+      return {recombeeItem, id}
+    }).bufferCount(MAX_BATCH).concatMap(bufferedItems => writeBufferedItemsToRecommbee(bufferedItems, ytVideos)).subscribe(x => {
+      console.log(`Total videoItems added to Recombee: ${count}`)
+      count++
+    })
+
     // TODO
     callback(null)
   }
@@ -37,38 +45,15 @@ module.exports = function (recombee) {
    */
 
   recombee.seedArtists = function (lowerBound, upperBound, callback) {
+    const enrichedArtists = app.models.enrichedArtists
     const artists = Rx.Observable.fromPromise(dbQueries.findRecombeeUnSyncedArtistsByPopularity(lowerBound, upperBound))
 
     artists.concatMap(artists => Rx.Observable.from(artists)).map(value => {
       const {artist, id} = value
-      const recombeeArtist = {
-        'itemType': 'artist',
-        'artists-ids': [artist.id],
-        'artists-genres': artist.genres,
-        'artists-names': [artist.name],
-        'artists-popularity': [`${artist.popularity}`],
-        'artists-followers': [`${artist.followers.total}`],
-        'artists-type': artist.type
-      }
-      return {recombeeArtist, id}
-    }).bufferCount(100).concatMap(bufferedValues => {
-      const rqs = _.map(bufferedValues, ({recombeeArtist, id}) => new recombeeRqs.SetItemValues(id, recombeeArtist, {'cascadeCreate': true}))
-      const itemPropertyAddBatchRequest = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.Batch(rqs)))
+      const recombeeItem = recombeeQueries.convertArtistToRecombeeArtist(artist)
 
-      const enrichedArtists = app.models.enrichedArtists
-      const ids = _.map(bufferedValues, ({id}) => id)
-
-      const dbUpdateBatchRequest = Rx.Observable.from(ids).concatMap(id => {
-        const dbUpdateRequest = Rx.Observable.fromPromise(enrichedArtists.findById(id)).map(artist => {
-          artist.isArtistRecombeeSynced = true
-          return artist
-        }).concatMap(artist => Rx.Observable.fromPromise(enrichedArtists.replaceOrCreate(artist))).map(({artist}) => console.log(`Adding in Recombee, artistItem: ${artist.name}`))
-        return dbUpdateRequest
-      })
-
-      const result = Rx.Observable.concat(itemPropertyAddBatchRequest, dbUpdateBatchRequest)
-      return result
-    }).subscribe()
+      return {recombeeItem, id}
+    }).bufferCount(MAX_BATCH).concatMap(bufferedItems => writeBufferedItemsToRecommbee(bufferedItems, enrichedArtists)).subscribe()
 
     callback(null)
   }
@@ -102,4 +87,39 @@ module.exports = function (recombee) {
     callback(null)
   }
 
+  function writeBufferedItemsToRecommbee (bufferedItems, model) {
+    const rqs = _.map(bufferedItems, ({recombeeItem, id}) => new recombeeRqs.SetItemValues(id, recombeeItem, {'cascadeCreate': true}))
+    const itemPropertyAddBatchRequest = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.Batch(rqs)))
+
+    const ids = _.map(bufferedItems, ({id}) => id)
+
+    const dbUpdateBatchRequest = Rx.Observable.from(ids).concatMap(id => {
+      const dbUpdateRequest = Rx.Observable.fromPromise(model.findById(id)).map(item => {
+        switch (model.modelName) {
+          case 'enrichedArtists':
+            item.isArtistRecombeeSynced = true
+            break
+          case 'ytVideos':
+            item.isVideoRecombeeSynced = true
+            break
+        }
+        return item
+      }).concatMap(item => Rx.Observable.fromPromise(model.replaceOrCreate(item))).map((item) => {
+        switch (model.modelName) {
+          case 'enrichedArtists':
+            const {artist} = item
+            console.log(`Adding in Recombee, artistItem: ${artist.name}`)
+            break
+          case 'ytVideos':
+            const {snippet} = item
+            console.log(`Adding in Recombee, videoItem: ${snippet.title}`)
+            break
+        }
+      })
+      return dbUpdateRequest
+    })
+
+    const result = Rx.Observable.concat(itemPropertyAddBatchRequest, dbUpdateBatchRequest)
+    return result
+  }
 }
