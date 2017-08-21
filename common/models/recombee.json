@@ -102,6 +102,17 @@
           "verb": "put"
         }
       ]
+    },
+    "miscOperations": {
+      "accepts": [],
+      "returns": [],
+      "description": "Remote method for performaing miscelleneous operations in recombee",
+      "http": [
+        {
+          "path": "/miscOperations",
+          "verb": "put"
+        }
+      ]
     }
   }
 }

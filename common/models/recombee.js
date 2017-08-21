@@ -35,7 +35,6 @@ module.exports = function (recombee) {
       count++
     })
 
-    // TODO
     callback(null)
   }
 
@@ -100,6 +99,15 @@ module.exports = function (recombee) {
     recombeeQueries.setModelItemsForReSync(syncedVideos, ytVideos)
       .subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`))
 
+    callback(null)
+  }
+
+  /**
+   * Remote method for performaing miscelleneous operations in recombee
+   * @param {Function(Error)} callback
+   */
+
+  recombee.miscOperations = function (callback) {
     // TODO
     callback(null)
   }
