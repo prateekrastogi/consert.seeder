@@ -84,10 +84,21 @@
         }
       ],
       "returns": [],
-      "description": "sets the artists in a popularity for re-sync with recombee item catalog",
+      "description": "sets the artists in a popularity range for re-sync with recombee item catalog",
       "http": [
         {
           "path": "/setArtistsForRecombeeReSyncByPopularity",
+          "verb": "put"
+        }
+      ]
+    },
+    "setVideosForRecombeeReSync": {
+      "accepts": [],
+      "returns": [],
+      "description": "sets the previously seeded videos for re-sync with recombee item catalog",
+      "http": [
+        {
+          "path": "/setVideosForRecombeeReSync",
           "verb": "put"
         }
       ]

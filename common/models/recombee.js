@@ -30,7 +30,7 @@ module.exports = function (recombee) {
       const {id} = video
       const recombeeItem = recombeeQueries.convertVideoToRecombeeVideo(video)
       return {recombeeItem, id}
-    }).bufferCount(MAX_BATCH).concatMap(bufferedItems => writeBufferedItemsToRecommbee(bufferedItems, ytVideos)).subscribe(x => {
+    }).bufferCount(MAX_BATCH).concatMap(bufferedItems => recombeeQueries.writeBufferedItemsToRecommbee(bufferedItems, ytVideos)).subscribe(x => {
       console.log(`Total videoItems added to Recombee: ${count}`)
       count++
     })
@@ -53,7 +53,7 @@ module.exports = function (recombee) {
       const recombeeItem = recombeeQueries.convertArtistToRecombeeArtist(artist)
 
       return {recombeeItem, id}
-    }).bufferCount(MAX_BATCH).concatMap(bufferedItems => writeBufferedItemsToRecommbee(bufferedItems, enrichedArtists)).subscribe()
+    }).bufferCount(MAX_BATCH).concatMap(bufferedItems => recombeeQueries.writeBufferedItemsToRecommbee(bufferedItems, enrichedArtists)).subscribe()
 
     callback(null)
   }
@@ -76,50 +76,31 @@ module.exports = function (recombee) {
   recombee.setArtistsForRecombeeReSyncByPopularity = function (lowerBound, upperBound, callback) {
     const enrichedArtists = app.models.enrichedArtists
 
-    Rx.Observable.fromPromise(dbQueries.findRecombeeSyncedArtistsByPopularity(lowerBound, upperBound))
-      .concatMap(artists => Rx.Observable.from(artists)).concatMap(({id}) => Rx.Observable.fromPromise(enrichedArtists.findById(id)))
-      .map((artist) => {
-        artist.isArtistRecombeeSynced = false
-        return artist
-      }).concatMap(artist => Rx.Observable.fromPromise(enrichedArtists.replaceOrCreate(artist)))
+    const artists = Rx.Observable.fromPromise(dbQueries.findRecombeeSyncedArtistsByPopularity(lowerBound, upperBound))
+
+    recombeeQueries.setModelItemsForReSync(artists, enrichedArtists)
       .subscribe(({artist}) => console.log(`Artist marked for Recombee Re-sync: ${artist.name}`))
 
     callback(null)
   }
 
-  function writeBufferedItemsToRecommbee (bufferedItems, model) {
-    const rqs = _.map(bufferedItems, ({recombeeItem, id}) => new recombeeRqs.SetItemValues(id, recombeeItem, {'cascadeCreate': true}))
-    const itemPropertyAddBatchRequest = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.Batch(rqs)))
+  /**
+   *
+   * @param {Function(Error)} callback
+   */
 
-    const ids = _.map(bufferedItems, ({id}) => id)
+  recombee.setVideosForRecombeeReSync = function (callback) {
+    const ytVideos = app.models.ytVideos
 
-    const dbUpdateBatchRequest = Rx.Observable.from(ids).concatMap(id => {
-      const dbUpdateRequest = Rx.Observable.fromPromise(model.findById(id)).map(item => {
-        switch (model.modelName) {
-          case 'enrichedArtists':
-            item.isArtistRecombeeSynced = true
-            break
-          case 'ytVideos':
-            item.isVideoRecombeeSynced = true
-            break
-        }
-        return item
-      }).concatMap(item => Rx.Observable.fromPromise(model.replaceOrCreate(item))).map((item) => {
-        switch (model.modelName) {
-          case 'enrichedArtists':
-            const {artist} = item
-            console.log(`Adding in Recombee, artistItem: ${artist.name}`)
-            break
-          case 'ytVideos':
-            const {snippet} = item
-            console.log(`Adding in Recombee, videoItem: ${snippet.title}`)
-            break
-        }
-      })
-      return dbUpdateRequest
-    })
+    const syncedVideos = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
+      return Rx.Observable.fromPromise(dbQueries.findRecombeeSyncedYtVideosInBatches(MAX_BATCH, i * MAX_BATCH))
+        .concatMap(syncedVideos => Rx.Observable.from(syncedVideos))
+    }).bufferCount(MAX_BATCH)
 
-    const result = Rx.Observable.concat(itemPropertyAddBatchRequest, dbUpdateBatchRequest)
-    return result
+    recombeeQueries.setModelItemsForReSync(syncedVideos, ytVideos)
+      .subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`))
+
+    // TODO
+    callback(null)
   }
 }
