@@ -108,7 +108,11 @@ module.exports = function (recombee) {
    */
 
   recombee.miscOperations = function (callback) {
-    // TODO
+    recombeeClient.send(new recombeeRqs.ListItems(), (err, result) =>
+    {
+      console.log(err)
+      console.log(result)
+    })
     callback(null)
   }
 }
