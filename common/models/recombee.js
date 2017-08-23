@@ -208,7 +208,7 @@ module.exports = function (recombee) {
     const snippetThumbnails = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-thumbnails', 'string')))
     const snippetliveBroadcastContent = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-liveBroadcastContent', 'string')))
     const artistsIds = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-ids', 'set')))
-    const artistsGenres = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-genres', 'set')))
+    const artistsGenres = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('genres', 'set')))
     const artistsNames = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-names', 'set')))
     const artistsPopularity = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-popularity', 'set')))
     const artistsFollowers = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-followers', 'set')))
@@ -226,7 +226,7 @@ module.exports = function (recombee) {
     const recombeeArtist = {
       'itemType': 'artist',
       'artists-ids': [artist.id],
-      'artists-genres': artist.genres,
+      'genres': artist.genres,
       'artists-names': [artist.name],
       'artists-popularity': [`${artist.popularity}`],
       'artists-followers': [`${artist.followers.total}`],
@@ -259,7 +259,7 @@ module.exports = function (recombee) {
       'snippet-thumbnails': video.snippet.thumbnails,
       'snippet-liveBroadcastContent': video.snippet.liveBroadcastContent,
       'artists-ids': video.ArtistsIds,
-      'artists-genres': video.ArtistsGenres,
+      'genres': video.ArtistsGenres,
       'artists-names': video.ArtistsNames,
       'artists-popularity': video.ArtistsPopularity,
       'artists-followers': video.ArtistsFollowers,
