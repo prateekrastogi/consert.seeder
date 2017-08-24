@@ -12,20 +12,5 @@
   "in-mem-persist": {
     "name": "in-mem-persist",
     "connector": "memory"
-  },
-  "elasticsearch": {
-    "name": "elasticsearch",
-    "connector": "es",
-    "index": "backend",
-    "hosts": [
-      {
-        "host": "localhost",
-        "port": 9200
-      }
-    ],
-    "apiVersion": "5.0",
-    "log": "trace",
-    "defaultSize": 50,
-    "requestTimeout": 30000
   }
 }
