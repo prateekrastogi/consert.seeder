@@ -106,7 +106,10 @@ module.exports = function (recombee) {
 
   recombee.miscOperations = function (callback) {
     const clientSendAsObservable = Rx.Observable.bindNodeCallback(recombeeClient.send.bind(recombeeClient))
-    const result = clientSendAsObservable(new recombeeRqs.ListItems())
+    const result = clientSendAsObservable(new recombeeRqs.ListItems({
+      'filter': `"genre" in 'itemType'`,
+      'returnProperties': true
+    }))
     result.subscribe(x => console.log(x), e => console.error(e))
 
     callback(null)
