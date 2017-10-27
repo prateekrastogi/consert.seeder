@@ -6,7 +6,7 @@ const recombeeRqs = require('recombee-api-client').requests
 const Rx = require('rxjs')
 const _ = require('lodash')
 
-const MAX_BATCH = 10000
+const MAX_BATCH = 1
 const WAIT_TILL_NEXT_REQUEST = 10000
 let count = 0
 
@@ -107,8 +107,8 @@ module.exports = function (recombee) {
   recombee.miscOperations = function (callback) {
     const clientSendAsObservable = Rx.Observable.bindNodeCallback(recombeeClient.send.bind(recombeeClient))
     const result = clientSendAsObservable(new recombeeRqs.ListItems({
-      'filter': `"genre" in 'itemType'`,
-      'returnProperties': true
+      'filter': `not 'itemType'`,
+      'returnProperties': false
     }))
     result.subscribe(x => console.log(x), e => console.error(e))
 
@@ -160,12 +160,12 @@ module.exports = function (recombee) {
     const videoWithArtistsExtractedAndProcessed = _.map(videos, video => {
       const videoArtistsInDetail = _.map(video.artists, (artistId) => _.find(detailedArtists, ['id', artistId]))
 
-      video.ArtistsIds = _.uniq(_.flatMapDeep(videoArtistsInDetail, (artist) => artist.artist.id))
-      video.ArtistsGenres = _.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.genres))
-      video.ArtistsNames = _.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.name))
-      video.ArtistsPopularity = _.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.popularity))
-      video.ArtistsFollowers = _.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.followers.total))
-      video.ArtistsType = _.uniq(_.flatMap(videoArtistsInDetail, artist => artist.artist.type))
+      video.ArtistsIds = new Set(_.uniq(_.flatMapDeep(videoArtistsInDetail, (artist) => artist.artist.id)))
+      video.ArtistsGenres = new Set(_.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.genres)))
+      video.ArtistsNames = new Set(_.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.name)))
+      video.ArtistsPopularity = new Set(_.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.popularity)))
+      video.ArtistsFollowers = new Set(_.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.followers.total)))
+      video.ArtistsType = new Set(_.uniq(_.flatMap(videoArtistsInDetail, artist => artist.artist.type)))
 
       return video
     })
@@ -215,7 +215,7 @@ module.exports = function (recombee) {
     const artistsNames = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-names', 'set')))
     const artistsPopularity = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-popularity', 'set')))
     const artistsFollowers = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-followers', 'set')))
-    const artistsType = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-type', 'string')))
+    const artistsType = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-type', 'set')))
 
     const result = Rx.Observable.concat(itemType, kind, etag, contentDetailsDuration, contentDetailsDimension, contentDetailsDefinition, contentDetailsLicensedContent, contentDetailsCaption, contentDetailsProjection,
       statisticsViewCount, statisticsLikeCount, statisticsDisLikeCount, statisticsFavoriteCount, statisticsCommentCount, snippetPublishedAt, snippetChannelId,
