@@ -160,12 +160,12 @@ module.exports = function (recombee) {
     const videoWithArtistsExtractedAndProcessed = _.map(videos, video => {
       const videoArtistsInDetail = _.map(video.artists, (artistId) => _.find(detailedArtists, ['id', artistId]))
 
-      video.ArtistsIds = new Set(_.uniq(_.flatMapDeep(videoArtistsInDetail, (artist) => artist.artist.id)))
-      video.ArtistsGenres = new Set(_.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.genres)))
-      video.ArtistsNames = new Set(_.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.name)))
-      video.ArtistsPopularity = new Set(_.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.popularity)))
-      video.ArtistsFollowers = new Set(_.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.followers.total)))
-      video.ArtistsType = new Set(_.uniq(_.flatMap(videoArtistsInDetail, artist => artist.artist.type)))
+      video.ArtistsIds = _.uniq(_.flatMapDeep(videoArtistsInDetail, (artist) => artist.artist.id))
+      video.ArtistsGenres = _.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.genres))
+      video.ArtistsNames = _.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.name))
+      video.ArtistsPopularity = _.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.popularity))
+      video.ArtistsFollowers = _.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.followers.total))
+      video.ArtistsType = _.uniq(_.flatMap(videoArtistsInDetail, artist => artist.artist.type))
 
       return video
     })
