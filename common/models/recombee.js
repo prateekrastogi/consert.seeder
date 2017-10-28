@@ -158,13 +158,19 @@ module.exports = function (recombee) {
     const enrichedArtists = app.models.enrichedArtists
     const artistFilter = {
       where: {or: artistsFilter},
-      fields: {id: true, artist: true, topTracks: false, albums: false}
+      fields: {id: true, artist: true, topTracks: false, albums: false, relatedArtists: true}
     }
 
     const detailedArtists = await enrichedArtists.find(artistFilter)
 
+    const artistWithRelatedArtists = _.map(detailedArtists, (artist) => {
+      const {relatedArtists} = artist
+      artist.relatedArtists = _.map(relatedArtists, 'id')
+      return artist
+    })
+
     const videoWithArtistsExtractedAndProcessed = _.map(videos, video => {
-      const videoArtistsInDetail = _.map(video.artists, (artistId) => _.find(detailedArtists, ['id', artistId]))
+      const videoArtistsInDetail = _.map(video.artists, (artistId) => _.find(artistWithRelatedArtists, ['id', artistId]))
 
       video.ArtistsIds = _.uniq(_.flatMapDeep(videoArtistsInDetail, (artist) => artist.artist.id))
       video.ArtistsGenres = _.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.genres))
@@ -172,7 +178,7 @@ module.exports = function (recombee) {
       video.ArtistsPopularity = _.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.popularity))
       video.ArtistsFollowers = _.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.artist.followers.total))
       video.ArtistsType = _.uniq(_.flatMap(videoArtistsInDetail, artist => artist.artist.type))
-
+      video.relatedArtists = _.uniq(_.flatMapDeep(videoArtistsInDetail, artist => artist.relatedArtists))
       return video
     })
     return videoWithArtistsExtractedAndProcessed
@@ -238,8 +244,8 @@ module.exports = function (recombee) {
       'artists-ids': [artist.id],
       'genres': artist.genres,
       'artists-names': [artist.name],
-      'artists-popularity': [`${artist.popularity}`],
-      'artists-followers': [`${artist.followers.total}`],
+      'artists-popularity': [artist.popularity],
+      'artists-followers': [artist.followers.total],
       'artists-type': artist.type,
       'artists-relatedArtists': relatedArtists
     }
