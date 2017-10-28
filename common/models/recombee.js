@@ -45,8 +45,8 @@ module.exports = function (recombee) {
     const artists = Rx.Observable.fromPromise(findRecombeeUnSyncedArtistsByPopularity(lowerBound, upperBound))
 
     artists.concatMap(artists => Rx.Observable.from(artists)).map(value => {
-      const {artist, id} = value
-      const recombeeItem = convertArtistToRecombeeArtist(artist)
+      const {artist, id, relatedArtists} = value
+      const recombeeItem = convertArtistToRecombeeArtist(artist, relatedArtists)
 
       return {recombeeItem, id}
     }).bufferCount(MAX_BATCH).concatMap(bufferedItems => writeBufferedItemsToRecommbee(bufferedItems, enrichedArtists)).subscribe()
@@ -119,10 +119,16 @@ module.exports = function (recombee) {
     const enrichedArtists = app.models.enrichedArtists
     const filter = {
       where: {and: [{or: [{isArtistRecombeeSynced: false}, {isArtistRecombeeSynced: {exists: false}}]}, {areArtistVideosCrawled: true}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
-      fields: {id: true, artist: true, topTracks: false, albums: false}
+      fields: {id: true, artist: true, topTracks: false, albums: false, relatedArtists: true}
     }
     const artists = await enrichedArtists.find(filter)
-    return artists
+
+    const artistWithRelatedArtists = _.map(artists, (artist) => {
+      const {relatedArtists} = artist
+      artist.relatedArtists = _.map(relatedArtists, 'id')
+      return artist
+    })
+    return artistWithRelatedArtists
   }
 
   async function findRecombeeSyncedArtistsByPopularity (lowerBound, upperBound) {
@@ -215,17 +221,18 @@ module.exports = function (recombee) {
     const artistsNames = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-names', 'set')))
     const artistsPopularity = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-popularity', 'set')))
     const artistsFollowers = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-followers', 'set')))
+    const artistsRelatedArtists = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-relatedArtists', 'set')))
     const artistsType = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-type', 'set')))
 
     const result = Rx.Observable.concat(itemType, kind, etag, contentDetailsDuration, contentDetailsDimension, contentDetailsDefinition, contentDetailsLicensedContent, contentDetailsCaption, contentDetailsProjection,
       statisticsViewCount, statisticsLikeCount, statisticsDisLikeCount, statisticsFavoriteCount, statisticsCommentCount, snippetPublishedAt, snippetChannelId,
       snippetTitle, snippetDescription, snippetChannelTitle, snippetThumbnails, snippetliveBroadcastContent, artistsIds, artistsGenres, artistsNames,
-      artistsPopularity, artistsFollowers, artistsType)
+      artistsPopularity, artistsFollowers, artistsRelatedArtists, artistsType)
 
     return result
   }
 
-  function convertArtistToRecombeeArtist (artist) {
+  function convertArtistToRecombeeArtist (artist, relatedArtists) {
     const recombeeArtist = {
       'itemType': 'artist',
       'artists-ids': [artist.id],
@@ -233,7 +240,8 @@ module.exports = function (recombee) {
       'artists-names': [artist.name],
       'artists-popularity': [`${artist.popularity}`],
       'artists-followers': [`${artist.followers.total}`],
-      'artists-type': artist.type
+      'artists-type': artist.type,
+      'artists-relatedArtists': relatedArtists
     }
     return recombeeArtist
   }
@@ -266,6 +274,7 @@ module.exports = function (recombee) {
       'artists-names': video.ArtistsNames,
       'artists-popularity': video.ArtistsPopularity,
       'artists-followers': video.ArtistsFollowers,
+      'artists-relatedArtists': video.relatedArtists,
       'artists-type': video.ArtistsType
     }
 
