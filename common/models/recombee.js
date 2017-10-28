@@ -246,8 +246,8 @@ module.exports = function (recombee) {
       'artists-names': [artist.name],
       'artists-popularity': [artist.popularity],
       'artists-followers': [artist.followers.total],
-      'artists-type': artist.type,
-      'artists-relatedArtists': relatedArtists
+      'artists-relatedArtists': relatedArtists,
+      'artists-type': [artist.type]
     }
     return recombeeArtist
   }
