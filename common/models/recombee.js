@@ -107,8 +107,8 @@ module.exports = function (recombee) {
   recombee.miscOperations = function (callback) {
     const clientSendAsObservable = Rx.Observable.bindNodeCallback(recombeeClient.send.bind(recombeeClient))
     const result = clientSendAsObservable(new recombeeRqs.ListItems({
-      'filter': `not 'itemType'`,
-      'returnProperties': false
+      'filter': `"artist"  in 'itemType'`,
+      'returnProperties': true
     }))
     result.subscribe(x => console.log(x), e => console.error(e))
 
@@ -244,8 +244,8 @@ module.exports = function (recombee) {
       'artists-ids': [artist.id],
       'genres': artist.genres,
       'artists-names': [artist.name],
-      'artists-popularity': [artist.popularity],
-      'artists-followers': [artist.followers.total],
+      'artists-popularity': [`${artist.popularity}`],
+      'artists-followers': [`${artist.followers.total}`],
       'artists-relatedArtists': relatedArtists,
       'artists-type': [artist.type]
     }
