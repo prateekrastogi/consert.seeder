@@ -107,8 +107,8 @@ module.exports = function (recombee) {
   recombee.miscOperations = function (callback) {
     const clientSendAsObservable = Rx.Observable.bindNodeCallback(recombeeClient.send.bind(recombeeClient))
     const result = clientSendAsObservable(new recombeeRqs.ListItems({
-      'filter': `"artist"  in 'itemType'`,
-      'returnProperties': true
+      'filter': `"video"  in 'itemType'`,
+      'returnProperties': false
     }))
     result.subscribe(x => console.log(x), e => console.error(e))
 
@@ -244,7 +244,7 @@ module.exports = function (recombee) {
       'artists-ids': [artist.id],
       'genres': artist.genres,
       'artists-names': [artist.name],
-      'artists-popularity': [`${artist.popularity}`],
+      'artists-popularity': [`${artist.popularity}`],     // https://github.com/Recombee/node-api-client/issues/3
       'artists-followers': [`${artist.followers.total}`],
       'artists-relatedArtists': relatedArtists,
       'artists-type': [artist.type]
@@ -278,8 +278,8 @@ module.exports = function (recombee) {
       'artists-ids': video.ArtistsIds,
       'genres': video.ArtistsGenres,
       'artists-names': video.ArtistsNames,
-      'artists-popularity': video.ArtistsPopularity,
-      'artists-followers': video.ArtistsFollowers,
+      'artists-popularity': _.map(video.ArtistsPopularity, popularity => `${popularity}`),  // https://github.com/Recombee/node-api-client/issues/3
+      'artists-followers': _.map(video.ArtistsFollowers, followers => `${followers}`),
       'artists-relatedArtists': video.relatedArtists,
       'artists-type': video.ArtistsType
     }
