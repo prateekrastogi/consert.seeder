@@ -6,7 +6,7 @@ const recombeeRqs = require('recombee-api-client').requests
 const Rx = require('rxjs')
 const _ = require('lodash')
 
-const MAX_BATCH = 1
+const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 10000
 let count = 0
 
@@ -108,7 +108,7 @@ module.exports = function (recombee) {
     const clientSendAsObservable = Rx.Observable.bindNodeCallback(recombeeClient.send.bind(recombeeClient))
     const result = clientSendAsObservable(new recombeeRqs.ListItems({
       'filter': `"video"  in 'itemType'`,
-      'returnProperties': false
+      'returnProperties': true
     }))
     result.subscribe(x => console.log(x), e => console.error(e))
 
