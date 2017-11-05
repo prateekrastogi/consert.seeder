@@ -65,6 +65,16 @@ module.exports = function (recombee) {
   }
 
   /**
+   * sets the userProperties of recombee user type
+   * @param {Function(Error)} callback
+   */
+
+  recombee.setUserProperties = function (callback) {
+    setUserProperties().subscribe(x => console.log(x), e => console.error(e))
+    callback(null)
+  }
+
+  /**
    * sets the artists in a popularity for re-sync with recombee item catalog
    * @param {Function(Error)} callback
    */
@@ -237,6 +247,15 @@ module.exports = function (recombee) {
       snippetTitle, snippetDescription, snippetChannelTitle, snippetThumbnails, snippetliveBroadcastContent, artistsIds, artistsGenres, artistsNames,
       artistsPopularity, artistsFollowers, artistsRelatedArtists, artistsType)
 
+    return result
+  }
+
+  function setUserProperties () {
+    const clientSendAsObservable = Rx.Observable.bindNodeCallback(recombeeClient.send.bind(recombeeClient))
+    const userType = clientSendAsObservable(new recombeeRqs.AddUserProperty('userType', 'string'))
+    const browserIds = clientSendAsObservable(new recombeeRqs.AddUserProperty('browser-ids', 'set'))
+
+    const result = Rx.Observable.concat(userType, browserIds)
     return result
   }
 
