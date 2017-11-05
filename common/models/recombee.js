@@ -108,7 +108,7 @@ module.exports = function (recombee) {
     const clientSendAsObservable = Rx.Observable.bindNodeCallback(recombeeClient.send.bind(recombeeClient))
     const result = clientSendAsObservable(new recombeeRqs.ListItems({
       'filter': `"video"  in 'itemType'`,
-      'returnProperties': true
+      'returnProperties': false
     }))
     result.subscribe(x => console.log(x), e => console.error(e))
 
