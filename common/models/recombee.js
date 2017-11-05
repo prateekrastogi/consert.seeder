@@ -197,7 +197,9 @@ module.exports = function (recombee) {
   }
 
   function resetDatabase () {
-    recombeeClient.send(new recombeeRqs.ResetDatabase(), (err, result) => err ? console.log('Some error occurred while resetting db') : console.log('Database reset successful'))
+    if (app.get('env') !== 'production') {
+      recombeeClient.send(new recombeeRqs.ResetDatabase(), (err, result) => err ? console.log('Some error occurred while resetting db') : console.log('Database reset successful'))
+    }
   }
 
   function setItemProperties () {
