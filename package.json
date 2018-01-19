@@ -9,7 +9,7 @@
     "lint": "standard",
     "lint-fix": "standard --fix",
     "start": "node .",
-    "posttest": "npm run lint && nsp check"
+    "security-check": "nsp check"
   },
   "dependencies": {
     "applicationinsights": "^1.0.1",
