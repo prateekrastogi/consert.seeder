@@ -15,7 +15,7 @@
   },
   "user": {
     "dataSource": "in-mem-persist",
-    "public": true
+    "public": false
   },
   "User": {
     "dataSource": "in-mem-persist",
