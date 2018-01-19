@@ -49,6 +49,7 @@ module.exports = function (artistSeed) {
     function getRelatedArtists (recommendedArtists, cb) {
       let allRelevantArtists = _.cloneDeep(recommendedArtists)
 
+      console.log(`Fetching list of related artists...`)
       async.eachLimit(recommendedArtists, 3, async (artist) => {
         const spotifyApi = await loginAssist.spotifyLogin()
         const relatedArtists = (await spotifyApi.getArtistRelatedArtists(artist.id)).body.artists
@@ -57,14 +58,14 @@ module.exports = function (artistSeed) {
           const {id, name} = artist
 
           allRelevantArtists = _.concat(allRelevantArtists, {id, name})
-          console.log(`Total Artist Added: ${allRelevantArtists.length}`)
+          process.stdout.write(`Total Artist fetched: ${allRelevantArtists.length}\r`)
         })
       }, (err) => {
         if (err) {
           console.log('Error in putTopSpotifyArtists.getRelatedArtists () ', err)
         } else {
           // Don't use lodash uniq to get unique here due to very high processing time.
-          console.log('Completed Relevant Artists api calls.')
+          console.log(`Completed fetching related artists.`)
           cb(null, _.compact(allRelevantArtists))
         }
       })
