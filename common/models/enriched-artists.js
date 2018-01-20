@@ -5,6 +5,8 @@ const _ = require('lodash')
 const loginAssist = require('../../lib/login-assist')
 const app = require('../../server/server')
 
+const RETRY_COUNT = 3
+
 module.exports = function (enrichedArtists) {
   enrichedArtists.putEnrichedArtists = async function (callback) {
     let isSuccess = true
@@ -65,7 +67,7 @@ module.exports = function (enrichedArtists) {
         })
 
         return enrichedArtist
-      }, 2)
+      }, 2).retry(RETRY_COUNT)
       .subscribe(async (x) => {
         count++
         await enrichedArtists.replaceOrCreate(x)
@@ -92,7 +94,7 @@ module.exports = function (enrichedArtists) {
 
       Rx.Observable.from(tbCrawled).concatMap((artist) => {
         return Rx.Observable.fromPromise(artistSeed.replaceOrCreate(artist))
-      }).subscribe(x => {
+      }).retry(RETRY_COUNT).subscribe(x => {
         count++
         console.log(`Added artist ${x.name} in pending crawl list`)
         console.log(`Total artists added in the pending crawl list: ${count}`)
