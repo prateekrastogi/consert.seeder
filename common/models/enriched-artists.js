@@ -66,8 +66,8 @@ module.exports = function (enrichedArtists) {
           return {id, artist, albums, topTracks, relatedArtists}
         })
 
-        return enrichedArtist
-      }, 2).retry(RETRY_COUNT)
+        return enrichedArtist.retry(RETRY_COUNT)
+      }, 2)
       .subscribe(async (x) => {
         count++
         await enrichedArtists.replaceOrCreate(x)
@@ -93,8 +93,8 @@ module.exports = function (enrichedArtists) {
       })
 
       Rx.Observable.from(tbCrawled).concatMap((artist) => {
-        return Rx.Observable.fromPromise(artistSeed.replaceOrCreate(artist))
-      }).retry(RETRY_COUNT).subscribe(x => {
+        return Rx.Observable.fromPromise(artistSeed.replaceOrCreate(artist)).retry(RETRY_COUNT)
+      }).subscribe(x => {
         count++
         console.log(`Added artist ${x.name} in pending crawl list`)
         console.log(`Total artists added in the pending crawl list: ${count}`)
