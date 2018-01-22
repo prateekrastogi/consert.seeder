@@ -29,23 +29,23 @@ module.exports = function (enrichedArtists) {
         console.log(`Crawling the artist: ${artistSeedInstance.name}`)
       })
       .mergeMap(([spotifyApi, artistId]) => {
-        const artist = Rx.Observable.fromPromise(spotifyApi.getArtist(artistId)).pluck('body')
+        const artist = Rx.Observable.fromPromise(spotifyApi.getArtist(artistId)).retry(RETRY_COUNT).pluck('body')
           .map((artist) => truncateFullArtist(artist))
 
         const id = artist.pluck('id')
 
-        const artistTopTracks = Rx.Observable.fromPromise(spotifyApi.getArtistTopTracks(artistId, 'US')).pluck('body', 'tracks')
+        const artistTopTracks = Rx.Observable.fromPromise(spotifyApi.getArtistTopTracks(artistId, 'US')).retry(RETRY_COUNT).pluck('body', 'tracks')
           .map((topTracks) => _.map(topTracks, (topTrack) => truncateFullTrack(topTrack))).concatMap((topTracks) => Rx.Observable.from(topTracks))
 
         const artistTopTrackFeatures = artistTopTracks.pluck('id').bufferCount(100)
-          .concatMap((topTracksId) => Rx.Observable.fromPromise(spotifyApi.getAudioFeaturesForTracks(topTracksId))).pluck('body', 'audio_features')
+          .concatMap((topTracksId) => Rx.Observable.fromPromise(spotifyApi.getAudioFeaturesForTracks(topTracksId))).retry(RETRY_COUNT).pluck('body', 'audio_features')
           .concatMap(features => Rx.Observable.from(features))
 
         const artistTopTracksWithAudioFeatures = Rx.Observable.zip(artistTopTracks, artistTopTrackFeatures, (track, audioFeatures) => {
           return {track, audioFeatures}
         }).reduce((accum, curr) => _.concat(accum, curr))
 
-        const artistRelatedArtists = Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artistId)).pluck('body', 'artists')
+        const artistRelatedArtists = Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artistId)).retry(RETRY_COUNT).pluck('body', 'artists')
           .map((relatedArtists) => _.map(relatedArtists, (relatedArtist) => truncateFullArtist(relatedArtist)))
 
         const artistAlbums = Rx.Observable.range(0, 3).concatMap((i) => {
@@ -53,20 +53,20 @@ module.exports = function (enrichedArtists) {
             market: 'US',
             limit: 50,
             offset: (i * 50)
-          })).pluck('body', 'items')
+          })).retry(RETRY_COUNT).pluck('body', 'items')
         })
 
         const artistDetailedAlbums = artistAlbums.concatMap((albums) => Rx.Observable.from(albums).pluck('id'))
           .bufferCount(20).concatMap((bufferedAlbums) => {
             return spotifyApi.getAlbums(bufferedAlbums)
-          }).pluck('body', 'albums').map((albums) => _.map(albums, (album) => truncateFullAlbum(album)))
+          }).retry(RETRY_COUNT).pluck('body', 'albums').map((albums) => _.map(albums, (album) => truncateFullAlbum(album)))
           .reduce((accum, curr) => _.concat(accum, curr))
 
         const enrichedArtist = Rx.Observable.zip(id, artist, artistDetailedAlbums, artistTopTracksWithAudioFeatures, artistRelatedArtists, (id, artist, albums, topTracks, relatedArtists) => {
           return {id, artist, albums, topTracks, relatedArtists}
         })
 
-        return enrichedArtist.retry(RETRY_COUNT)
+        return enrichedArtist
       }, 2)
       .subscribe(async (x) => {
         count++
