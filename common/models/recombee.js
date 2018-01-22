@@ -8,6 +8,7 @@ const _ = require('lodash')
 
 const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 10000
+const RETRY_COUNT = 3
 let count = 0
 
 module.exports = function (recombee) {
@@ -307,7 +308,7 @@ module.exports = function (recombee) {
 
   function writeBufferedItemsToRecommbee (bufferedItems, model) {
     const rqs = _.map(bufferedItems, ({recombeeItem, id}) => new recombeeRqs.SetItemValues(id, recombeeItem, {'cascadeCreate': true}))
-    const itemPropertyAddBatchRequest = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.Batch(rqs)))
+    const itemPropertyAddBatchRequest = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.Batch(rqs))).retry(RETRY_COUNT)
 
     const ids = _.map(bufferedItems, ({id}) => id)
 

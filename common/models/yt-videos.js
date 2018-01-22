@@ -8,6 +8,7 @@ const classifier = require('../../lib/classifier').logClassifier()
 
 const MAX_PER_REQUEST_ITEMS = 50
 const MAGIC_SEED_FOR_ALL_POSSIBLE_PLAYLIST_SIZES = 100
+const RETRY_COUNT = 3
 
 // Building caches to minimize network calls and its associated cost
 let searchCache = []
@@ -46,7 +47,7 @@ module.exports = function (ytVideos) {
       console.log(`Crawling the artist: ${artistName}`)
       const queries = [`${artistName} live`, `${artistName} concert`, `${artistName} live performance`]
 
-      const videoResult = searchYtVideos(queries, maxResults)
+      const videoResult = searchYtVideos(queries, maxResults).retry(RETRY_COUNT)
 
       const enrichedArtistInstance = Rx.Observable.fromPromise(enrichedArtists.findById(artist.id))
 
