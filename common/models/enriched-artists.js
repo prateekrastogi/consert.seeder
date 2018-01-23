@@ -75,7 +75,7 @@ module.exports = function (enrichedArtists) {
         console.log(`Total artists added/replaced in the running execution: ${count}`)
       })
 
-    return new Promise((resolve, reject) => resolve())
+    return new Promise((resolve, reject) => resolve(isSuccess))
   }
 
   enrichedArtists.setEnrichedArtistsForReCrawl = async function () {
@@ -99,7 +99,7 @@ module.exports = function (enrichedArtists) {
         console.log(`Total artists added in the pending crawl list: ${count}`)
       })
     }
-    return new Promise((resolve, reject) => resolve())
+    return new Promise((resolve, reject) => resolve(isSuccess))
   }
 
   function truncateFullArtist ({followers, genres, id, name, popularity, type}) {
