@@ -17,7 +17,7 @@ let playlistItemCache = []
 module.exports = function (ytVideos) {
   const youtube = loginAssist.ytLogin()
 
-  ytVideos.putArtistsVideosLive = async function (lowerBound, upperBound, callback) {
+  ytVideos.putArtistsVideosLive = async function (lowerBound, upperBound) {
     const enrichedArtists = app.models.enrichedArtists
     let maxResults  // max results per search query
 
@@ -70,11 +70,10 @@ module.exports = function (ytVideos) {
       await ytVideos.replaceOrCreate(updatedVideo)
     })
 
-    // TODO
-    callback(null)
+    return new Promise((resolve, reject) => resolve())
   }
 
-  ytVideos.setArtistsByPopularityForVideoReCrawl = async function (lowerBound, upperBound, callback) {
+  ytVideos.setArtistsByPopularityForVideoReCrawl = async function (lowerBound, upperBound) {
     const artistIds = await findVideoCrawledArtistsByPopularity(lowerBound, upperBound)
     const enrichedArtists = app.models.enrichedArtists
 
@@ -84,8 +83,7 @@ module.exports = function (ytVideos) {
         return Rx.Observable.fromPromise(enrichedArtists.replaceOrCreate(enrichedArtistInstance))
       }).subscribe((artist) => console.log(`Artist marked for re-crawling: ${artist.artist.name}`))
 
-    // TODO
-    callback(null)
+    return new Promise((resolve, reject) => resolve())
   }
 
   function getYtPlaylistItems (id) {

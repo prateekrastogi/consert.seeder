@@ -8,7 +8,7 @@ const app = require('../../server/server')
 const RETRY_COUNT = 3
 
 module.exports = function (enrichedArtists) {
-  enrichedArtists.putEnrichedArtists = async function (callback) {
+  enrichedArtists.putEnrichedArtists = async function () {
     let isSuccess = true
     let count = 0
     const artistSeed = app.models.artistSeed
@@ -75,11 +75,10 @@ module.exports = function (enrichedArtists) {
         console.log(`Total artists added/replaced in the running execution: ${count}`)
       })
 
-    // TODO
-    callback(null, isSuccess)
+    return new Promise((resolve, reject) => resolve())
   }
 
-  enrichedArtists.setEnrichedArtistsForReCrawl = async function (callback) {
+  enrichedArtists.setEnrichedArtistsForReCrawl = async function () {
     let count = 0
     const isSuccess = true
     const artistSeed = app.models.artistSeed
@@ -100,8 +99,7 @@ module.exports = function (enrichedArtists) {
         console.log(`Total artists added in the pending crawl list: ${count}`)
       })
     }
-    // TODO
-    callback(null, isSuccess)
+    return new Promise((resolve, reject) => resolve())
   }
 
   function truncateFullArtist ({followers, genres, id, name, popularity, type}) {

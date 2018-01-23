@@ -10,7 +10,7 @@ module.exports = function (artistSeed) {
    * @param {Function(Error, boolean)} callback
    */
 
-  artistSeed.putTopSpotifyArtists = async function (callback) {
+  artistSeed.putTopSpotifyArtists = async function () {
     let isSuccess = true
     const spotifyApi = await loginAssist.spotifyLogin()
     const {genres} = (await spotifyApi.getAvailableGenreSeeds()).body
@@ -89,7 +89,6 @@ module.exports = function (artistSeed) {
       })
     }
 
-    // TODO
-    callback(null, isSuccess)
+    return new Promise((resolve, reject) => resolve(isSuccess))
   }
 }

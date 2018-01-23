@@ -17,7 +17,7 @@ module.exports = function (recombee) {
    * @param {Function(Error)} callback
    */
 
-  recombee.seedPastShows = async function (callback) {
+  recombee.seedPastShows = async function () {
     const ytVideos = app.models.ytVideos
     const videos = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
       return Rx.Observable.fromPromise(findRecombeeUnSyncedYtVideosInBatches(MAX_BATCH, i * MAX_BATCH))
@@ -33,7 +33,7 @@ module.exports = function (recombee) {
       count++
     })
 
-    callback(null)
+    return new Promise((resolve, reject) => resolve())
   }
 
   /**
@@ -41,7 +41,7 @@ module.exports = function (recombee) {
    * @param {Function(Error)} callback
    */
 
-  recombee.seedArtists = function (lowerBound, upperBound, callback) {
+  recombee.seedArtists = function (lowerBound, upperBound) {
     const enrichedArtists = app.models.enrichedArtists
     const artists = Rx.Observable.fromPromise(findRecombeeUnSyncedArtistsByPopularity(lowerBound, upperBound))
 
@@ -52,7 +52,7 @@ module.exports = function (recombee) {
       return {recombeeItem, id}
     }).bufferCount(MAX_BATCH).concatMap(bufferedItems => writeBufferedItemsToRecommbee(bufferedItems, enrichedArtists)).subscribe()
 
-    callback(null)
+    return new Promise((resolve, reject) => resolve())
   }
 
   /**
@@ -60,9 +60,9 @@ module.exports = function (recombee) {
    * @param {Function(Error, boolean)} callback
    */
 
-  recombee.setItemProperties = function (callback) {
+  recombee.setItemProperties = function () {
     setItemProperties().subscribe(x => console.log(x), e => console.error(e))
-    callback(null)
+    return new Promise((resolve, reject) => resolve())
   }
 
   /**
@@ -70,9 +70,9 @@ module.exports = function (recombee) {
    * @param {Function(Error)} callback
    */
 
-  recombee.setUserProperties = function (callback) {
+  recombee.setUserProperties = function () {
     setUserProperties().subscribe(x => console.log(x), e => console.error(e))
-    callback(null)
+    return new Promise((resolve, reject) => resolve())
   }
 
   /**
@@ -80,7 +80,7 @@ module.exports = function (recombee) {
    * @param {Function(Error)} callback
    */
 
-  recombee.setArtistsForRecombeeReSyncByPopularity = function (lowerBound, upperBound, callback) {
+  recombee.setArtistsForRecombeeReSyncByPopularity = function (lowerBound, upperBound) {
     const enrichedArtists = app.models.enrichedArtists
 
     const artists = Rx.Observable.fromPromise(findRecombeeSyncedArtistsByPopularity(lowerBound, upperBound))
@@ -88,7 +88,7 @@ module.exports = function (recombee) {
     setModelItemsForReSync(artists, enrichedArtists)
       .subscribe(({artist}) => console.log(`Artist marked for Recombee Re-sync: ${artist.name}`))
 
-    callback(null)
+    return new Promise((resolve, reject) => resolve())
   }
 
   /**
@@ -96,7 +96,7 @@ module.exports = function (recombee) {
    * @param {Function(Error)} callback
    */
 
-  recombee.setVideosForRecombeeReSync = function (callback) {
+  recombee.setVideosForRecombeeReSync = function () {
     const ytVideos = app.models.ytVideos
 
     const syncedVideos = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
@@ -107,7 +107,7 @@ module.exports = function (recombee) {
     setModelItemsForReSync(syncedVideos, ytVideos)
       .subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`))
 
-    callback(null)
+    return new Promise((resolve, reject) => resolve())
   }
 
   /**
@@ -115,12 +115,12 @@ module.exports = function (recombee) {
    * @param {Function(Error)} callback
    */
 
-  recombee.miscOperations = function (callback) {
+  recombee.miscOperations = function () {
     const clientSendAsObservable = Rx.Observable.bindNodeCallback(recombeeClient.send.bind(recombeeClient))
     const result = clientSendAsObservable(new recombeeRqs.ListUserDetailViews('596806b770753032e85e1b6d'))
     result.subscribe(x => console.log(x), e => console.error(e))
 
-    callback(null)
+    return new Promise((resolve, reject) => resolve())
   }
 
   async function findRecombeeUnSyncedArtistsByPopularity (lowerBound, upperBound) {
