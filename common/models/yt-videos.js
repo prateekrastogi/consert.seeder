@@ -65,13 +65,12 @@ module.exports = function (ytVideos) {
       const resultWithArtistIdAndCrawlMarked = Rx.Observable.concat(resultWithArtistId, enrichedArtistVideoCrawledSetter)
 
       return resultWithArtistIdAndCrawlMarked
-    }).catch(err => {
-      console.log(err)
-      return Rx.Observable.empty()
-    }).subscribe(async (result) => {
-      const updatedVideo = await videoObjectUpdater(result.result, {artists: result.artistId})
-      await ytVideos.replaceOrCreate(updatedVideo)
-    })
+    }).subscribe({
+      next: async (result) => {
+        const updatedVideo = await videoObjectUpdater(result.result, {artists: result.artistId})
+        await ytVideos.replaceOrCreate(updatedVideo)
+      },
+      error: err => console.log(err)})
 
     return new Promise((resolve, reject) => resolve())
   }

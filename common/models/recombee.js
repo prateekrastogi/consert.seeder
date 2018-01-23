@@ -29,13 +29,12 @@ module.exports = function (recombee) {
       const recombeeItem = convertVideoToRecombeeVideo(video)
       return {recombeeItem, id}
     }).bufferCount(MAX_BATCH).concatMap(bufferedItems => writeBufferedItemsToRecommbee(bufferedItems, ytVideos))
-    .catch(err => {
-      console.log(err)
-      return Rx.Observable.empty()
-    }).subscribe(x => {
-      console.log(`Total videoItems added to Recombee: ${count}`)
-      count++
-    })
+    .subscribe({
+      next: x => {
+        console.log(`Total videoItems added to Recombee: ${count}`)
+        count++
+      },
+      error: err => console.log(err)})
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -55,10 +54,9 @@ module.exports = function (recombee) {
 
       return {recombeeItem, id}
     }).bufferCount(MAX_BATCH).concatMap(bufferedItems => writeBufferedItemsToRecommbee(bufferedItems, enrichedArtists))
-    .catch(err => {
-      console.log(err)
-      return Rx.Observable.empty()
-    }).subscribe()
+    .subscribe({
+      error: err => console.log(err)
+    })
 
     return new Promise((resolve, reject) => resolve())
   }
