@@ -43,7 +43,7 @@
         }
       ],
       "returns": [],
-      "description": "seeds the artist pseudo-types for recommendation engine",
+      "description": "seeds the artist, whose yt videos has already been fetched, pseudo-types to the recommendation engine",
       "http": [
         {
           "path": "/seedArtists",

@@ -21,6 +21,11 @@
       "type": "boolean",
       "required": false,
       "default": false
+    },
+    "isArtistRecombeeSynced": {
+      "type": "boolean",
+      "required": false,
+      "default": false
     }
   },
   "validations": [],
