@@ -40,8 +40,8 @@ module.exports = function (recombee) {
   }
 
   /**
-   * seeds the artist pseudo-types, of those artists whose yt videos
-   *  has already been fetched, to the recommendation engine
+   * seeds the artist, whose yt videos
+   *  has already been fetched, pseudo-types to the recommendation engine
    * @param {Function(Error)} callback
    */
 
