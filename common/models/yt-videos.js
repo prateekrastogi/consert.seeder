@@ -148,7 +148,8 @@ module.exports = function (ytVideos) {
 
   function searchYt (query, maxresults, type) {
     /* Each independent execution of observable issues separate api calls so we are incurring calls while zipping and getting video stats.
-     * Cache for the a query expires after just single hit coz zipping involves only two independent executions, if needed more in future change here */
+     * Cache for the a query expires after just single hit coz zipping involves only two independent executions, if needed more in future change here
+     *  Sort of we are managing the side effect arising from calling function here */
     const cachedResult = _.remove(searchCache, ['query', query])
     if (cachedResult.length !== 0) {
       return cachedResult[0].result
