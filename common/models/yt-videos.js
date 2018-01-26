@@ -15,8 +15,6 @@ let searchCache = []
 let playlistItemCache = []
 
 module.exports = function (ytVideos) {
-  const youtube = loginAssist.ytLogin()
-
   ytVideos.putArtistsVideosLive = async function (lowerBound, upperBound) {
     const enrichedArtists = app.models.enrichedArtists
     let maxResults  // max results per search query
@@ -88,7 +86,7 @@ module.exports = function (ytVideos) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  function getYtPlaylistItems (id) {
+  function getYtPlaylistItems (id, youtube) {
     const cachedResult = _.remove(playlistItemCache, ['id', id])
     if (cachedResult.length !== 0) {
       return cachedResult[0].items
@@ -114,12 +112,14 @@ module.exports = function (ytVideos) {
   }
 
   function getYtPlaylistVideos (id) {
-    const playlistItems = getYtPlaylistItems(id)
+    const youtube = loginAssist.ytLogin()
 
-    const playlistIds = getYtPlaylistItems(id).pluck('snippet', 'resourceId', 'videoId').bufferCount(MAX_PER_REQUEST_ITEMS)
+    const playlistItems = getYtPlaylistItems(id, youtube)
+
+    const playlistIds = getYtPlaylistItems(id, youtube).pluck('snippet', 'resourceId', 'videoId').bufferCount(MAX_PER_REQUEST_ITEMS)
 
     const videoContentDetailsAndStats = playlistIds.concatMap((ids) => {
-      return getVideos(ids.join())
+      return getVideos(ids.join(), youtube)
     }).pluck('items').concatMap((item) => Rx.Observable.from(item))
 
     const playlistVideos = Rx.Observable.zip(playlistItems, videoContentDetailsAndStats, (playlistItem, detailedStat) => {
@@ -130,13 +130,16 @@ module.exports = function (ytVideos) {
   }
 
   function searchYtVideos (queries, maxresults) {
+    // Creating authenticated youtube closure in calling function scope to use different access tokens upon quota breach using calle's retry
+    const youtube = loginAssist.ytLogin()
+
     const queryObservable = Rx.Observable.from(queries)
 
-    const ytVideos = queryObservable.mergeMap(query => searchYt(query, maxresults, 'video').filter(result => filterVideoByTitle(result)))
+    const ytVideos = queryObservable.mergeMap(query => searchYt(query, maxresults, 'video', youtube).filter(result => filterVideoByTitle(result)))
       .distinct(value => value.id.videoId)
 
     const videoContentDetailsAndStats = ytVideos.pluck('id', 'videoId').bufferCount(MAX_PER_REQUEST_ITEMS).concatMap((ids) => {
-      return getVideos(ids.join())
+      return getVideos(ids.join(), youtube)
     }).pluck('items').concatMap((item) => Rx.Observable.from(item))
 
     const detailedYtVideos = Rx.Observable.zip(ytVideos, videoContentDetailsAndStats, (video, detailedStat) => {
@@ -146,7 +149,7 @@ module.exports = function (ytVideos) {
     return detailedYtVideos
   }
 
-  function searchYt (query, maxresults, type) {
+  function searchYt (query, maxresults, type, youtube) {
     /* Each independent execution of observable issues separate api calls so we are incurring calls while zipping and getting video stats.
      * Cache for the a query expires after just single hit coz zipping involves only two independent executions, if needed more in future change here
      *  Sort of we are managing the side effect arising from calling function here */
@@ -183,7 +186,7 @@ module.exports = function (ytVideos) {
     return searchResult
   }
 
-  function getVideos (ids) {
+  function getVideos (ids, youtube) {
     const videoCaller = Rx.Observable.bindNodeCallback(youtube.getById)
     return videoCaller(ids)
   }
