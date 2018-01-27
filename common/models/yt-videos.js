@@ -21,13 +21,13 @@ module.exports = function (ytVideos) {
 
     switch (lowerBound) {
       case 70:
-        maxResults = 100
+        maxResults = 350
         break
       case 60:
-        maxResults = 100
+        maxResults = 250
         break
       case 44:
-        maxResults = 50
+        maxResults = 150
         break
       default:
         maxResults = 50
@@ -43,7 +43,7 @@ module.exports = function (ytVideos) {
       console.log(`Total artists crawled: ${count}`)
       count++
       console.log(`Crawling the artist: ${artistName}`)
-      const queries = [`${artistName} live`, `${artistName} concert`, `${artistName} live performance`]
+      const queries = [`${artistName} live | ${artistName} concert | ${artistName} live performance`]
 
       const videoResult = searchYtVideos(queries, maxResults).retry(RETRY_COUNT)
 
@@ -86,56 +86,14 @@ module.exports = function (ytVideos) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  function getYtPlaylistItems (id, youtube) {
-    const cachedResult = _.remove(playlistItemCache, ['id', id])
-    if (cachedResult.length !== 0) {
-      return cachedResult[0].items
-    }
-
-    let nextPageToken
-    const itemsFunction = Rx.Observable.bindNodeCallback(youtube.getPlayListsItemsById)
-    const itemInitialResult = itemsFunction(id, MAX_PER_REQUEST_ITEMS).do(x => {
-      nextPageToken = x.nextPageToken
-    }).pluck('items').concatMap(result => Rx.Observable.from(result))
-
-    const itemSubsequentResults = Rx.Observable.range(1, MAGIC_SEED_FOR_ALL_POSSIBLE_PLAYLIST_SIZES).concatMap(x => {
-      const itemResult = itemsFunction(id, MAX_PER_REQUEST_ITEMS, {pageToken: nextPageToken}).takeWhile(x => nextPageToken).do(x => { nextPageToken = x.nextPageToken })
-      return itemResult
-    }).pluck('items').concatMap(result => Rx.Observable.from(result))
-
-    const playlistItems = Rx.Observable.concat(itemInitialResult, itemSubsequentResults).filter(result => filterVideoByTitle(result))
-
-    // Building the cache
-    playlistItemCache = _.concat(playlistItemCache, {id: id, items: playlistItems})
-
-    return playlistItems
-  }
-
-  function getYtPlaylistVideos (id) {
-    const youtube = loginAssist.ytLogin()
-
-    const playlistItems = getYtPlaylistItems(id, youtube)
-
-    const playlistIds = getYtPlaylistItems(id, youtube).pluck('snippet', 'resourceId', 'videoId').bufferCount(MAX_PER_REQUEST_ITEMS)
-
-    const videoContentDetailsAndStats = playlistIds.concatMap((ids) => {
-      return getVideos(ids.join(), youtube)
-    }).pluck('items').concatMap((item) => Rx.Observable.from(item))
-
-    const playlistVideos = Rx.Observable.zip(playlistItems, videoContentDetailsAndStats, (playlistItem, detailedStat) => {
-      detailedStat.snippet = playlistItem.snippet
-      return detailedStat
-    })
-    return playlistVideos
-  }
-
   function searchYtVideos (queries, maxresults) {
     // Creating authenticated youtube closure in calling function scope to use different access tokens upon quota breach using calle's retry
     const youtube = loginAssist.ytLogin()
 
     const queryObservable = Rx.Observable.from(queries)
+    const params = { type: `video`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
 
-    const ytVideos = queryObservable.mergeMap(query => searchYt(query, maxresults, 'video', youtube).filter(result => filterVideoByTitle(result)))
+    const ytVideos = queryObservable.mergeMap(query => searchYt(query, maxresults, params, youtube).filter(result => filterVideoByTitle(result)))
       .distinct(value => value.id.videoId)
 
     const videoContentDetailsAndStats = ytVideos.pluck('id', 'videoId').bufferCount(MAX_PER_REQUEST_ITEMS).concatMap((ids) => {
@@ -149,7 +107,7 @@ module.exports = function (ytVideos) {
     return detailedYtVideos
   }
 
-  function searchYt (query, maxresults, type, youtube) {
+  function searchYt (query, maxresults, params, youtube) {
     /* Each independent execution of observable issues separate api calls so we are incurring calls while zipping and getting video stats.
      * Cache for the a query expires after just single hit coz zipping involves only two independent executions, if needed more in future change here
      *  Sort of we are managing the side effect arising from calling function here */
@@ -163,7 +121,7 @@ module.exports = function (ytVideos) {
     let nextPageToken
     const searchObservable = Rx.Observable.bindNodeCallback(youtube.search)
 
-    const moduloResults = searchObservable(query, resultModules, {regionCode: 'US', type: type}).do((result) => {
+    const moduloResults = searchObservable(query, resultModules, params).do((result) => {
       nextPageToken = result.nextPageToken
     }).pluck('items').concatMap((results) => Rx.Observable.from(results))
 
@@ -171,8 +129,7 @@ module.exports = function (ytVideos) {
       .concatMap(([range, timer]) => {
         const searchResults = searchObservable(query, MAX_PER_REQUEST_ITEMS, {
           pageToken: nextPageToken,
-          regionCode: 'US',
-          type: type
+          ...params
         }).do((result) => {
           nextPageToken = result.nextPageToken
         }).concatMap(result => Rx.Observable.from(result.items))
@@ -257,5 +214,48 @@ module.exports = function (ytVideos) {
     const uniqueTruncatedAlbums = _.uniqBy(truncatedAlbums, 'id')
     // const topAlbums = _.filter(uniqueTruncatedAlbums, album => album.popularity >= 26 && album.popularity < 40)
     console.log(JSON.stringify(uniqueTruncatedAlbums, null, 1))
+  }
+
+  function getYtPlaylistItems (id, youtube) {
+    const cachedResult = _.remove(playlistItemCache, ['id', id])
+    if (cachedResult.length !== 0) {
+      return cachedResult[0].items
+    }
+
+    let nextPageToken
+    const itemsFunction = Rx.Observable.bindNodeCallback(youtube.getPlayListsItemsById)
+    const itemInitialResult = itemsFunction(id, MAX_PER_REQUEST_ITEMS).do(x => {
+      nextPageToken = x.nextPageToken
+    }).pluck('items').concatMap(result => Rx.Observable.from(result))
+
+    const itemSubsequentResults = Rx.Observable.range(1, MAGIC_SEED_FOR_ALL_POSSIBLE_PLAYLIST_SIZES).concatMap(x => {
+      const itemResult = itemsFunction(id, MAX_PER_REQUEST_ITEMS, {pageToken: nextPageToken}).takeWhile(x => nextPageToken).do(x => { nextPageToken = x.nextPageToken })
+      return itemResult
+    }).pluck('items').concatMap(result => Rx.Observable.from(result))
+
+    const playlistItems = Rx.Observable.concat(itemInitialResult, itemSubsequentResults).filter(result => filterVideoByTitle(result))
+
+    // Building the cache
+    playlistItemCache = _.concat(playlistItemCache, {id: id, items: playlistItems})
+
+    return playlistItems
+  }
+
+  function getYtPlaylistVideos (id) {
+    const youtube = loginAssist.ytLogin()
+
+    const playlistItems = getYtPlaylistItems(id, youtube)
+
+    const playlistIds = getYtPlaylistItems(id, youtube).pluck('snippet', 'resourceId', 'videoId').bufferCount(MAX_PER_REQUEST_ITEMS)
+
+    const videoContentDetailsAndStats = playlistIds.concatMap((ids) => {
+      return getVideos(ids.join(), youtube)
+    }).pluck('items').concatMap((item) => Rx.Observable.from(item))
+
+    const playlistVideos = Rx.Observable.zip(playlistItems, videoContentDetailsAndStats, (playlistItem, detailedStat) => {
+      detailedStat.snippet = playlistItem.snippet
+      return detailedStat
+    })
+    return playlistVideos
   }
 }
