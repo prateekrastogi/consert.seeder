@@ -1,3 +1,5 @@
+import { error } from 'util'
+
 'use strict'
 
 const Rx = require('rxjs')
@@ -68,11 +70,14 @@ module.exports = function (enrichedArtists) {
 
         return enrichedArtist
       }, 2)
-      .subscribe(async (x) => {
-        count++
-        await enrichedArtists.replaceOrCreate(x)
-        console.log(`Successfully added/replaced the artist: ${x.artist.name}`)
-        console.log(`Total artists added/replaced in the running execution: ${count}`)
+      .subscribe({
+        next: async (x) => {
+          count++
+          await enrichedArtists.replaceOrCreate(x)
+          console.log(`Successfully added/replaced the artist: ${x.artist.name}`)
+          console.log(`Total artists added/replaced in the running execution: ${count}`)
+        },
+        error: err => console.log(err)
       })
 
     return new Promise((resolve, reject) => resolve(isSuccess))
