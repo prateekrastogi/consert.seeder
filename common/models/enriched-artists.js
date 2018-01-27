@@ -1,5 +1,3 @@
-import { error } from 'util'
-
 'use strict'
 
 const Rx = require('rxjs')
