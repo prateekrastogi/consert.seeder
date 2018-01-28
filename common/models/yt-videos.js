@@ -38,7 +38,7 @@ module.exports = function (ytVideos) {
     const topArtists = Rx.Observable.from(artists)
     let count = 0
 
-    topArtists.concatMap((artist) => {
+    topArtists.mergeMap((artist) => {
       const artistName = artist.artist.name
       console.log(`Total artists crawled: ${count}`)
       count++
@@ -63,7 +63,7 @@ module.exports = function (ytVideos) {
       const resultWithArtistIdAndCrawlMarked = Rx.Observable.concat(resultWithArtistId, enrichedArtistVideoCrawledSetter)
 
       return resultWithArtistIdAndCrawlMarked
-    }).subscribe({
+    }, 4).subscribe({
       next: async (result) => {
         const updatedVideo = await videoObjectUpdater(result.result, {artists: result.artistId})
         await ytVideos.replaceOrCreate(updatedVideo)
