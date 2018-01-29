@@ -18,7 +18,7 @@ docker run -p 3200:3200 seeder
 Item Properties:
 ---------------
 
-itemType <string>: ItemType of uploaded recommendation items, can be of multiple types such as video, artist etc. 
+itemType <string>: ItemType of uploaded recommendation items, can be of multiple types such as 'video', 'artist' etc. 
 kind <string>: Youtube resource kind
 etag <string>: Http etag of the resource
 contentDetails-duration <string>
