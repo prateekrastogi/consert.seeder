@@ -1,0 +1,33 @@
+{
+  "name": "ytLive",
+  "plural": "ytLive",
+  "base": "Model",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {},
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {
+    "syncYtLiveEventsWithRecombee": {
+      "accepts": [],
+      "returns": [
+        {
+          "arg": "isRunning",
+          "type": "boolean",
+          "root": false,
+          "description": "Tells whether the sync process is running"
+        }
+      ],
+      "description": "It syncs currently live Youtube music events with recombee",
+      "http": [
+        {
+          "path": "/syncYtLiveEventsWithRecombee",
+          "verb": "put"
+        }
+      ]
+    }
+  }
+}

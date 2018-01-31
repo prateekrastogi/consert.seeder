@@ -52,5 +52,9 @@
   "recombee": {
     "dataSource": null,
     "public": true
+  },
+  "ytLive": {
+    "dataSource": null,
+    "public": true
   }
 }
