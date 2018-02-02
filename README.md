@@ -12,6 +12,19 @@ docker run -p 3200:3200 seeder
 "password": "openssssame"
 }
 
+------ Model Description ------
+
+artist-seed: Fetches the spotify id and name of artists
+dependent on: nothing
+
+enriched-artist: Fetches the detailed spotify data of artists from artist-seeds
+dependent on: artist-seed
+
+yt-video: Fetches the past live performances of the enriched-artists 
+dependent on: enriched-artist
+
+recombee: Seeds the yt-videos of type 'video' and enriched-artist of type 'artist' to recombee
+dependent on: enriched-artist and yt-video
 
 ------ Recombee Data Model ------
 
