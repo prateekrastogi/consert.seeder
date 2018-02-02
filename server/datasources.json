@@ -12,5 +12,19 @@
   "in-mem-persist": {
     "name": "in-mem-persist",
     "connector": "memory"
+  },
+  "elastic-search": {
+    "name": "elastic-search",
+    "index": "videos",
+    "hosts": [
+      {
+        "protocol": "http",
+        "host": "127.0.0.1",
+        "port": 9200
+      }
+    ],
+    "apiVersion": "5.x",
+    "defaultSize": "",
+    "connector": "es"
   }
 }

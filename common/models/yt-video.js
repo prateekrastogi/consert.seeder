@@ -7,8 +7,8 @@ const ytUtils = require('../../lib/yt-utils')
 
 const RETRY_COUNT = 3
 
-module.exports = function (ytVideos) {
-  ytVideos.putArtistsVideosLive = async function (lowerBound, upperBound) {
+module.exports = function (ytVideo) {
+  ytVideo.putArtistsVideosLive = async function (lowerBound, upperBound) {
     const enrichedArtists = app.models.enrichedArtists
     let maxResults  // max results per search query
 
@@ -59,14 +59,14 @@ module.exports = function (ytVideos) {
     }, 4).subscribe({
       next: async (result) => {
         const updatedVideo = await videoObjectUpdater(result.result, {artists: result.artistId})
-        await ytVideos.replaceOrCreate(updatedVideo)
+        await ytVideo.replaceOrCreate(updatedVideo)
       },
       error: err => console.log(err)})
 
     return new Promise((resolve, reject) => resolve())
   }
 
-  ytVideos.setArtistsByPopularityForVideoReCrawl = async function (lowerBound, upperBound) {
+  ytVideo.setArtistsByPopularityForVideoReCrawl = async function (lowerBound, upperBound) {
     const artistIds = await findVideoCrawledArtistsByPopularity(lowerBound, upperBound)
     const enrichedArtists = app.models.enrichedArtists
 
@@ -80,7 +80,7 @@ module.exports = function (ytVideos) {
   }
 
   async function videoObjectUpdater (video, {artists, albums, tracks}) {
-    const videoInstance = await ytVideos.findById(video.id)
+    const videoInstance = await ytVideo.findById(video.id)
     if (videoInstance !== null) {
       artists = _.union(artists, videoInstance.artists)
       albums = _.union(albums, videoInstance.albums)

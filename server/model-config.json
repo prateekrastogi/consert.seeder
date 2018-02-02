@@ -41,11 +41,11 @@
     "dataSource": "seeder",
     "public": true
   },
-  "enrichedArtists": {
+  "enrichedArtist": {
     "dataSource": "seeder",
     "public": true
   },
-  "ytVideos": {
+  "ytVideo": {
     "dataSource": "seeder",
     "public": true
   },

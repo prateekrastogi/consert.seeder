@@ -1,5 +1,5 @@
 {
-  "name": "enrichedArtists",
+  "name": "enrichedArtist",
   "base": "PersistedModel",
   "strict": false,
   "idInjection": false,

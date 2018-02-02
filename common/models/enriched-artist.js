@@ -7,8 +7,8 @@ const app = require('../../server/server')
 
 const RETRY_COUNT = 3
 
-module.exports = function (enrichedArtists) {
-  enrichedArtists.putEnrichedArtists = async function () {
+module.exports = function (enrichedArtist) {
+  enrichedArtist.putEnrichedArtists = async function () {
     let isSuccess = true
     let count = 0
     const artistSeed = app.models.artistSeed
@@ -71,7 +71,7 @@ module.exports = function (enrichedArtists) {
       .subscribe({
         next: async (x) => {
           count++
-          await enrichedArtists.replaceOrCreate(x)
+          await enrichedArtist.replaceOrCreate(x)
           console.log(`Successfully added/replaced the artist: ${x.artist.name}`)
           console.log(`Total artists added/replaced in the running execution: ${count}`)
         },
@@ -81,7 +81,7 @@ module.exports = function (enrichedArtists) {
     return new Promise((resolve, reject) => resolve(isSuccess))
   }
 
-  enrichedArtists.setEnrichedArtistsForReCrawl = async function () {
+  enrichedArtist.setEnrichedArtistsForReCrawl = async function () {
     let count = 0
     const isSuccess = true
     const artistSeed = app.models.artistSeed

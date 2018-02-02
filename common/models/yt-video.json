@@ -1,5 +1,5 @@
 {
-  "name": "ytVideos",
+  "name": "ytVideo",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
