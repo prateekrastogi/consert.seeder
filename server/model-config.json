@@ -56,5 +56,9 @@
   "ytLive": {
     "dataSource": null,
     "public": true
+  },
+  "elasticVideo": {
+    "dataSource": "elastic-search",
+    "public": true
   }
 }

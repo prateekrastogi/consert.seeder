@@ -25,6 +25,11 @@
       "type": [
         "string"
       ]
+    },
+    "isVideoElasticSearchSynced": {
+      "type": "boolean",
+      "required": false,
+      "default": false
     }
   },
   "validations": [],

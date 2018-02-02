@@ -9,7 +9,7 @@ const RETRY_COUNT = 3
 
 module.exports = function (ytVideo) {
   ytVideo.putArtistsVideosLive = async function (lowerBound, upperBound) {
-    const enrichedArtists = app.models.enrichedArtists
+    const enrichedArtist = app.models.enrichedArtist
     let maxResults  // max results per search query
 
     switch (lowerBound) {
@@ -40,12 +40,12 @@ module.exports = function (ytVideo) {
 
       const videoResult = ytUtils.searchYtVideos(queries, maxResults).retry(RETRY_COUNT)
 
-      const enrichedArtistInstance = Rx.Observable.fromPromise(enrichedArtists.findById(artist.id))
+      const enrichedArtistInstance = Rx.Observable.fromPromise(enrichedArtist.findById(artist.id))
 
       const enrichedArtistVideoCrawledSetter = enrichedArtistInstance.map((enrichedArtist) => {
         enrichedArtist.areArtistVideosCrawled = true
         return enrichedArtist
-      }).concatMap((updatedEnrichedArtist) => Rx.Observable.fromPromise(enrichedArtists.replaceOrCreate(updatedEnrichedArtist)))
+      }).concatMap((updatedEnrichedArtist) => Rx.Observable.fromPromise(enrichedArtist.replaceOrCreate(updatedEnrichedArtist)))
         .concatMap((obj) => Rx.Observable.empty())
 
       const resultWithArtistId = videoResult.map(result => {
@@ -68,12 +68,12 @@ module.exports = function (ytVideo) {
 
   ytVideo.setArtistsByPopularityForVideoReCrawl = async function (lowerBound, upperBound) {
     const artistIds = await findVideoCrawledArtistsByPopularity(lowerBound, upperBound)
-    const enrichedArtists = app.models.enrichedArtists
+    const enrichedArtist = app.models.enrichedArtist
 
-    Rx.Observable.from(artistIds).pluck('id').concatMap(id => Rx.Observable.fromPromise(enrichedArtists.findById(id)))
+    Rx.Observable.from(artistIds).pluck('id').concatMap(id => Rx.Observable.fromPromise(enrichedArtist.findById(id)))
       .concatMap((enrichedArtistInstance) => {
         enrichedArtistInstance.areArtistVideosCrawled = false
-        return Rx.Observable.fromPromise(enrichedArtists.replaceOrCreate(enrichedArtistInstance))
+        return Rx.Observable.fromPromise(enrichedArtist.replaceOrCreate(enrichedArtistInstance))
       }).subscribe((artist) => console.log(`Artist marked for re-crawling: ${artist.artist.name}`))
 
     return new Promise((resolve, reject) => resolve())
@@ -94,22 +94,22 @@ module.exports = function (ytVideo) {
   }
 
   async function findVideoUnCrawledArtistsByPopularity (lowerBound, upperBound) {
-    const enrichedArtists = app.models.enrichedArtists
+    const enrichedArtist = app.models.enrichedArtist
     const filter = {
       where: {and: [{or: [{areArtistVideosCrawled: false}, {areArtistVideosCrawled: {exists: false}}]}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
       fields: {id: true, artist: true, topTracks: false, albums: false}
     }
-    const artists = await enrichedArtists.find(filter)
+    const artists = await enrichedArtist.find(filter)
     return artists
   }
 
   async function findVideoCrawledArtistsByPopularity (lowerBound, upperBound) {
-    const enrichedArtists = app.models.enrichedArtists
+    const enrichedArtist = app.models.enrichedArtist
     const filter = {
       where: {and: [{'areArtistVideosCrawled': true}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
       fields: {id: true, artist: true, topTracks: false, albums: false}
     }
-    const artists = await enrichedArtists.find(filter)
+    const artists = await enrichedArtist.find(filter)
     return artists
   }
 
