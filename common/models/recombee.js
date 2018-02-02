@@ -19,8 +19,11 @@ module.exports = function (recombee) {
 
   recombee.seedPastShows = async function () {
     const ytVideo = app.models.ytVideo
-    const videos = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
+
+    let reachedEnd = false
+    const videos = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).takeWhile(x => !reachedEnd).concatMap((i) => {
       return Rx.Observable.fromPromise(findRecombeeUnSyncedYtVideosInBatches(MAX_BATCH, i * MAX_BATCH))
+        .do(unsyncedVideos => unsyncedVideos.length < MAX_BATCH ? (reachedEnd = true) : reachedEnd)
         .concatMap(unsyncedVideos => Rx.Observable.from(unsyncedVideos))
     })
 
@@ -34,7 +37,7 @@ module.exports = function (recombee) {
         console.log(`Total videoItems added to Recombee: ${count}`)
         count++
       },
-      error: err => console.log(err)})
+      error: err => { err.name === 'MongoError' && err.code === 2 ? console.log('All videos are recombee synced') : console.log(err) }})
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -109,7 +112,7 @@ module.exports = function (recombee) {
     const syncedVideos = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
       return Rx.Observable.fromPromise(findRecombeeSyncedYtVideosInBatches(MAX_BATCH, i * MAX_BATCH))
         .concatMap(syncedVideos => Rx.Observable.from(syncedVideos))
-    }).bufferCount(MAX_BATCH)
+    }).bufferCount(1) // Using bufferCount=1 coz below method expects an array emission from the passed Observable, and larger buffer will fail to have intended affect on last remaining items in bufferSize < bufferCountSize
 
     setModelItemsForReSync(syncedVideos, ytVideo)
       .subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`))
