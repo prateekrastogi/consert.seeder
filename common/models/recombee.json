@@ -73,7 +73,7 @@
         }
       ]
     },
-    "setArtistsForRecombeeReSyncByPopularity": {
+    "setArtistsByPopularityForRecombeeReSync": {
       "accepts": [
         {
           "arg": "lowerBound",
@@ -98,7 +98,7 @@
       "description": "sets the artists in a popularity range for re-sync with recombee item catalog",
       "http": [
         {
-          "path": "/setArtistsForRecombeeReSyncByPopularity",
+          "path": "/setArtistsByPopularityForRecombeeReSync",
           "verb": "put"
         }
       ]

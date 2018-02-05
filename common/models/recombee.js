@@ -90,7 +90,7 @@ module.exports = function (recombee) {
    * @param {Function(Error)} callback
    */
 
-  recombee.setArtistsForRecombeeReSyncByPopularity = function (lowerBound, upperBound) {
+  recombee.setArtistsByPopularityForRecombeeReSync = function (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
 
     const artists = Rx.Observable.fromPromise(findRecombeeSyncedArtistsByPopularity(lowerBound, upperBound))
