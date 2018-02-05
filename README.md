@@ -53,7 +53,7 @@ snippet-channelTitle <string>
 snippet-thumbnails <string>
 snippet-liveBroadcastContent <string>: flag indicating the status of broadcast i.e. upcoming, live, completed, or none. 
 artists-ids <set>: Id's of all the artists that returns that particular video
-genres <set>: Genres associated with that particular video
+genres <set>: Genres associated with that item
 artists-names <set>: Names of all the artists involved in any particular video
 artists-popularity <set>: Popularity of all the artists involved in any particular video
 artists-followers <set>: Followers of all the artists involved in any particular video

@@ -89,7 +89,8 @@
     "options": {
       "remoting": {
         "sharedMethods": {
-          "*": false
+          "*": false,
+          "syncYtVideosWithElastic": true
         }
       }
     }

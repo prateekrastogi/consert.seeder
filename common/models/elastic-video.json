@@ -15,5 +15,17 @@
   "validations": [],
   "relations": {},
   "acls": [],
-  "methods": {}
+  "methods": {
+    "syncYtVideosWithElastic": {
+      "accepts": [],
+      "returns": [],
+      "description": "Synchronizes ytVideos data with elasticsearch",
+      "http": [
+        {
+          "path": "/syncYtVideosWithElastic",
+          "verb": "put"
+        }
+      ]
+    }
+  }
 }
