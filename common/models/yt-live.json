@@ -11,7 +11,7 @@
   "relations": {},
   "acls": [],
   "methods": {
-    "syncYtLiveEventsWithRecombee": {
+    "syncYtLiveEvents": {
       "accepts": [],
       "returns": [
         {
@@ -21,10 +21,10 @@
           "description": "Tells whether the sync process is running"
         }
       ],
-      "description": "It syncs currently live Youtube music events with recombee",
+      "description": "It syncs currently live Youtube music events with recombee & elasticsearch",
       "http": [
         {
-          "path": "/syncYtLiveEventsWithRecombee",
+          "path": "/syncYtLiveEvents",
           "verb": "put"
         }
       ]

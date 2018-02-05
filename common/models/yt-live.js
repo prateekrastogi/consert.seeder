@@ -6,10 +6,10 @@ const Rx = require('rxjs')
 let isRunning = false
 module.exports = function (ytLive) {
 /**
- * It syncs recently live Youtube music events with recombee
+ * It syncs recently live Youtube music events with recombee & elasticsearch
  */
 
-  ytLive.syncYtLiveEventsWithRecombee = function () {
+  ytLive.syncYtLiveEvents = function () {
     return new Promise((resolve, reject) => resolve(isRunning))
   }
 }

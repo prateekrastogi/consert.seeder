@@ -25,13 +25,14 @@ dependent on: enriched-artist
 
 recombee: Seeds the yt-videos of type 'video' and enriched-artist of type 'artist' to recombee
 dependent on: enriched-artist and yt-video
+set* methods: Mostly used while setting the whole/part thing up from scratch, otherwise no usage in regular system running
 
 ------ Recombee Data Model ------
 
 Item Properties:
 ---------------
 
-itemType <string>: ItemType of uploaded recommendation items, can be of multiple types such as 'video', 'artist' etc. 
+itemType <string>: ItemType of uploaded recommendation items, can be of multiple types such as 'video','artist','genre' 
 kind <string>: Youtube resource kind
 etag <string>: Http etag of the resource
 contentDetails-duration <string>
