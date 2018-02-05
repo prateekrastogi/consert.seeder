@@ -10,18 +10,18 @@
   "relations": {},
   "acls": [],
   "methods": {
-    "seedPastShows": {
+    "syncPastShows": {
       "accepts": [],
       "returns": [],
-      "description": "Seeds the past recorded concerts in recombee for recommendations",
+      "description": "Synchronizes the past recorded concerts with recombee for recommendations",
       "http": [
         {
-          "path": "/seedPastShows",
+          "path": "/syncPastShows",
           "verb": "put"
         }
       ]
     },
-    "seedArtists": {
+    "syncArtists": {
       "accepts": [
         {
           "arg": "lowerBound",
@@ -43,10 +43,10 @@
         }
       ],
       "returns": [],
-      "description": "seeds the artist, whose yt videos has already been fetched, pseudo-types to the recommendation engine",
+      "description": "Synchronizes the artist, whose yt videos has already been fetched, pseudo-types with the recommendation engine",
       "http": [
         {
-          "path": "/seedArtists",
+          "path": "/syncArtists",
           "verb": "put"
         }
       ]

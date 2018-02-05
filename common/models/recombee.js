@@ -13,11 +13,11 @@ let count = 0
 
 module.exports = function (recombee) {
   /**
-   * Seeds the past recorded concerts in recombee for recommendations
+   * Synchronizes the past recorded concerts with recombee for recommendations
    * @param {Function(Error)} callback
    */
 
-  recombee.seedPastShows = async function () {
+  recombee.syncPastShows = async function () {
     const ytVideo = app.models.ytVideo
 
     let reachedEnd = false
@@ -43,12 +43,12 @@ module.exports = function (recombee) {
   }
 
   /**
-   * seeds the artist, whose yt videos
-   *  has already been fetched, pseudo-types to the recommendation engine
+   * Synchronizes the artist, whose yt videos
+   *  has already been fetched, pseudo-types with the recommendation engine
    * @param {Function(Error)} callback
    */
 
-  recombee.seedArtists = function (lowerBound, upperBound) {
+  recombee.syncArtists = function (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
     const artists = Rx.Observable.fromPromise(findRecombeeUnSyncedArtistsByPopularity(lowerBound, upperBound))
 
