@@ -39,15 +39,41 @@
   },
   "artistSeed": {
     "dataSource": "seeder",
-    "public": true
+    "public": true,
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false,
+          "putTopSpotifyArtists": true
+        }
+      }
+    }
   },
   "enrichedArtist": {
     "dataSource": "seeder",
-    "public": true
+    "public": true,
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false,
+          "putEnrichedArtists": true,
+          "setEnrichedArtistsForReCrawl": true
+        }
+      }
+    }
   },
   "ytVideo": {
     "dataSource": "seeder",
-    "public": true
+    "public": true,
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false,
+          "putArtistsVideosLive": true,
+          "setArtistsByPopularityForVideoReCrawl": true
+        }
+      }
+    }
   },
   "recombee": {
     "dataSource": null,
@@ -59,6 +85,13 @@
   },
   "elasticVideo": {
     "dataSource": "elastic-search",
-    "public": true
+    "public": true,
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false
+        }
+      }
+    }
   }
 }

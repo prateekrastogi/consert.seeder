@@ -60,7 +60,7 @@
           "description": "It represents whether call to api successfully started the method execution"
         }
       ],
-      "description": "It set the enrichedArtists for Re-Crawl if it has been already crawled earlier",
+      "description": "It set the enrichedArtists for Re-Crawl if all artists in artistSeed has already been crawled earlier",
       "http": [
         {
           "path": "/setEnrichedArtistsForReCrawl",
