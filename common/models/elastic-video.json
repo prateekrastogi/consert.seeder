@@ -26,6 +26,17 @@
           "verb": "put"
         }
       ]
+    },
+    "setYtVideosForElasticReSync": {
+      "accepts": [],
+      "returns": [],
+      "description": "sets the previously seeded videos for re-sync with elasticsearch catalog",
+      "http": [
+        {
+          "path": "/setYtVideosForElasticReSync",
+          "verb": "put"
+        }
+      ]
     }
   }
 }

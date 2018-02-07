@@ -12,8 +12,9 @@ module.exports = function (elasticVideo) {
 
   elasticVideo.syncYtVideosWithElastic = function () {
     Rx.Observable.fromPromise(findElasticSyncedYtVideosInBatches(50, 0)).subscribe(x => console.log(x))
+  }
 
-    return new Promise((resolve, reject) => resolve())
+  elasticVideo.setYtVideosForElasticReSync = function () {
   }
 
   async function findElasticUnsyncedYtVideosInBatches (maxResults, offset) {
