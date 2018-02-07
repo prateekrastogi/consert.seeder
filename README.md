@@ -22,10 +22,13 @@ dependent on: artist-seed
 
 yt-video: Fetches the past live performances of the enriched-artists 
 dependent on: enriched-artist
+model field 'artist': enriched 'artists' whose yt search returned this video
+model field 'albums': enriched 'artist albums' whose yt search returned this video
+model field 'tracks': enriched 'artist top tracks' whose yt search returned this video
 
 recombee: Seeds the yt-videos of type 'video' and enriched-artist of type 'artist' to recombee
 dependent on: enriched-artist and yt-video
-set* methods: Mostly used while setting the whole/part thing up from scratch, otherwise no usage in regular system running
+set* methods: Mostly used while setting the whole/part thing up from scratch, otherwise no usage in running regular system
 
 ------ Recombee Data Model ------
 
@@ -60,6 +63,8 @@ artists-popularity <set>: Popularity of all the artists involved in any particul
 artists-followers <set>: Followers of all the artists involved in any particular video
 artists-relatedArtists <set>: Related artists of all the artists involved in any particular video
 artists-type <set>: Types of all the artists involved in any particular video
+
+Not including artist top tracks in metadata due to biases in spotify top tracks algo. Similarly, excluding album meta data as un-necessary result matching in youtube search makes it a very weak correlation signal. 
 
 User Properties:
 ---------------
