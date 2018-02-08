@@ -15,7 +15,7 @@
   },
   "elastic-search": {
     "name": "elastic-search",
-    "index": "videos",
+    "index": "video",
     "hosts": [
       {
         "protocol": "http",
