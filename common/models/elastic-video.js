@@ -8,6 +8,7 @@ const MAX_BATCH = 500
 const WAIT_TILL_NEXT_REQUEST = 100
 
 module.exports = function (elasticVideo) {
+  const ytVideo = app.models.ytVideo
 /**
  * Synchronizes ytVideos data with elasticsearch
  * @param {Function(Error)} callback
@@ -21,8 +22,6 @@ module.exports = function (elasticVideo) {
   }
 
   elasticVideo.setYtVideosForElasticReSync = function () {
-    const ytVideo = app.models.ytVideo
-
     const resyncSetter = getAllDbItemsObservable(findElasticSyncedYtVideosInBatches).concatMap(video => {
       video.isVideoElasticSearchSynced = false
       return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
@@ -40,7 +39,6 @@ module.exports = function (elasticVideo) {
   }
 
   async function findElasticUnsyncedYtVideosInBatches (maxResults, offset) {
-    const ytVideo = app.models.ytVideo
     const filter = {
       where: {or: [{isVideoElasticSearchSynced: false}, {isVideoElasticSearchSynced: {exists: false}}]},
       fields: {id: true,
@@ -84,7 +82,6 @@ module.exports = function (elasticVideo) {
   }
 
   async function findElasticSyncedYtVideosInBatches (maxResults, offset) {
-    const ytVideo = app.models.ytVideo
     const filter = {
       where: {isVideoElasticSearchSynced: true},
       limit: maxResults,
