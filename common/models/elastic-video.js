@@ -14,16 +14,30 @@ module.exports = function (elasticVideo) {
  */
 
   elasticVideo.syncYtVideosWithElastic = function () {
-    Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
-      return Rx.Observable.fromPromise(findElasticUnsyncedYtVideosInBatches(MAX_BATCH, i * MAX_BATCH))
-      .catch(err => Rx.Observable.empty())
-    })
+    getAllDbItemsObservable(findElasticUnsyncedYtVideosInBatches)
+    .concatMap(video => Rx.Observable.fromPromise(elasticVideo.replaceOrCreate(video)))
     .subscribe(x => console.log(x))
 
     return Promise.resolve()
   }
 
   elasticVideo.setYtVideosForElasticReSync = function () {
+    const ytVideo = app.models.ytVideo
+
+    const resyncSetter = getAllDbItemsObservable(findElasticSyncedYtVideosInBatches).concatMap(video => {
+      video.isVideoElasticSearchSynced = false
+      return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
+    })
+
+    resyncSetter.subscribe(x => console.log(x), err => console.log(err))
+    return Promise.resolve()
+  }
+
+  function getAllDbItemsObservable (filterFunction) {
+    return Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
+      return Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH))
+  .catch(err => Rx.Observable.empty()).concatMap(items => Rx.Observable.from(items))
+    })
   }
 
   async function findElasticUnsyncedYtVideosInBatches (maxResults, offset) {
