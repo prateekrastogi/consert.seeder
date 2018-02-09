@@ -5,7 +5,7 @@ const Rx = require('rxjs')
 const R = require('ramda')
 
 const MAX_BATCH = 500
-const WAIT_TILL_NEXT_REQUEST = 1000
+const WAIT_TILL_NEXT_REQUEST = 100
 
 module.exports = function (elasticVideo) {
 /**
@@ -15,10 +15,9 @@ module.exports = function (elasticVideo) {
 
   elasticVideo.syncYtVideosWithElastic = function () {
     getAllDbItemsObservable(findElasticUnsyncedYtVideosInBatches)
-    .concatMap(video => Rx.Observable.fromPromise(elasticVideo.replaceOrCreate(video)))
+    .concatMap(video => Rx.Observable.fromPromise(elasticVideo.upsert(video)))
     .subscribe(x => console.log(x))
 
-    return Promise.resolve()
   }
 
   elasticVideo.setYtVideosForElasticReSync = function () {

@@ -23,8 +23,15 @@
         "port": 9200
       }
     ],
-    "apiVersion": "5.x",
+    "apiVersion": "6.0",
     "defaultSize": "",
-    "connector": "es"
+    "connector": "es",
+    "mappingType": "basedata",
+    "mappingProperties": {
+      "id": {
+        "type": "keyword",
+        "index": true
+      }
+    }
   }
 }
