@@ -32,7 +32,7 @@ module.exports = function (elasticVideo) {
       return Rx.Observable.concat(elasticWriter, crawlRecorder)
     })
 
-    elasticSyncer.retry(RETRY_ATTEMPTS).subscribe(x => console.log(`Working on syncing video: ${x.snippet.title}`),
+    elasticSyncer.retry(RETRY_ATTEMPTS).subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
      err => console.log(err))
 
     return Promise.resolve()
@@ -46,7 +46,7 @@ module.exports = function (elasticVideo) {
       return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
     })
 
-    resyncSetter.retry(RETRY_ATTEMPTS).subscribe(x => console.log(`Setting for re-sync video: ${x.snippet.title}`),
+    resyncSetter.retry(RETRY_ATTEMPTS).subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
     err => console.log(err))
 
     return Promise.resolve()
@@ -55,7 +55,7 @@ module.exports = function (elasticVideo) {
   function getAllDbItemsObservable (filterFunction) {
     return Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
       return Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH))
-    }).concatMap(items => Rx.Observable.from(items)).catch(err => Rx.Observable.empty())
+    }).concatMap(items => Rx.Observable.from(items))
   }
 
   async function findElasticUnsyncedYtVideosInBatches (maxResults, offset) {
