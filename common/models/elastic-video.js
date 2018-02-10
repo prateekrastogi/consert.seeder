@@ -55,7 +55,8 @@ module.exports = function (elasticVideo) {
   function getAllDbItemsObservable (filterFunction) {
     return Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
       return Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH))
-    }).concatMap(items => Rx.Observable.from(items))
+      .catch(err => Rx.Observable.empty()).concatMap(items => Rx.Observable.from(items))
+    })
   }
 
   async function findElasticUnsyncedYtVideosInBatches (maxResults, offset) {
