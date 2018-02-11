@@ -9,7 +9,6 @@ const recombeeUtils = require('../../lib/recombee-utils')
 
 const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 10000
-let count = 0
 
 module.exports = function (recombee) {
   /**
@@ -19,6 +18,7 @@ module.exports = function (recombee) {
 
   recombee.syncPastShows = async function () {
     const ytVideo = app.models.ytVideo
+    let count = 0
 
     let reachedEnd = false
     const videos = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).takeWhile(x => !reachedEnd).concatMap((i) => {
