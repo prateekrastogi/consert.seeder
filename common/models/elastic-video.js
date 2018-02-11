@@ -4,8 +4,8 @@ const app = require('../../server/server')
 const Rx = require('rxjs')
 const R = require('ramda')
 
-const MAX_BATCH = 1000
-const WAIT_TILL_NEXT_REQUEST = 1000
+const MAX_BATCH = 5000
+const WAIT_TILL_NEXT_REQUEST = 5000
 const RETRY_ATTEMPTS = 3
 
 module.exports = function (elasticVideo) {
@@ -55,7 +55,7 @@ module.exports = function (elasticVideo) {
   function getAllDbItemsObservable (filterFunction) {
     return Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
       return Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH))
-      .catch(err => Rx.Observable.empty()).concatMap(items => Rx.Observable.from(items))
+      .concatMap(items => Rx.Observable.from(items))
     })
   }
 
