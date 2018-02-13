@@ -46,16 +46,19 @@ module.exports = function (elasticVideo) {
     })
 
     resyncSetter.subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
-    err => console.log(err))
+    err => console.log(err),
+  () => console.log('complte'))
 
     return Promise.resolve()
   }
 
   function getAllDbItemsObservable (filterFunction) {
-    return Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
+    const dbItems = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
       return Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH))
       .concatMap(items => Rx.Observable.from(items))
-    })
+    }).catch(err => Rx.Observable.empty())
+
+    return dbItems.repeat(3)
   }
 
   async function findElasticUnsyncedYtVideosInBatches (maxResults, offset) {
