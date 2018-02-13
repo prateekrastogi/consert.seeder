@@ -6,7 +6,6 @@ const R = require('ramda')
 
 const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 5000
-const RETRY_ATTEMPTS = 3
 
 module.exports = function (elasticVideo) {
 /**
@@ -32,7 +31,7 @@ module.exports = function (elasticVideo) {
       return Rx.Observable.concat(elasticWriter, crawlRecorder)
     })
 
-    elasticSyncer.retry(RETRY_ATTEMPTS).subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
+    elasticSyncer.subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
      err => console.log(err))
 
     return Promise.resolve()
@@ -46,7 +45,7 @@ module.exports = function (elasticVideo) {
       return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
     })
 
-    resyncSetter.retry(RETRY_ATTEMPTS).subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
+    resyncSetter.subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
     err => console.log(err))
 
     return Promise.resolve()
