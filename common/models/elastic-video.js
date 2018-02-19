@@ -31,7 +31,7 @@ module.exports = function (elasticVideo) {
       return Rx.Observable.concat(elasticWriter, crawlRecorder)
     })
 
-    elasticSyncer.subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
+    elasticSyncer.repeat(3).subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
      err => console.log(err))
 
     return Promise.resolve()
@@ -54,9 +54,15 @@ module.exports = function (elasticVideo) {
 
   function getAllDbItemsObservable (filterFunction) {
     const dbItems = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
-      return Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH))
+      const items = Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH))
       .concatMap(items => Rx.Observable.from(items))
-    }).catch(err => dbItems)
+      return Rx.Observable.defer(() => items)
+    }).catch(err => {
+      if (err.name === 'MongoError' && err.code === 2) {
+        const nextItems = Rx.Observable.fromPromise(filterFunction(MAX_BATCH, 0))
+        return nextItems.count > 0 ? dbItems : Rx.Observable.empty()
+      }
+    })
 
     return dbItems
   }
