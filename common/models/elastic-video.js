@@ -6,7 +6,7 @@ const R = require('ramda')
 
 const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 5000
-const RETRY_ATTEMPTS = 3
+const RETRY_ATTEMPTS = 2
 
 module.exports = function (elasticVideo) {
 /**
@@ -57,9 +57,9 @@ module.exports = function (elasticVideo) {
 
   function getAllDbItemsObservable (filterFunction) {
     const dbItems = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
-      const items = Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH))
+      const items = Rx.Observable.defer(() => Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH)))
       .concatMap(items => Rx.Observable.from(items))
-      return Rx.Observable.defer(() => items)
+      return items
     }).catch(err => {
       if (err.name === 'MongoError' && err.code === 2) {
         const nextItems = Rx.Observable.fromPromise(filterFunction(MAX_BATCH, 0))
