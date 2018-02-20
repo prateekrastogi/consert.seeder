@@ -93,7 +93,7 @@ module.exports = function (recombee) {
     const artists = Rx.Observable.fromPromise(findRecombeeSyncedArtistsByPopularity(lowerBound, upperBound))
 
     setModelItemsForReSync(artists, enrichedArtist)
-      .subscribe(({artist}) => console.log(`Artist marked for Recombee Re-sync: ${artist.name}`))
+      .subscribe(({artist}) => console.log(`Artist marked for Recombee Re-sync: ${artist.name}`), err => console.log(err))
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -110,7 +110,7 @@ module.exports = function (recombee) {
 
     // Had to do this due to back-pressure resulting in ignored items
     setModelItemsForReSync(syncedVideos, ytVideo).timeoutWith(2 * WAIT_TILL_NEXT_REQUEST, setModelItemsForReSync(syncedVideos, ytVideo).timeoutWith(2 * WAIT_TILL_NEXT_REQUEST, setModelItemsForReSync(syncedVideos, ytVideo)))
-      .subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`))
+      .subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.log(err))
 
     return new Promise((resolve, reject) => resolve())
   }
