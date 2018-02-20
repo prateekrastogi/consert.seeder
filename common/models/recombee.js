@@ -281,4 +281,20 @@ module.exports = function (recombee) {
         return item
       }).concatMap(item => Rx.Observable.fromPromise(model.replaceOrCreate(item)))
   }
+
+  // Copied from elastic-video model. If more such use cases arise, then refactor the code for re-usability
+  function getAllDbItemsObservable (filterFunction) {
+    const dbItems = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
+      const items = Rx.Observable.defer(() => Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH)))
+      .concatMap(items => Rx.Observable.from(items))
+      return items
+    }).catch(err => {
+      if (err.name === 'MongoError' && err.code === 2) {
+        const nextItems = Rx.Observable.fromPromise(filterFunction(MAX_BATCH, 0))
+        return nextItems.count > 0 ? dbItems : Rx.Observable.empty()
+      }
+    })
+
+    return dbItems
+  }
 }
