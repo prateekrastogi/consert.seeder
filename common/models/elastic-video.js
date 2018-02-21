@@ -49,8 +49,11 @@ module.exports = function (elasticVideo) {
     })
 
     // Had to do this due to back-pressure resulting in ignored items
-    resyncSetter.timeoutWith(4 * WAIT_TILL_NEXT_REQUEST, resyncSetter)
-    .subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
+    function recursiveReSyncSetter () {
+      return resyncSetter.timeoutWith(4 * WAIT_TILL_NEXT_REQUEST, Rx.Observable.defer(() => recursiveReSyncSetter()))
+    }
+
+    recursiveReSyncSetter().subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
     err => console.log(err),
   () => console.log('complte'))
 

@@ -109,8 +109,11 @@ module.exports = function (recombee) {
     const syncedVideos = getAllDbItemsObservable(findRecombeeSyncedYtVideosInBatches).bufferCount(1) // Using bufferCount=1 coz below method expects an array emission from the passed Observable, and larger buffer will fail to have intended affect on last remaining items in bufferSize < bufferCountSize
 
     // Had to do this due to back-pressure resulting in ignored items
-    setModelItemsForReSync(syncedVideos, ytVideo).timeoutWith(2 * WAIT_TILL_NEXT_REQUEST, setModelItemsForReSync(syncedVideos, ytVideo).timeoutWith(2 * WAIT_TILL_NEXT_REQUEST, setModelItemsForReSync(syncedVideos, ytVideo)))
-      .subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.log(err))
+    function recursiveReSyncSetter () {
+      return setModelItemsForReSync(syncedVideos, ytVideo).timeoutWith(2 * WAIT_TILL_NEXT_REQUEST, Rx.Observable.defer(() => setModelItemsForReSync(syncedVideos, ytVideo)))
+    }
+
+    recursiveReSyncSetter().subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.log(err))
 
     return new Promise((resolve, reject) => resolve())
   }
