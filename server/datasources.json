@@ -25,8 +25,9 @@
     ],
     "apiVersion": "6.0",
     "defaultSize": "",
-    "connector": "es",
+    "connector": "esv6",
     "mappingType": "basedata",
+    "requestTimeout": 30000,
     "mappingProperties": {
       "id": {
         "type": "keyword",
