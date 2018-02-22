@@ -6,7 +6,6 @@ const R = require('ramda')
 
 const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 5000
-const REPEAT_ATTEMPTS = 2
 
 module.exports = function (elasticVideo) {
 /**
@@ -33,7 +32,11 @@ module.exports = function (elasticVideo) {
     })
 
     // Had to do this due to back-pressure resulting in ignored items
-    elasticSyncer.repeat(REPEAT_ATTEMPTS)
+    function recursiveSyncer () {
+      return elasticSyncer.concat(Rx.Observable.defer(() => recursiveSyncer()))
+    }
+
+    recursiveSyncer()
     .subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
      err => console.log(err))
 
@@ -55,7 +58,7 @@ module.exports = function (elasticVideo) {
 
     recursiveReSyncSetter().subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
     err => console.log(err),
-  () => console.log('complte'))
+    () => console.log('Setting for re-sync with es completed'))
 
     return Promise.resolve()
   }
@@ -65,12 +68,7 @@ module.exports = function (elasticVideo) {
       const items = Rx.Observable.defer(() => Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH)))
       .concatMap(items => Rx.Observable.from(items))
       return items
-    }).catch(err => {
-      if (err.name === 'MongoError' && err.code === 2) {
-        const nextItems = Rx.Observable.fromPromise(filterFunction(MAX_BATCH, 0))
-        return nextItems.count > 0 ? dbItems : Rx.Observable.empty()
-      }
-    })
+    }).catch(err => Rx.Observable.empty())
 
     return dbItems
   }

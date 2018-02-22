@@ -9,7 +9,6 @@ const recombeeUtils = require('../../lib/recombee-utils')
 
 const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 10000
-const REPEAT_ATTEMPTS = 2
 
 module.exports = function (recombee) {
   /**
@@ -19,22 +18,23 @@ module.exports = function (recombee) {
 
   recombee.syncPastShows = async function () {
     const ytVideo = app.models.ytVideo
-    let count = 0
 
     const videos = getAllDbItemsObservable(findRecombeeUnSyncedYtVideosInBatches)
 
-    videos.map(video => {
+    const recombeeSyncer = videos.map(video => {
       const {id} = video
       const recombeeItem = recombeeUtils.convertVideoToRecombeeVideo(video)
       return {recombeeItem, id}
     }).bufferCount(MAX_BATCH).concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, ytVideo))
-    .repeat(REPEAT_ATTEMPTS)  // Had to do this due to back-pressure resulting in ignored items
-    .subscribe({
-      next: x => {
-        console.log(`Total videoItems added to Recombee: ${count}`)
-        count++
-      },
-      error: err => console.log(err)})
+
+    // Had to do this due to back-pressure resulting in ignored items
+    function recursiveSyncer () {
+      return recombeeSyncer.concat(Rx.Observable.defer(() => recursiveSyncer()))
+    }
+
+    recursiveSyncer().subscribe({
+      error: err => console.log(err)
+    })
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -49,13 +49,18 @@ module.exports = function (recombee) {
     const enrichedArtist = app.models.enrichedArtist
     const artists = Rx.Observable.fromPromise(findRecombeeUnSyncedArtistsByPopularity(lowerBound, upperBound))
 
-    artists.concatMap(artists => Rx.Observable.from(artists)).map(value => {
+    const artistSyncer = artists.concatMap(artists => Rx.Observable.from(artists)).map(value => {
       const {artist, id, relatedArtists} = value
       const recombeeItem = recombeeUtils.convertArtistToRecombeeArtist(artist, relatedArtists)
 
       return {recombeeItem, id}
     }).bufferCount(MAX_BATCH).concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, enrichedArtist))
-    .subscribe({
+
+    function recursiveSyncer () {
+      return artistSyncer.concat(Rx.Observable.defer(() => recursiveSyncer()))
+    }
+
+    recursiveSyncer().subscribe({
       error: err => console.log(err)
     })
 
@@ -110,7 +115,7 @@ module.exports = function (recombee) {
 
     // Had to do this due to back-pressure resulting in ignored items
     function recursiveReSyncSetter () {
-      return setModelItemsForReSync(syncedVideos, ytVideo).timeoutWith(2 * WAIT_TILL_NEXT_REQUEST, Rx.Observable.defer(() => setModelItemsForReSync(syncedVideos, ytVideo)))
+      return setModelItemsForReSync(syncedVideos, ytVideo).timeoutWith(4 * WAIT_TILL_NEXT_REQUEST, Rx.Observable.defer(() => setModelItemsForReSync(syncedVideos, ytVideo)))
     }
 
     recursiveReSyncSetter().subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.log(err))
@@ -286,12 +291,7 @@ module.exports = function (recombee) {
       const items = Rx.Observable.defer(() => Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH)))
       .concatMap(items => Rx.Observable.from(items))
       return items
-    }).catch(err => {
-      if (err.name === 'MongoError' && err.code === 2) {
-        const nextItems = Rx.Observable.fromPromise(filterFunction(MAX_BATCH, 0))
-        return nextItems.count > 0 ? dbItems : Rx.Observable.empty()
-      }
-    })
+    }).catch(err => Rx.Observable.empty())
 
     return dbItems
   }
