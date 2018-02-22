@@ -10,7 +10,6 @@ const WAIT_TILL_NEXT_REQUEST = 5000
 module.exports = function (elasticVideo) {
 /**
  * Synchronizes ytVideos data with elasticsearch
- * @param {Function(Error)} callback
  */
 
   elasticVideo.syncYtVideosWithElastic = function () {
@@ -31,7 +30,7 @@ module.exports = function (elasticVideo) {
       return Rx.Observable.concat(elasticWriter, crawlRecorder)
     })
 
-    // Had to do this due to back-pressure resulting in ignored items
+    // Had to do this due to back-pressure resulting in ignored items, and deferred concat will kick in as soon as new eligible items appears
     function recursiveSyncer () {
       return elasticSyncer.concat(Rx.Observable.defer(() => recursiveSyncer()))
     }
@@ -51,7 +50,7 @@ module.exports = function (elasticVideo) {
       return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
     })
 
-    // Had to do this due to back-pressure resulting in ignored items
+    // Had to do this due to back-pressure resulting in ignored items, and timeout combined with defer halts the recursion once all the items are finished
     function recursiveReSyncSetter () {
       return resyncSetter.timeoutWith(4 * WAIT_TILL_NEXT_REQUEST, Rx.Observable.defer(() => recursiveReSyncSetter()))
     }

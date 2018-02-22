@@ -13,7 +13,6 @@ const WAIT_TILL_NEXT_REQUEST = 10000
 module.exports = function (recombee) {
   /**
    * Synchronizes the past recorded concerts with recombee for recommendations
-   * @param {Function(Error)} callback
    */
 
   recombee.syncPastShows = async function () {
@@ -27,7 +26,7 @@ module.exports = function (recombee) {
       return {recombeeItem, id}
     }).bufferCount(MAX_BATCH).concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, ytVideo))
 
-    // Had to do this due to back-pressure resulting in ignored items
+    // Had to do this due to back-pressure resulting in ignored items, and deferred concat will kick in as soon as new eligible items appears
     function recursiveSyncer () {
       return recombeeSyncer.concat(Rx.Observable.defer(() => recursiveSyncer()))
     }
@@ -113,9 +112,9 @@ module.exports = function (recombee) {
 
     const syncedVideos = getAllDbItemsObservable(findRecombeeSyncedYtVideosInBatches).bufferCount(1) // Using bufferCount=1 coz below method expects an array emission from the passed Observable, and larger buffer will fail to have intended affect on last remaining items in bufferSize < bufferCountSize
 
-    // Had to do this due to back-pressure resulting in ignored items
+    // Had to do this due to back-pressure resulting in ignored items, and timeout combined with defer halts the recursion once all the items are finished
     function recursiveReSyncSetter () {
-      return setModelItemsForReSync(syncedVideos, ytVideo).timeoutWith(4 * WAIT_TILL_NEXT_REQUEST, Rx.Observable.defer(() => setModelItemsForReSync(syncedVideos, ytVideo)))
+      return setModelItemsForReSync(syncedVideos, ytVideo).timeoutWith(4 * WAIT_TILL_NEXT_REQUEST, Rx.Observable.defer(() => recursiveReSyncSetter()))
     }
 
     recursiveReSyncSetter().subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.log(err))
