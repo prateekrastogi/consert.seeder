@@ -5,7 +5,11 @@ const Rx = require('rxjs')
 const _ = require('lodash')
 const ytUtils = require('../../lib/yt-utils')
 
+const terminateAllActiveInterferingSubscriptions = require('../../lib/misc-utils').terminateAllActiveInterferingSubscriptions
+
 const RETRY_COUNT = 3
+
+let activeSubscriptions = []
 
 module.exports = function (ytVideo) {
   ytVideo.putArtistsVideosLive = async function (lowerBound, upperBound) {
@@ -31,7 +35,7 @@ module.exports = function (ytVideo) {
     const topArtists = Rx.Observable.from(artists)
     let count = 0
 
-    topArtists.mergeMap((artist) => {
+    const artistsVideoLivePuttingObservable = topArtists.mergeMap((artist) => {
       const artistName = artist.artist.name
       console.log(`Total artists crawled: ${count}`)
       count++
@@ -56,12 +60,18 @@ module.exports = function (ytVideo) {
       const resultWithArtistIdAndCrawlMarked = Rx.Observable.concat(resultWithArtistId, enrichedArtistVideoCrawledSetter)
 
       return resultWithArtistIdAndCrawlMarked
-    }, 4).subscribe({
+    }, 4)
+
+    const safeArtistsVideoLivePuttingObservable = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), artistsVideoLivePuttingObservable)
+
+    const putArtistsVideosLiveSubscription = safeArtistsVideoLivePuttingObservable.subscribe({
       next: async (result) => {
         const updatedVideo = await videoObjectUpdater(result.result, {artists: result.artistId})
         await ytVideo.replaceOrCreate(updatedVideo)
       },
       error: err => console.log(err)})
+
+    activeSubscriptions.push(putArtistsVideosLiveSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -70,11 +80,18 @@ module.exports = function (ytVideo) {
     const artistIds = await findVideoCrawledArtistsByPopularity(lowerBound, upperBound)
     const enrichedArtist = app.models.enrichedArtist
 
-    Rx.Observable.from(artistIds).pluck('id').concatMap(id => Rx.Observable.fromPromise(enrichedArtist.findById(id)))
+    const reCrawlingObservable = Rx.Observable.from(artistIds).pluck('id').concatMap(id => Rx.Observable.fromPromise(enrichedArtist.findById(id)))
       .concatMap((enrichedArtistInstance) => {
         enrichedArtistInstance.areArtistVideosCrawled = false
         return Rx.Observable.fromPromise(enrichedArtist.replaceOrCreate(enrichedArtistInstance))
-      }).subscribe((artist) => console.log(`Artist marked for re-crawling: ${artist.artist.name}`))
+      })
+
+    const safeReCrawlingObservable = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), reCrawlingObservable)
+
+    const setArtistsByPopularityForVideoReCrawlSubscription = safeReCrawlingObservable
+    .subscribe((artist) => console.log(`Artist marked for re-crawling: ${artist.artist.name}`))
+
+    activeSubscriptions.push(setArtistsByPopularityForVideoReCrawlSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
