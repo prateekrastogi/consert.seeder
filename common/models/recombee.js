@@ -63,7 +63,7 @@ module.exports = function (recombee) {
     }).bufferCount(MAX_BATCH)
     .concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, enrichedArtist))
 
-    const safeArtistSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), recursiveDeferredObservable(artistSyncer))
+    const safeArtistSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(artistSyncer, WAIT_TILL_NEXT_REQUEST))
 
     const artistSyncerSubscription = safeArtistSyncer.subscribe({
       error: err => console.log(err)
