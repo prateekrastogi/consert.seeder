@@ -4,6 +4,11 @@ const app = require('../../server/server')
 const Rx = require('rxjs')
 const R = require('ramda')
 
+const getAllDbItemsObservable = require('../../lib/misc-utils').getAllDbItemsObservable
+const terminateAllActiveInterferingSubscription = require('../../lib/misc-utils').terminateAllActiveInterferingSubscription
+const recursiveDeferredObservable = require('../../lib/misc-utils').recursiveDeferredObservable
+const recursiveDeferredTimeOutObservable = require('../../lib/misc-utils').recursiveDeferredTimeOutObservable
+
 const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 5000
 
@@ -17,7 +22,7 @@ module.exports = function (elasticVideo) {
   elasticVideo.syncYtVideosWithElastic = function () {
     const ytVideo = app.models.ytVideo
 
-    const elasticSyncer = getAllDbItemsObservable(findElasticUnsyncedYtVideosInBatches)
+    const elasticSyncer = getAllDbItemsObservable(findElasticUnsyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
     .concatMap((video) => {
       const {id} = video
 
@@ -32,12 +37,7 @@ module.exports = function (elasticVideo) {
       return Rx.Observable.concat(elasticWriter, crawlRecorder)
     })
 
-    // Had to do this due to back-pressure resulting in ignored items, and to enable automated kick-in on any incoming changes
-    function recursiveSyncer () {
-      return elasticSyncer.concat(Rx.Observable.defer(() => recursiveSyncer()))
-    }
-
-    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscription(), recursiveSyncer())
+    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscription(activeSubscriptions), recursiveDeferredObservable(elasticSyncer))
 
     const elasticSyncerSubscription = safeRecursiveSyncer
     .subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
@@ -51,17 +51,13 @@ module.exports = function (elasticVideo) {
   elasticVideo.setYtVideosForElasticReSync = function () {
     const ytVideo = app.models.ytVideo
 
-    const resyncSetter = getAllDbItemsObservable(findElasticSyncedYtVideosInBatches).concatMap(video => {
+    const resyncSetter = getAllDbItemsObservable(findElasticSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
+    .concatMap(video => {
       video.isVideoElasticSearchSynced = false
       return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
     })
 
-    // Had to do this due to back-pressure resulting in ignored items, and to enable automated kick-in on any incoming changes
-    function recursiveReSyncSetter () {
-      return resyncSetter.timeoutWith(4 * WAIT_TILL_NEXT_REQUEST, Rx.Observable.defer(() => recursiveReSyncSetter()))
-    }
-
-    const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscription(), recursiveReSyncSetter())
+    const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscription(activeSubscriptions), recursiveDeferredTimeOutObservable(resyncSetter, WAIT_TILL_NEXT_REQUEST))
 
     const elasticReSyncerSubscription = safeRecursiveResyncer
     .subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
@@ -71,16 +67,6 @@ module.exports = function (elasticVideo) {
     activeSubscriptions.push(elasticReSyncerSubscription)
 
     return Promise.resolve()
-  }
-
-  function getAllDbItemsObservable (filterFunction) {
-    const dbItems = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
-      const items = Rx.Observable.defer(() => Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH)))
-      .concatMap(items => Rx.Observable.from(items))
-      return items
-    }).catch(err => Rx.Observable.empty())
-
-    return dbItems
   }
 
   async function findElasticUnsyncedYtVideosInBatches (maxResults, offset) {
@@ -139,12 +125,5 @@ module.exports = function (elasticVideo) {
     const videos = await ytVideo.find(filter)
 
     return videos
-  }
-
-  function terminateAllActiveInterferingSubscription () {
-    const subscriptions = [...activeSubscriptions]
-    activeSubscriptions = []
-    return Rx.Observable.from(subscriptions).map((subscription) => subscription.unsubscribe())
-    .concatMap((val) => Rx.Observable.empty())
   }
 }
