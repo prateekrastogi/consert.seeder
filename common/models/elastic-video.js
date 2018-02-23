@@ -5,9 +5,9 @@ const Rx = require('rxjs')
 const R = require('ramda')
 
 const getAllDbItemsObservable = require('../../lib/misc-utils').getAllDbItemsObservable
-const terminateAllActiveInterferingSubscription = require('../../lib/misc-utils').terminateAllActiveInterferingSubscription
+const terminateAllActiveInterferingSubscriptions = require('../../lib/misc-utils').terminateAllActiveInterferingSubscriptions
 const recursiveDeferredObservable = require('../../lib/misc-utils').recursiveDeferredObservable
-const recursiveDeferredTimeOutObservable = require('../../lib/misc-utils').recursiveDeferredTimeOutObservable
+const recursiveTimeOutDeferredObservable = require('../../lib/misc-utils').recursiveTimeOutDeferredObservable
 
 const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 5000
@@ -37,7 +37,7 @@ module.exports = function (elasticVideo) {
       return Rx.Observable.concat(elasticWriter, crawlRecorder)
     })
 
-    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscription(activeSubscriptions), recursiveDeferredObservable(elasticSyncer))
+    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), recursiveDeferredObservable(elasticSyncer))
 
     const elasticSyncerSubscription = safeRecursiveSyncer
     .subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
@@ -57,7 +57,7 @@ module.exports = function (elasticVideo) {
       return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
     })
 
-    const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscription(activeSubscriptions), recursiveDeferredTimeOutObservable(resyncSetter, WAIT_TILL_NEXT_REQUEST))
+    const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), recursiveTimeOutDeferredObservable(resyncSetter, WAIT_TILL_NEXT_REQUEST))
 
     const elasticReSyncerSubscription = safeRecursiveResyncer
     .subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),

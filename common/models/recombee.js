@@ -7,8 +7,16 @@ const Rx = require('rxjs')
 const _ = require('lodash')
 const recombeeUtils = require('../../lib/recombee-utils')
 
+const getAllDbItemsObservable = require('../../lib/misc-utils').getAllDbItemsObservable
+const terminateAllActiveInterferingSubscriptions = require('../../lib/misc-utils').terminateAllActiveInterferingSubscriptions
+const recursiveDeferredObservable = require('../../lib/misc-utils').recursiveDeferredObservable
+const recursiveTimeOutDeferredObservable = require('../../lib/misc-utils').recursiveTimeOutDeferredObservable
+
 const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 10000
+
+let artistRelatedActiveSubscriptions = []
+let videoRelatedActiveSubscriptions = []
 
 module.exports = function (recombee) {
   /**
@@ -18,7 +26,7 @@ module.exports = function (recombee) {
   recombee.syncPastShows = async function () {
     const ytVideo = app.models.ytVideo
 
-    const videos = getAllDbItemsObservable(findRecombeeUnSyncedYtVideosInBatches)
+    const videos = getAllDbItemsObservable(findRecombeeUnSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
 
     const recombeeSyncer = videos.map(video => {
       const {id} = video
@@ -26,14 +34,13 @@ module.exports = function (recombee) {
       return {recombeeItem, id}
     }).bufferCount(MAX_BATCH).concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, ytVideo))
 
-    // Had to do this due to back-pressure resulting in ignored items, and deferred concat will kick in as soon as new eligible items appears
-    function recursiveSyncer () {
-      return recombeeSyncer.concat(Rx.Observable.defer(() => recursiveSyncer()))
-    }
+    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions), recursiveDeferredObservable(recombeeSyncer))
 
-    recursiveSyncer().subscribe({
+    const recombeeVideoSyncerSubscription = safeRecursiveSyncer.subscribe({
       error: err => console.log(err)
     })
+
+    videoRelatedActiveSubscriptions.push(recombeeVideoSyncerSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -53,15 +60,16 @@ module.exports = function (recombee) {
       const recombeeItem = recombeeUtils.convertArtistToRecombeeArtist(artist, relatedArtists)
 
       return {recombeeItem, id}
-    }).bufferCount(MAX_BATCH).concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, enrichedArtist))
+    }).bufferCount(MAX_BATCH)
+    .concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, enrichedArtist))
 
-    function recursiveSyncer () {
-      return artistSyncer.concat(Rx.Observable.defer(() => recursiveSyncer()))
-    }
+    const safeArtistSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), recursiveDeferredObservable(artistSyncer))
 
-    recursiveSyncer().subscribe({
+    const artistSyncerSubscription = safeArtistSyncer.subscribe({
       error: err => console.log(err)
     })
+
+    artistRelatedActiveSubscriptions.push(artistSyncerSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -96,8 +104,12 @@ module.exports = function (recombee) {
 
     const artists = Rx.Observable.fromPromise(findRecombeeSyncedArtistsByPopularity(lowerBound, upperBound))
 
-    setModelItemsForReSync(artists, enrichedArtist)
-      .subscribe(({artist}) => console.log(`Artist marked for Recombee Re-sync: ${artist.name}`), err => console.log(err))
+    const safeArtistReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), setModelItemsForReSync(artists, enrichedArtist))
+
+    const artistReSyncerSubscription = safeArtistReSyncer
+   .subscribe(({artist}) => console.log(`Artist marked for Recombee Re-sync: ${artist.name}`), err => console.log(err))
+
+    artistRelatedActiveSubscriptions.push(artistReSyncerSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -110,14 +122,14 @@ module.exports = function (recombee) {
   recombee.setVideosForRecombeeReSync = function () {
     const ytVideo = app.models.ytVideo
 
-    const syncedVideos = getAllDbItemsObservable(findRecombeeSyncedYtVideosInBatches).bufferCount(1) // Using bufferCount=1 coz below method expects an array emission from the passed Observable, and larger buffer will fail to have intended affect on last remaining items in bufferSize < bufferCountSize
+    const syncedVideos = getAllDbItemsObservable(findRecombeeSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH).bufferCount(1) // Using bufferCount=1 coz below method expects an array emission from the passed Observable, and larger buffer will fail to have intended affect on last remaining items in bufferSize < bufferCountSize
 
-    // Had to do this due to back-pressure resulting in ignored items, and timeout combined with defer halts the recursion once all the items are finished
-    function recursiveReSyncSetter () {
-      return setModelItemsForReSync(syncedVideos, ytVideo).timeoutWith(4 * WAIT_TILL_NEXT_REQUEST, Rx.Observable.defer(() => recursiveReSyncSetter()))
-    }
+    const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(setModelItemsForReSync(syncedVideos, ytVideo), WAIT_TILL_NEXT_REQUEST))
 
-    recursiveReSyncSetter().subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.log(err))
+    const recombeeVideoReSyncerSubscription = safeRecursiveReSyncer
+    .subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.log(err))
+
+    videoRelatedActiveSubscriptions.push(recombeeVideoReSyncerSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -282,16 +294,5 @@ module.exports = function (recombee) {
         }
         return item
       }).concatMap(item => Rx.Observable.fromPromise(model.replaceOrCreate(item)))
-  }
-
-  // Copied from elastic-video model. If more such use cases arise, then refactor the code for re-usability
-  function getAllDbItemsObservable (filterFunction) {
-    const dbItems = Rx.Observable.interval(WAIT_TILL_NEXT_REQUEST).concatMap((i) => {
-      const items = Rx.Observable.defer(() => Rx.Observable.fromPromise(filterFunction(MAX_BATCH, i * MAX_BATCH)))
-      .concatMap(items => Rx.Observable.from(items))
-      return items
-    }).catch(err => Rx.Observable.empty())
-
-    return dbItems
   }
 }
