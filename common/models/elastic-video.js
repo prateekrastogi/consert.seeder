@@ -7,6 +7,8 @@ const R = require('ramda')
 const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 5000
 
+let activeSubscriptions = []
+
 module.exports = function (elasticVideo) {
 /**
  * Synchronizes ytVideos data with elasticsearch
@@ -30,14 +32,18 @@ module.exports = function (elasticVideo) {
       return Rx.Observable.concat(elasticWriter, crawlRecorder)
     })
 
-    // Had to do this due to back-pressure resulting in ignored items, and deferred concat will kick in as soon as new eligible items appears
+    // Had to do this due to back-pressure resulting in ignored items, and to enable automated kick-in on any incoming changes
     function recursiveSyncer () {
       return elasticSyncer.concat(Rx.Observable.defer(() => recursiveSyncer()))
     }
 
-    recursiveSyncer()
+    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscription(), recursiveSyncer())
+
+    const elasticSyncerSubscription = safeRecursiveSyncer
     .subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
      err => console.log(err))
+
+    activeSubscriptions.push(elasticSyncerSubscription)
 
     return Promise.resolve()
   }
@@ -50,14 +56,19 @@ module.exports = function (elasticVideo) {
       return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
     })
 
-    // Had to do this due to back-pressure resulting in ignored items, and timeout combined with defer halts the recursion once all the items are finished
+    // Had to do this due to back-pressure resulting in ignored items, and to enable automated kick-in on any incoming changes
     function recursiveReSyncSetter () {
       return resyncSetter.timeoutWith(4 * WAIT_TILL_NEXT_REQUEST, Rx.Observable.defer(() => recursiveReSyncSetter()))
     }
 
-    recursiveReSyncSetter().subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
+    const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscription(), recursiveReSyncSetter())
+
+    const elasticReSyncerSubscription = safeRecursiveResyncer
+    .subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
     err => console.log(err),
     () => console.log('Setting for re-sync with es completed'))
+
+    activeSubscriptions.push(elasticReSyncerSubscription)
 
     return Promise.resolve()
   }
@@ -128,5 +139,12 @@ module.exports = function (elasticVideo) {
     const videos = await ytVideo.find(filter)
 
     return videos
+  }
+
+  function terminateAllActiveInterferingSubscription () {
+    const subscriptions = [...activeSubscriptions]
+    activeSubscriptions = []
+    return Rx.Observable.from(subscriptions).map((subscription) => subscription.unsubscribe())
+    .concatMap((val) => Rx.Observable.empty())
   }
 }
