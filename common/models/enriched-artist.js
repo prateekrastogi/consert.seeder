@@ -5,7 +5,11 @@ const _ = require('lodash')
 const loginAssist = require('../../lib/login-assist')
 const app = require('../../server/server')
 
+const terminateAllActiveInterferingSubscriptions = require('../../lib/misc-utils').terminateAllActiveInterferingSubscriptions
+
 const RETRY_COUNT = 3
+
+let activeSubscriptions = []
 
 module.exports = function (enrichedArtist) {
   enrichedArtist.putEnrichedArtists = async function () {
@@ -19,7 +23,7 @@ module.exports = function (enrichedArtist) {
 
     const artistListWithSpotifyToken = Rx.Observable.zip(spotifyApi, artistList.pluck('id'))
 
-    artistListWithSpotifyToken
+    const enrichedArtistObservable = artistListWithSpotifyToken
       .do(async ([spotifyApi, artistId]) => {
         /* Marking the artist to be crawled here coz if the artist doesn't have any top tracks or albums,then enriched artist
          zip doesn't emit any values, so the subscribe part is not triggered. Thus, those artist are re-crawled on re-start */
@@ -68,15 +72,20 @@ module.exports = function (enrichedArtist) {
 
         return enrichedArtist
       }, 2)
-      .subscribe({
-        next: async (x) => {
-          count++
-          await enrichedArtist.replaceOrCreate(x)
-          console.log(`Successfully added/replaced the artist: ${x.artist.name}`)
-          console.log(`Total artists added/replaced in the running execution: ${count}`)
-        },
-        error: err => console.log(err)
-      })
+
+    const safeEnrichedArtistObservable = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), enrichedArtistObservable)
+
+    const putEnrichedArtistsSubscription = safeEnrichedArtistObservable.subscribe({
+      next: async (x) => {
+        count++
+        await enrichedArtist.replaceOrCreate(x)
+        console.log(`Successfully added/replaced the artist: ${x.artist.name}`)
+        console.log(`Total artists added/replaced in the running execution: ${count}`)
+      },
+      error: err => console.log(err)
+    })
+
+    activeSubscriptions.push(putEnrichedArtistsSubscription)
 
     return new Promise((resolve, reject) => resolve(isSuccess))
   }
@@ -94,13 +103,19 @@ module.exports = function (enrichedArtist) {
         return {id, name, isCrawled: false}
       })
 
-      Rx.Observable.from(tbCrawled).concatMap((artist) => {
+      const enrichedArtistReCrawler = Rx.Observable.from(tbCrawled).concatMap((artist) => {
         return Rx.Observable.fromPromise(artistSeed.replaceOrCreate(artist)).retry(RETRY_COUNT)
-      }).subscribe(x => {
+      })
+
+      const safeEnrichedArtistReCrawler = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), enrichedArtistReCrawler)
+
+      const setEnrichedArtistsForReCrawlSubscription = safeEnrichedArtistReCrawler.subscribe(x => {
         count++
         console.log(`Added artist ${x.name} in pending crawl list`)
         console.log(`Total artists added in the pending crawl list: ${count}`)
       })
+
+      activeSubscriptions.push(setEnrichedArtistsForReCrawlSubscription)
     }
     return new Promise((resolve, reject) => resolve(isSuccess))
   }
