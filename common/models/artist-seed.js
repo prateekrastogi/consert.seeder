@@ -11,7 +11,6 @@ module.exports = function (artistSeed) {
    */
 
   artistSeed.putTopSpotifyArtists = async function () {
-    let isSuccess = true
     const spotifyApi = await loginAssist.spotifyLogin()
     const {genres} = (await spotifyApi.getAvailableGenreSeeds()).body
 
@@ -89,6 +88,6 @@ module.exports = function (artistSeed) {
       })
     }
 
-    return new Promise((resolve, reject) => resolve(isSuccess))
+    return new Promise((resolve, reject) => resolve())
   }
 }

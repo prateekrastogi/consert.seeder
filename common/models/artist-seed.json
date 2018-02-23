@@ -34,14 +34,7 @@
   "methods": {
     "putTopSpotifyArtists": {
       "accepts": [],
-      "returns": [
-        {
-          "arg": "isSuccess",
-          "type": "boolean",
-          "root": false,
-          "description": "Describes whether operations are successful"
-        }
-      ],
+      "returns": [],
       "description": "Put the top N spotify artists of various spotify genre seeds",
       "http": [
         {
