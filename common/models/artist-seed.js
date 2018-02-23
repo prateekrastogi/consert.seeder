@@ -7,7 +7,6 @@ const async = require('async')
 module.exports = function (artistSeed) {
   /**
    * Put the top N spotify artists of various spotify genre seeds
-   * @param {Function(Error, boolean)} callback
    */
 
   artistSeed.putTopSpotifyArtists = async function () {
