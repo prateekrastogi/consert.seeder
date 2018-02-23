@@ -46,7 +46,7 @@
     "setEnrichedArtistsForReCrawl": {
       "accepts": [],
       "returns": [],
-      "description": "It set the enrichedArtists for Re-Crawl if all artists in artistSeed has already been crawled earlier",
+      "description": "It set the enrichedArtists for Re-Crawl if ALL artists in artistSeed has already been crawled earlier",
       "http": [
         {
           "path": "/setEnrichedArtistsForReCrawl",
