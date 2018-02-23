@@ -34,14 +34,7 @@
   "methods": {
     "putEnrichedArtists": {
       "accepts": [],
-      "returns": [
-        {
-          "arg": "isSuccess",
-          "type": "boolean",
-          "root": false,
-          "description": "Describes whether operations are successful"
-        }
-      ],
+      "returns": [],
       "description": "Retrives enriched artists data by calling spotify Api.",
       "http": [
         {
@@ -52,14 +45,7 @@
     },
     "setEnrichedArtistsForReCrawl": {
       "accepts": [],
-      "returns": [
-        {
-          "arg": "isSuccess",
-          "type": "boolean",
-          "root": false,
-          "description": "It represents whether call to api successfully started the method execution"
-        }
-      ],
+      "returns": [],
       "description": "It set the enrichedArtists for Re-Crawl if all artists in artistSeed has already been crawled earlier",
       "http": [
         {

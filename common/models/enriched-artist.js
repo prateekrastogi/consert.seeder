@@ -13,7 +13,6 @@ let activeSubscriptions = []
 
 module.exports = function (enrichedArtist) {
   enrichedArtist.putEnrichedArtists = async function () {
-    let isSuccess = true
     let count = 0
     const artistSeed = app.models.artistSeed
     const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
@@ -87,12 +86,11 @@ module.exports = function (enrichedArtist) {
 
     activeSubscriptions.push(putEnrichedArtistsSubscription)
 
-    return new Promise((resolve, reject) => resolve(isSuccess))
+    return new Promise((resolve, reject) => resolve())
   }
 
   enrichedArtist.setEnrichedArtistsForReCrawl = async function () {
     let count = 0
-    const isSuccess = true
     const artistSeed = app.models.artistSeed
 
     const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
@@ -117,7 +115,7 @@ module.exports = function (enrichedArtist) {
 
       activeSubscriptions.push(setEnrichedArtistsForReCrawlSubscription)
     }
-    return new Promise((resolve, reject) => resolve(isSuccess))
+    return new Promise((resolve, reject) => resolve())
   }
 
   function truncateFullArtist ({followers, genres, id, name, popularity, type}) {
