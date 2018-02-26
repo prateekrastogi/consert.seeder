@@ -1,46 +1,209 @@
 {
-  "seeder": {
-    "host": "localhost",
-    "port": 27017,
-    "database": "seeder",
-    "password": "",
-    "name": "seeder",
-    "user": "",
-    "allowExtendedOperators": true,
-    "connector": "mongodb"
-  },
-  "in-mem-persist": {
-    "name": "in-mem-persist",
-    "connector": "memory"
-  },
-  "elastic-search": {
-    "name": "elastic-search",
-    "index": "video",
-    "hosts": [
-      {
-        "protocol": "http",
-        "host": "127.0.0.1",
-        "port": 9200
-      }
-    ],
-    "apiVersion": "6.0",
-    "defaultSize": "",
-    "connector": "esv6",
-    "mappingType": "basedata",
-    "requestTimeout": 30000,
-    "mappingProperties": {
-      "id": {
-        "type": "keyword",
-        "index": true
-      },
-      "docType": {
-        "type": "keyword",
-        "index": true
-      },
-      "artists": {
-        "type": "keyword",
-        "index": true
-      }
+    "seeder": {
+        "host": "localhost",
+        "port": 27017,
+        "database": "seeder",
+        "password": "",
+        "name": "seeder",
+        "user": "",
+        "allowExtendedOperators": true,
+        "connector": "mongodb"
+    },
+    "in-mem-persist": {
+        "name": "in-mem-persist",
+        "connector": "memory"
+    },
+    "elastic-search": {
+        "name": "elastic-search",
+        "index": "video",
+        "hosts": [
+            {
+                "protocol": "http",
+                "host": "127.0.0.1",
+                "port": 9200
+            }
+        ],
+        "apiVersion": "6.0",
+        "defaultSize": "",
+        "connector": "esv6",
+        "mappingType": "basedata",
+        "requestTimeout": 30000,
+        "mappingProperties": {
+            "id": {
+                "type": "keyword",
+                "index": true
+            },
+            "docType": {
+                "type": "keyword",
+                "index": true
+            },
+            "artists": {
+                "type": "keyword",
+                "fields": {
+                    "search": {
+                        "type": "text"
+                    },
+                    "autocomplete": {
+                        "type": "completion"
+                    }
+                },
+                "index": true
+            },
+            "contentDetails": {
+                "properties": {
+                    "duration": {
+                        "type": "keyword",
+                        "index": true
+                    },
+                    "dimension": {
+                        "type": "keyword",
+                        "index": true
+                    },
+                    "definition": {
+                        "type": "keyword",
+                        "index": true
+                    },
+                    "caption": {
+                        "type": "boolean",
+                        "index": true
+                    },
+                    "licensedContent": {
+                        "type": "boolean",
+                        "index": true
+                    },
+                    "regionRestriction": {
+                        "properties": {
+                            "allowed": {
+                                "type": "keyword",
+                                "index": true
+                            },
+                            "blocked": {
+                                "type": "keyword",
+                                "index": true
+                            }
+                        }
+                    },
+                    "contentRating": {
+                        "type": "object",
+                        "dynamic": true,
+                        "enabled": true
+                    },
+                    "projection": {
+                        "type": "keyword",
+                        "index": true
+                    },
+                    "hasCustomThumbnail": {
+                        "type": "boolean",
+                        "index": true
+                    }
+                }
+            },
+            "statistics": {
+                "properties": {
+                    "viewCount": {
+                        "type": "long",
+                        "coerce": true,
+                        "index": true
+                    },
+                    "likeCount": {
+                        "type": "long",
+                        "coerce": true,
+                        "index": true
+                    },
+                    "dislikeCount": {
+                        "type": "long",
+                        "coerce": true,
+                        "index": true
+                    },
+                    "favoriteCount": {
+                        "type": "long",
+                        "coerce": true,
+                        "index": true
+                    },
+                    "commentCount": {
+                        "type": "long",
+                        "coerce": true,
+                        "index": true
+                    }
+                }
+            },
+            "snippet": {
+                "properties": {
+                    "publishedAt": {
+                        "type": "date",
+                        "index": true
+                    },
+                    "channelId": {
+                        "enabled": false
+                    },
+                    "title": {
+                        "type": "text",
+                        "fields": {
+                            "autocomplete": {
+                                "type": "completion"
+                            }
+                        },
+                        "index": true
+                    },
+                    "description": {
+                        "type": "text",
+                        "index": true
+                    },
+                    "thumbnails": {
+                        "type": "object",
+                        "enabled": false
+                    },
+                    "channelTitle": {
+                        "type": "keyword",
+                        "fields": {
+                            "search": {
+                                "type": "text"
+                            },
+                            "autocomplete": {
+                                "type": "completion"
+                            }
+                        },
+                        "index": true
+                    },
+                    "tags": {
+                        "type": "keyword",
+                        "index": true
+                    },
+                    "categoryId": {
+                        "type": "keyword",
+                        "index": true
+                    },
+                    "liveBroadcastContent": {
+                        "type": "keyword",
+                        "index": true
+                    },
+                    "defaultLanguage": {
+                        "type": "keyword",
+                        "index": true
+                    },
+                    "localized": {
+                        "properties": {
+                            "title": {
+                                "type": "text",
+                                "fields": {
+                                    "autocomplete": {
+                                        "type": "completion"
+                                    }
+                                },
+                                "index": true
+                            },
+                            "description": {
+                                "type": "text",
+                                "index": true
+                            }
+                        }
+                    },
+                    "defaultAudioLanguage": {
+                        "type": "keyword",
+                        "index": true
+                    }
+                }
+            }
+        }
     }
-  }
 }
