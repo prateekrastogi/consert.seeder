@@ -12,6 +12,20 @@ docker run -p 3200:3200 seeder
 "password": "openssssame"
 }
 
+
+------ Deployment Guidelines ------
+
+- Run artist-seed model put* method to completion to get list of top artists and their ids
+
+- Run enriched-artist model put* method, preferably till completion, to get enrich the artist data
+
+- Run yt-Video model put* method, first for top-rated artists, to get all the relevant past live performances of those      artists. The popularity parameters to be passed 'priority-wise' are (70-100, 60-70, 44-60). Take special care to pass     lower bounds of popularity exactly as stated, as they are hard-coded in code and affect the count of returned results
+
+- Run sync* methods of recombee & elastic-video to keep the fetched videos in sync with those services 
+
+- You can use set* methods of the models to reset/restart cleanly that model processes. Using set* methods anytime &        anywhere will ideally not affect the correctness/stability of the overall system. Although, it may trigger the            reprocessing on the dependent models processes. So beware of computation costs/time. Ideally, set* methods are 'very      rarely' needed to update stale data     
+
+
 ------ Model Description ------
 
 artist-seed: Fetches the spotify id and name of artists
@@ -33,6 +47,7 @@ elastic-video: Continuously syncs the modified yt-videos with artist ids replace
 dependent on: enriched-artist and yt-video
 ---
 All models set* methods: Mostly used for cleanly restarting/resetting model sync/put methods from scratch, otherwise no usage in running regular system
+
 
 ------ Recombee Data Model ------
 
