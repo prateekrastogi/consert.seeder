@@ -16,19 +16,23 @@ docker run -p 3200:3200 seeder
 
 artist-seed: Fetches the spotify id and name of artists
 dependent on: nothing
-
+---
 enriched-artist: Fetches the detailed spotify data of artists from artist-seeds
 dependent on: artist-seed
-
+---
 yt-video: Fetches the past live performances of the enriched-artists 
 dependent on: enriched-artist
 model field 'artist': enriched 'artists' whose yt search returned this video
 model field 'albums': enriched 'artist albums' whose yt search returned this video
 model field 'tracks': enriched 'artist top tracks' whose yt search returned this video
-
-recombee: Seeds the yt-videos of type 'video' and enriched-artist of type 'artist' to recombee
+---
+recombee: Continuously Syncs the yt-videos of type 'video' and enriched-artist of type 'artist' to recombee
 dependent on: enriched-artist and yt-video
-set* methods: Mostly used while setting the whole/part thing up from scratch, otherwise no usage in running regular system
+---
+elastic-video: Continuously syncs the modified yt-videos with artist ids replaced by artist names
+dependent on: enriched-artist and yt-video
+---
+All models set* methods: Mostly used for cleanly restarting/resetting model sync/put methods from scratch, otherwise no usage in running regular system
 
 ------ Recombee Data Model ------
 

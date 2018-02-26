@@ -13,14 +13,7 @@
   "methods": {
     "syncYtLiveEvents": {
       "accepts": [],
-      "returns": [
-        {
-          "arg": "isRunning",
-          "type": "boolean",
-          "root": false,
-          "description": "Tells whether the sync process is running"
-        }
-      ],
+      "returns": [],
       "description": "It syncs currently live Youtube music events with recombee & elasticsearch",
       "http": [
         {
