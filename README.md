@@ -23,8 +23,9 @@ docker run -p 3200:3200 seeder
 
 - Run sync* methods of recombee & elastic-video to keep the fetched videos in sync with those services 
 
-- You can use set* methods of the models to reset/restart cleanly that model processes. Using set* methods anytime &        anywhere will ideally not affect the correctness/stability of the overall system. Although, it may trigger the            reprocessing on the dependent models processes. So beware of computation costs/time. Ideally, set* methods are 'very      rarely' needed to update stale data     
+- You can use set* methods of the models to reset/restart cleanly that model processes. Using set* methods anytime &        anywhere will ideally not affect the correctness/stability of the overall system. Although, it may trigger the            reprocessing on the dependent models processes. So beware of computation costs/time. Ideally, set* methods are 'very      rarely' needed to update stale data
 
+- Each model can be run independently as a self-contained microservice if computation pressure forces horizontal scaling.   But, if we need the multiple running instances of same model method/s, then we need code refactoring for concurrency      control    
 
 ------ Model Description ------
 
