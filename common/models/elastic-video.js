@@ -23,25 +23,25 @@ module.exports = function (elasticVideo) {
     const ytVideo = app.models.ytVideo
 
     const elasticSyncer = getAllDbItemsObservable(findElasticUnsyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
-    .concatMap((video) => {
-      const {id} = video
+      .concatMap((video) => {
+        const {id} = video
 
-      const crawlRecorder = Rx.Observable.fromPromise(ytVideo.findById(id))
-      .map((intactVideo) => {
-        intactVideo.isVideoElasticSearchSynced = true
-        return intactVideo
-      }).concatMap(intactVideo => Rx.Observable.fromPromise(ytVideo.replaceOrCreate(intactVideo)))
+        const crawlRecorder = Rx.Observable.fromPromise(ytVideo.findById(id))
+          .map((intactVideo) => {
+            intactVideo.isVideoElasticSearchSynced = true
+            return intactVideo
+          }).concatMap(intactVideo => Rx.Observable.fromPromise(ytVideo.replaceOrCreate(intactVideo)))
 
-      const elasticWriter = Rx.Observable.fromPromise(elasticVideo.upsert(video))
+        const elasticWriter = Rx.Observable.fromPromise(elasticVideo.upsert(video))
 
-      return Rx.Observable.concat(elasticWriter, crawlRecorder)
-    })
+        return Rx.Observable.concat(elasticWriter, crawlRecorder)
+      })
 
     const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), recursiveDeferredObservable(elasticSyncer))
 
     const elasticSyncerSubscription = safeRecursiveSyncer
-    .subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
-     err => console.log(err))
+      .subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
+        err => console.log(err))
 
     activeSubscriptions.push(elasticSyncerSubscription)
 
@@ -52,17 +52,17 @@ module.exports = function (elasticVideo) {
     const ytVideo = app.models.ytVideo
 
     const resyncSetter = getAllDbItemsObservable(findElasticSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
-    .concatMap(video => {
-      video.isVideoElasticSearchSynced = false
-      return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
-    })
+      .concatMap(video => {
+        video.isVideoElasticSearchSynced = false
+        return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
+      })
 
     const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), recursiveTimeOutDeferredObservable(resyncSetter, WAIT_TILL_NEXT_REQUEST))
 
     const elasticReSyncerSubscription = safeRecursiveResyncer
-    .subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
-    err => console.log(err),
-    () => console.log('Setting for re-sync with es completed'))
+      .subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
+        err => console.log(err),
+        () => console.log('Setting for re-sync with es completed'))
 
     activeSubscriptions.push(elasticReSyncerSubscription)
 
