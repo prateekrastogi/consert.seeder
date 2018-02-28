@@ -14,7 +14,7 @@ let activeSubscriptions = []
 module.exports = function (ytVideo) {
   ytVideo.putArtistsVideosLive = async function (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
-    let maxResults  // max results per search query
+    let maxResults // max results per search query
 
     switch (lowerBound) {
       case 70:
@@ -91,7 +91,7 @@ module.exports = function (ytVideo) {
     const safeReCrawlingObservable = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), reCrawlingObservable)
 
     const setArtistsByPopularityForVideoReCrawlSubscription = safeReCrawlingObservable
-    .subscribe((artist) => console.log(`Artist marked for re-crawling: ${artist.artist.name}`))
+      .subscribe((artist) => console.log(`Artist marked for re-crawling: ${artist.artist.name}`))
 
     activeSubscriptions.push(setArtistsByPopularityForVideoReCrawlSubscription)
 
