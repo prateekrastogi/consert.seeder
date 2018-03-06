@@ -13,12 +13,14 @@ module.exports = function (ytLive) {
  */
 
   ytLive.syncYtLiveEvents = function () {
-    const params = { type: `video`, eventType: `live`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
+    const params = { type: `video`, order: `viewCount`, topicId: `/m/04rlf`, eventType: `live`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
 
     const filters = {id: `UCl6ZTRWElpb5wE1zCgSDkGg`}
     const channelsList = Rx.Observable.bindNodeCallback(loginAssist.ytLiveLogin().listChannels)
 
-    channelsList(filters, [`statistics`], params).subscribe(x => console.log(x))
+    channelsList(filters, [`statistics`, `topicDetails`], params).subscribe(x => console.log(x))
+
+    ytUtils.searchYtVideos([``], 200, params)
 
     return new Promise((resolve, reject) => resolve())
   }

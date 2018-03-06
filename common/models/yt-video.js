@@ -42,7 +42,7 @@ module.exports = function (ytVideo) {
       console.log(`Crawling the artist: ${artistName}`)
       const queries = [`${artistName} live | ${artistName} concert | ${artistName} live performance`]
 
-      const params = { type: `video`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
+      const params = { type: `video`, topicId: `/m/04rlf`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
 
       const videoResult = ytUtils.searchYtVideos(queries, maxResults, params).retry(RETRY_COUNT)
 
