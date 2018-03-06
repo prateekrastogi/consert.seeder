@@ -203,6 +203,35 @@
                         "index": true
                     }
                 }
+            },
+            "liveStreamingDetails": {
+                "properties": {
+                    "actualStartTime": {
+                        "type": "date",
+                        "index": true
+                    },
+                    "actualEndTime": {
+                        "type": "date",
+                        "index": true
+                    },
+                    "scheduledStartTime": {
+                        "type": "date",
+                        "index": true
+                    },
+                    "scheduledEndTime": {
+                        "type": "date",
+                        "index": true
+                    },
+                    "concurrentViewers": {
+                        "type": "long",
+                        "coerce": true,
+                        "index": true
+                    },
+                    "activeLiveChatId": {
+                        "type": "keyword",
+                        "index": true
+                    }
+                }
             }
         }
     }
