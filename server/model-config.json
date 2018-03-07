@@ -80,8 +80,16 @@
     "public": true
   },
   "ytLive": {
-    "dataSource": null,
-    "public": true
+    "dataSource": "seeder",
+    "public": true,
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false,
+          "syncYtLiveEvents": true
+        }
+      }
+    }
   },
   "elasticVideo": {
     "dataSource": "elastic-search",
