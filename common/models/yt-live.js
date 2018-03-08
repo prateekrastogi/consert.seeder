@@ -16,20 +16,18 @@ module.exports = function (ytLive) {
 
   ytLive.syncYtLiveEvents = function () {
     const params = { type: `video`, eventType: `live`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
+    const viewCountParams = {...params, order: `viewCount`}
 
-    const viewCountMusicTopicParams = {...params}
-    const viewCountEntertainmentTopicParams = {...params, topicId: `/m/02jjt`}
+    const defaultSearch = ytUtils.searchYtVideos([`music | song | radio -news -politics`], MAX_RESULTS, params)
+    const viewCountSearch = ytUtils.searchYtVideos([`music | song | radio -news -politics`], MAX_RESULTS, viewCountParams).retry(RETRY_COUNT)
 
-    const viewCountMusicTopicSearch = ytUtils.searchYtVideos([`music | song | radio`], MAX_RESULTS, viewCountMusicTopicParams).retry(RETRY_COUNT)
-    const viewCountEntertainmentTopicSearch = ytUtils.searchYtVideos([`music | song | radio`], MAX_RESULTS, viewCountEntertainmentTopicParams).retry(RETRY_COUNT)
+    const viewCountAllSearch = Rx.Observable.merge(defaultSearch, viewCountSearch)
 
-    const viewCountAllSearch = Rx.Observable.merge(viewCountMusicTopicSearch)
-
-    viewCountAllSearch.filter(({liveStreamingDetails}) => {
+    viewCountAllSearch.distinct(value => value.id).filter(({liveStreamingDetails}) => {
       const {concurrentViewers} = liveStreamingDetails
       return parseInt(concurrentViewers) >= MIN_CONCURRENT_VIEWERS
-    })
-      .subscribe(x => console.log(x.snippet.title))
+    }).do(x => console.log(x.snippet.title)).count()
+      .subscribe(x => console.log(x))
 
     return new Promise((resolve, reject) => resolve())
   }
