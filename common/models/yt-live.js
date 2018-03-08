@@ -7,7 +7,9 @@ const loginAssist = require('../../lib/login-assist')
 
 const RETRY_COUNT = 3
 const MAX_RESULTS = 300
-const MIN_CONCURRENT_VIEWERS = 50
+const THRESHOLD_CONCURRENT_VIEWERS = 50
+const THRESHOLD_CHANNEL_SUBSCRIBERS = 1000
+const BUFFER_SIZE = 50
 
 module.exports = function (ytLive) {
 /**
@@ -15,26 +17,56 @@ module.exports = function (ytLive) {
  */
 
   ytLive.syncYtLiveEvents = function () {
-    const params = { type: `video`, eventType: `live`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
-    const viewCountParams = {...params, order: `viewCount`}
+    const baseParams = { type: `video`, eventType: `live`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
 
-    const defaultSearch = ytUtils.searchYtVideos([`music | song | radio -news -politics`], MAX_RESULTS, params)
-    const viewCountSearch = ytUtils.searchYtVideos([`music | song | radio -news -politics`], MAX_RESULTS, viewCountParams).retry(RETRY_COUNT)
+    const dateParams = {...baseParams, order: `date`}
+    const dateSearch = ytUtils.searchYtVideos([`music | song | radio -news -politics -sports`], MAX_RESULTS, dateParams).retry(RETRY_COUNT)
 
-    const viewCountAllSearch = Rx.Observable.merge(defaultSearch, viewCountSearch)
+    const tmep = dateSearch.bufferCount(BUFFER_SIZE).concatMap((bufferedBroadcasts) => {
+      const channelIdPlucker = R.compose(R.pluck('channelId'), R.pluck('snippet'))
+      const channelIds = R.compose(R.join(','), channelIdPlucker)(bufferedBroadcasts)
 
-    viewCountAllSearch.distinct(value => value.id).filter(({liveStreamingDetails}) => {
-      const {concurrentViewers} = liveStreamingDetails
-      return parseInt(concurrentViewers) >= MIN_CONCURRENT_VIEWERS
-    }).do(x => console.log(x.snippet.title)).count()
+      const listChannels = Rx.Observable.bindNodeCallback(loginAssist.ytLiveLogin().listChannels)
+
+      const channelStatistics = listChannels({id: `${channelIds}`}, [`statistics`], {}).retry(RETRY_COUNT).pluck('items')
+        .concatMap(channels => Rx.Observable.from(channels))
+
+      const eligibleBroadcastsObservable = channelStatistics.filter(({statistics}) => {
+        const {subscriberCount} = statistics
+        return parseInt(subscriberCount) >= THRESHOLD_CHANNEL_SUBSCRIBERS
+      }).bufferCount(BUFFER_SIZE)
+        .map((filteredChannels) => {
+          const filteredChannelsId = R.pluck('id')(filteredChannels)
+          const filter = R.compose(R.not, R.isNil, R.find(channelIdPlucker(R.__), filteredChannelsId))
+
+          const eligibleBroadcasts = R.filter(filter, bufferedBroadcasts)
+
+          return eligibleBroadcasts
+        })
+
+      return eligibleBroadcastsObservable
+    })
+
+    const allSearch = Rx.Observable.merge(tmep)
+
+    allSearch.do(x => console.log(x)).count()
       .subscribe(x => console.log(x))
 
     return new Promise((resolve, reject) => resolve())
   }
 }
 
-/* const filters = {id: `UCl6ZTRWElpb5wE1zCgSDkGg`}
-    const channelsList = Rx.Observable.bindNodeCallback(loginAssist.ytLiveLogin().listChannels)
+function defaultAndViewCountSearch (baseParams) {
+  const viewCountParams = {...baseParams, order: `viewCount`}
 
-    channelsList(filters, [`statistics`, `topicDetails`], params)
- */
+  const defaultSearch = ytUtils.searchYtVideos([`music | song | radio -news -politics -sports`], MAX_RESULTS, baseParams).retry(RETRY_COUNT)
+  const viewCountSearch = ytUtils.searchYtVideos([`music | song | radio -news -politics -sports`], MAX_RESULTS, viewCountParams).retry(RETRY_COUNT)
+
+  const mergedSearch = Rx.Observable.merge(defaultSearch, viewCountSearch)
+    .distinct(value => value.id).filter(({liveStreamingDetails}) => {
+      const {concurrentViewers} = liveStreamingDetails
+      return parseInt(concurrentViewers) >= THRESHOLD_CONCURRENT_VIEWERS
+    })
+
+  return mergedSearch
+}
