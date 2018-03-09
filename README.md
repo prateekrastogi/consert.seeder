@@ -23,7 +23,7 @@ docker run -p 3200:3200 seeder
 
 - Run sync* methods of recombee & elastic-video to keep the fetched videos in sync with those services 
 
-- You can use set* methods of the models to reset/restart cleanly that model processes. Using set* methods anytime &        anywhere will ideally not affect the correctness/stability of the overall system. Although, it may trigger the            reprocessing on the dependent models processes. So beware of computation costs/time. Ideally, set* methods are 'very      rarely' needed to update stale data
+- You can use set* methods of the models to reset/restart cleanly that model processes. Using set* methods anytime &        anywhere will ideally not affect the correctness/stability of the overall system. Although, it may trigger the            reprocessing on the dependent models processes. So beware of computation costs/time. Ideally, set* methods are 'very      rarely' needed
 
 - Each model can be run independently as a self-contained microservice if computation pressure forces horizontal scaling.   But, if we need the multiple running instances of same model method/s, then we need code refactoring for concurrency      control    
 
@@ -63,7 +63,10 @@ contentDetails-dimension <string>
 contentDetails-definition <string>
 contentDetails-caption <string>
 contentDetails-licensedContent <boolean>
+contentDetails-regionRestriction <string>
+contentDetails-contentRating <string>
 contentDetails-projection <string>
+contentDetails-hasCustomThumbnail <boolean>
 statistics-viewCount <string>
 statistics-likeCount <string>
 statistics-dislikeCount <string>
@@ -75,7 +78,17 @@ snippet-title <string>
 snippet-description <string>
 snippet-channelTitle <string>
 snippet-thumbnails <string>
+snippet-tags <set>
 snippet-liveBroadcastContent <string>: flag indicating the status of broadcast i.e. upcoming, live, completed, or none. 
+snippet-defaultLanguage <string>
+snippet-localized <string>
+snippet-defaultAudioLanguage <string>
+liveStreamingDetails-actualStartTime <timestamp>
+liveStreamingDetails-actualEndTime <timestamp>
+liveStreamingDetails-scheduledStartTime <timestamp>
+liveStreamingDetails-scheduledEndTime <timestamp>
+liveStreamingDetails-concurrentViewers <string>
+liveStreamingDetails-activeLiveChatId <string>
 artists-ids <set>: Id's of all the artists that returns that particular video
 genres <set>: Genres associated with that item
 artists-names <set>: Names of all the artists involved in any particular video
