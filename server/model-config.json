@@ -79,14 +79,14 @@
     "dataSource": null,
     "public": true
   },
-  "ytLive": {
+  "ytBroadcast": {
     "dataSource": "seeder",
     "public": true,
     "options": {
       "remoting": {
         "sharedMethods": {
           "*": false,
-          "syncYtLiveEvents": true
+          "syncYtBroadcasts": true
         }
       }
     }

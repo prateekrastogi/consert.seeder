@@ -1,6 +1,6 @@
 {
-  "name": "ytLive",
-  "plural": "ytLive",
+  "name": "ytBroadcast",
+  "plural": "ytBroadcast",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -27,13 +27,13 @@
   "relations": {},
   "acls": [],
   "methods": {
-    "syncYtLiveEvents": {
+    "syncYtBroadcasts": {
       "accepts": [],
       "returns": [],
       "description": "It syncs currently live Youtube music events with recombee & elasticsearch",
       "http": [
         {
-          "path": "/syncYtLiveEvents",
+          "path": "/syncYtBroadcasts",
           "verb": "put"
         }
       ]

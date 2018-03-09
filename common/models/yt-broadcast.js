@@ -11,12 +11,12 @@ const THRESHOLD_CONCURRENT_VIEWERS = 50
 const THRESHOLD_CHANNEL_SUBSCRIBERS = 100
 const BUFFER_SIZE = 50
 
-module.exports = function (ytLive) {
+module.exports = function (ytBroadcast) {
 /**
  * It syncs recently live Youtube music events with recombee & elasticsearch
  */
 
-  ytLive.syncYtLiveEvents = function () {
+  ytBroadcast.syncYtBroadcasts = function () {
     const baseParams = { type: `video`, eventType: `live`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
 
     const allSearch = Rx.Observable.merge(dateSearch(baseParams))
@@ -45,7 +45,7 @@ function dateSearch (baseParams) {
   const dateSearchFilteredByChannelPopularity = dateSearch.bufferCount(BUFFER_SIZE).concatMap((bufferedBroadcasts) => {
     const channelIds = R.compose(R.join(','), R.pluck('channelId'), R.pluck('snippet'))(bufferedBroadcasts)
 
-    const listChannels = Rx.Observable.bindNodeCallback(loginAssist.ytLiveLogin().listChannels)
+    const listChannels = Rx.Observable.bindNodeCallback(loginAssist.ytBroadcastLogin().listChannels)
 
     const channelStatistics = listChannels({id: `${channelIds}`}, [`statistics`], {}).retry(RETRY_COUNT).pluck('items')
       .concatMap(channels => Rx.Observable.from(channels))

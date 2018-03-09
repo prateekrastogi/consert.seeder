@@ -9,5 +9,5 @@ module.exports = {
     {clientId: 'f22ae634bb5342a1906c6aa4708091d2', clientSecret: '8e54870487624a75a5d5ba5f87e46f34'}
   ],
   ytAccessTokens: ['AIzaSyBnR6-mtXN6cMW8WgtzK1uvDOARpYDLbDg', 'AIzaSyBN43iX_-ci1212SWsZLtSjFnHW3SOsBNI', 'AIzaSyB_S173sH_U752BboIOZEQXHJckvYOxKiQ', 'AIzaSyAJhcdA5UOf7ip8FR7LsKcdoE_SlcKD1Wg'],
-  ytLiveAccessTokens: ['AIzaSyAEhbfxhqgs_WiG7-C0nl0enaGLn-dCWiU']
+  ytBroadcastAccessTokens: ['AIzaSyAEhbfxhqgs_WiG7-C0nl0enaGLn-dCWiU']
 }
