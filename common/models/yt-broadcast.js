@@ -22,7 +22,9 @@ module.exports = function (ytBroadcast) {
   ytBroadcast.syncYtBroadcasts = function () {
     const baseParams = { type: `video`, eventType: `live`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
 
-    Rx.Observable.fromPromise(findLiveNowBroadcasts(MAX_BATCH, 0)).do(x => console.log(x)).count()
+    Rx.Observable.fromPromise(findLiveNowBroadcasts(MAX_BATCH, 0)).concatMap(ids => Rx.Observable.from(ids)).pluck('id')
+      .bufferCount(BUFFER_SIZE).concatMap(ids => ytUtils.getBroadcastsByIds(ids))
+      .do(x => console.log(x)).count()
       .subscribe(x => console.log(x))
 
     return new Promise((resolve, reject) => resolve())
