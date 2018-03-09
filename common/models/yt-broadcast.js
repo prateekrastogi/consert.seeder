@@ -5,8 +5,11 @@ const Rx = require('rxjs')
 const ytUtils = require('../../lib/yt-utils')
 const loginAssist = require('../../lib/login-assist')
 
+const getAllDbItemsObservable = require('../../lib/misc-utils').getAllDbItemsObservable
+
 const RETRY_COUNT = 3
 const MAX_RESULTS = 300
+const MAX_BATCH = 5000
 const THRESHOLD_CONCURRENT_VIEWERS = 50
 const THRESHOLD_CHANNEL_SUBSCRIBERS = 100
 const BUFFER_SIZE = 50
@@ -19,7 +22,7 @@ module.exports = function (ytBroadcast) {
   ytBroadcast.syncYtBroadcasts = function () {
     const baseParams = { type: `video`, eventType: `live`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
 
-    searchAndSyncLiveEvents().do(x => console.log(x)).count()
+    Rx.Observable.fromPromise(findLiveNowBroadcasts(MAX_BATCH, 0)).do(x => console.log(x)).count()
       .subscribe(x => console.log(x))
 
     return new Promise((resolve, reject) => resolve())
@@ -83,5 +86,16 @@ module.exports = function (ytBroadcast) {
       })
 
     return mergedSearch
+  }
+
+  async function findLiveNowBroadcasts (maxResults, offset) {
+    const filter = {
+      where: {'snippet.liveBroadcastContent': 'live'},
+      fields: {id: true},
+      limit: maxResults,
+      skip: offset
+    }
+    const liveNowBroadcasts = await ytBroadcast.find(filter)
+    return liveNowBroadcasts
   }
 }
