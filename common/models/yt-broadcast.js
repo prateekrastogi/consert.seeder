@@ -12,7 +12,8 @@ const MAX_RESULTS = 300
 const MAX_BATCH = 5000
 const THRESHOLD_CONCURRENT_VIEWERS = 50
 const THRESHOLD_CHANNEL_SUBSCRIBERS = 100
-const BUFFER_SIZE = 50
+const REQUEST_BUFFER_SIZE = 50
+const WAIT_TILL_NEXT_REQUEST = 5000
 
 module.exports = function (ytBroadcast) {
 /**
@@ -22,19 +23,9 @@ module.exports = function (ytBroadcast) {
   ytBroadcast.syncYtBroadcasts = function () {
     const baseParams = { type: `video`, eventType: `live`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
 
-    Rx.Observable.fromPromise(findLiveNowBroadcasts(MAX_BATCH, 0)).concatMap(ids => Rx.Observable.from(ids)).pluck('id')
-      .bufferCount(BUFFER_SIZE).concatMap(ids => ytUtils.getBroadcastsByIds(ids)).pluck('items').concatMap(broadcasts => Rx.Observable.from(broadcasts))
-      .bufferCount(MAX_BATCH).concatMap(broadcasts => {
-        return Rx.Observable.fromPromise(findLiveNowBroadcasts(MAX_BATCH, 0)).concatMap(ids => {
-          const missingBroadcasts = R.differenceWith(
-            (id, broadcast) => id.id === broadcast.id,
-            ids,
-            broadcasts
-          )
-          return Rx.Observable.from(missingBroadcasts)
-        })
-      })
-      .do(x => console.log(x)).count()
+    let counter = 0
+    liveNowBroadcastsUpdater()
+      .do(x => console.log(++counter)).count()
       .subscribe(x => console.log(x))
 
     return new Promise((resolve, reject) => resolve())
@@ -56,7 +47,7 @@ module.exports = function (ytBroadcast) {
     const dateParams = {...baseParams, order: `date`}
     const dateSearch = ytUtils.searchYtVideos([`music | song | radio -news -politics -sports`], MAX_RESULTS, dateParams).retry(RETRY_COUNT)
 
-    const dateSearchFilteredByChannelPopularity = dateSearch.bufferCount(BUFFER_SIZE).concatMap((bufferedBroadcasts) => {
+    const dateSearchFilteredByChannelPopularity = dateSearch.bufferCount(REQUEST_BUFFER_SIZE).concatMap((bufferedBroadcasts) => {
       const channelIds = R.compose(R.join(','), R.pluck('channelId'), R.pluck('snippet'))(bufferedBroadcasts)
 
       const listChannels = Rx.Observable.bindNodeCallback(loginAssist.ytBroadcastLogin().listChannels)
@@ -67,7 +58,7 @@ module.exports = function (ytBroadcast) {
       const eligibleBroadcastsObservable = channelStatistics.filter(({statistics}) => {
         const {subscriberCount} = statistics
         return parseInt(subscriberCount) >= THRESHOLD_CHANNEL_SUBSCRIBERS
-      }).bufferCount(BUFFER_SIZE)
+      }).bufferCount(REQUEST_BUFFER_SIZE)
         .map((filteredChannels) => {
           const filteredChannelsId = R.pluck('id')(filteredChannels)
 
@@ -100,10 +91,37 @@ module.exports = function (ytBroadcast) {
     return mergedSearch
   }
 
+  function liveNowBroadcastsUpdater () {
+    const updatedBroadCasts = getAllDbItemsObservable(findLiveNowBroadcasts, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
+      .bufferCount(MAX_BATCH)
+      .concatMap(liveNowBroadcasts => {
+        const broadcastNow = Rx.Observable.from(liveNowBroadcasts).pluck('id').bufferCount(REQUEST_BUFFER_SIZE)
+          .concatMap(ids => ytUtils.getBroadcastsByIds(ids)).pluck('items')
+          .concatMap(broadcasts => Rx.Observable.from(broadcasts))
+
+        const removedBroadCasts = broadcastNow.bufferCount(MAX_BATCH).concatMap(broadcasts => {
+          const missingBroadcasts = R.differenceWith(
+            (liveNowBroadcast, broadcast) => liveNowBroadcast.id === broadcast.id,
+            liveNowBroadcasts,
+            broadcasts
+          )
+          return Rx.Observable.from(missingBroadcasts)
+        }).map(missingBroadcast => {
+          missingBroadcast.isBroadcastRemoved = true
+          return missingBroadcast
+        })
+
+        const mergedUpdatedBroadCasts = Rx.Observable.merge(broadcastNow, removedBroadCasts)
+
+        return mergedUpdatedBroadCasts
+      })
+
+    return updatedBroadCasts
+  }
+
   async function findLiveNowBroadcasts (maxResults, offset) {
     const filter = {
       where: {'snippet.liveBroadcastContent': 'live'},
-      fields: {id: true},
       limit: maxResults,
       skip: offset
     }
