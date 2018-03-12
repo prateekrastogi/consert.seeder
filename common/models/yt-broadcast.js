@@ -23,7 +23,17 @@ module.exports = function (ytBroadcast) {
     const baseParams = { type: `video`, eventType: `live`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
 
     Rx.Observable.fromPromise(findLiveNowBroadcasts(MAX_BATCH, 0)).concatMap(ids => Rx.Observable.from(ids)).pluck('id')
-      .bufferCount(BUFFER_SIZE).concatMap(ids => ytUtils.getBroadcastsByIds(ids))
+      .bufferCount(BUFFER_SIZE).concatMap(ids => ytUtils.getBroadcastsByIds(ids)).pluck('items').concatMap(broadcasts => Rx.Observable.from(broadcasts))
+      .bufferCount(MAX_BATCH).concatMap(broadcasts => {
+        return Rx.Observable.fromPromise(findLiveNowBroadcasts(MAX_BATCH, 0)).concatMap(ids => {
+          const missingBroadcasts = R.differenceWith(
+            (id, broadcast) => id.id === broadcast.id,
+            ids,
+            broadcasts
+          )
+          return Rx.Observable.from(missingBroadcasts)
+        })
+      })
       .do(x => console.log(x)).count()
       .subscribe(x => console.log(x))
 
@@ -101,3 +111,9 @@ module.exports = function (ytBroadcast) {
     return liveNowBroadcasts
   }
 }
+
+/*
+.concatMap(ids => Rx.Observable.from(ids)).pluck('id')
+      .bufferCount(BUFFER_SIZE).concatMap(ids => ytUtils.getBroadcastsByIds(ids)).pluck('items').concatMap(broadcasts => Rx.Observable.from(broadcasts))
+      .filter(x => x.snippet.liveBroadcastContent === 'none')
+*/

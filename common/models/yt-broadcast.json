@@ -21,6 +21,11 @@
       "type": "boolean",
       "required": false,
       "default": false
+    },
+    "isBroadcastRemoved": {
+      "type": "boolean",
+      "required": false,
+      "default": false
     }
   },
   "validations": [],

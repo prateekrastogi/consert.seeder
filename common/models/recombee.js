@@ -176,7 +176,11 @@ module.exports = function (recombee) {
   async function findRecombeeUnSyncedYtVideosInBatches (maxResults, offset) {
     const ytVideo = app.models.ytVideo
     const filter = {
-      where: {and: [{or: [{isVideoRecombeeSynced: false}, {isVideoRecombeeSynced: {exists: false}}]}]},
+      where: {
+        and: [
+          {or: [{isVideoRecombeeSynced: false}, {isVideoRecombeeSynced: {exists: false}}]},
+          {or: [{isVideoRemoved: false}, {isVideoRemoved: {exists: false}}]}
+        ]},
       limit: maxResults,
       skip: offset
     }
@@ -219,7 +223,11 @@ module.exports = function (recombee) {
   async function findRecombeeSyncedYtVideosInBatches (maxResults, offset) {
     const ytVideo = app.models.ytVideo
     const filter = {
-      where: {isVideoRecombeeSynced: true},
+      where: {
+        and: [
+          {isVideoRecombeeSynced: true},
+          {or: [{isVideoRemoved: false}, {isVideoRemoved: {exists: false}}]}
+        ]},
       limit: maxResults,
       skip: offset
     }

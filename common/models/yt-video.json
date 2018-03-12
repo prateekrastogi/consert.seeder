@@ -35,6 +35,11 @@
       "type": "boolean",
       "required": false,
       "default": false
+    },
+    "isVideoRemoved": {
+      "type": "boolean",
+      "required": false,
+      "default": false
     }
   },
   "validations": [],

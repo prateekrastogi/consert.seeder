@@ -73,13 +73,18 @@ module.exports = function (elasticVideo) {
     const ytVideo = app.models.ytVideo
 
     const filter = {
-      where: {or: [{isVideoElasticSearchSynced: false}, {isVideoElasticSearchSynced: {exists: false}}]},
+      where: {
+        and: [
+          {or: [{isVideoElasticSearchSynced: false}, {isVideoElasticSearchSynced: {exists: false}}]},
+          {or: [{isVideoRemoved: false}, {isVideoRemoved: {exists: false}}]}
+        ]},
       fields: {id: true,
         artists: true,
         tracks: false,
         albums: false,
         isVideoElasticSearchSynced: false,
         isVideoRecombeeSynced: false,
+        isVideoRemoved: false,
         kind: false,
         etag: false,
         contentDetails: true,
@@ -118,7 +123,11 @@ module.exports = function (elasticVideo) {
     const ytVideo = app.models.ytVideo
 
     const filter = {
-      where: {isVideoElasticSearchSynced: true},
+      where: {
+        and: [
+          {isVideoElasticSearchSynced: true},
+          {or: [{isVideoRemoved: false}, {isVideoRemoved: {exists: false}}]}
+        ]},
       limit: maxResults,
       skip: offset
     }
