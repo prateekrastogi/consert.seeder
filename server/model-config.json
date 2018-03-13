@@ -99,7 +99,9 @@
         "sharedMethods": {
           "*": false,
           "syncYtVideosWithElastic": true,
-          "setYtVideosForElasticReSync": true
+          "setYtVideosForElasticReSync": true,
+          "syncYtBroadcastsWithElastic": true,
+          "setYtBroadcastsForElasticReSync": true
         }
       }
     }

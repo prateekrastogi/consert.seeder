@@ -1,6 +1,6 @@
 {
   "name": "ytBroadcast",
-  "plural": "ytBroadcast",
+  "plural": "ytBroadcasts",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {

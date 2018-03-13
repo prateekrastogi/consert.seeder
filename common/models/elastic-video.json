@@ -37,6 +37,28 @@
           "verb": "put"
         }
       ]
+    },
+    "syncYtBroadcastsWithElastic": {
+      "accepts": [],
+      "returns": [],
+      "description": "Synchronizes ytBroadcasts data with elasticsearch",
+      "http": [
+        {
+          "path": "/syncYtBroadcastsWithElastic",
+          "verb": "put"
+        }
+      ]
+    },
+    "setYtBroadcastsForElasticReSync": {
+      "accepts": [],
+      "returns": [],
+      "description": "sets the previously seeded broadcasts for re-sync with elasticsearch catalog",
+      "http": [
+        {
+          "path": "/setYtBroadcastsForElasticReSync",
+          "verb": "put"
+        }
+      ]
     }
   }
 }

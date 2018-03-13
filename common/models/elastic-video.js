@@ -71,6 +71,10 @@ module.exports = function (elasticVideo) {
     return Promise.resolve()
   }
 
+  elasticVideo.syncYtBroadcastsWithElastic = function () {}
+
+  elasticVideo.setYtBroadcastsForElasticReSync = function () {}
+
   async function findElasticUnsyncedYtVideosInBatches (maxResults, offset) {
     const ytVideo = app.models.ytVideo
 
