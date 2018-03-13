@@ -64,7 +64,7 @@ module.exports = function (recombee) {
     }).bufferCount(MAX_BATCH)
       .concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, enrichedArtist))
 
-    const safeArtistSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(artistSyncer, WAIT_TILL_NEXT_REQUEST))
+    const safeArtistSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(artistSyncer, 4 * WAIT_TILL_NEXT_REQUEST))
 
     const artistSyncerSubscription = safeArtistSyncer.subscribe({
       error: err => console.log(err)
@@ -125,7 +125,7 @@ module.exports = function (recombee) {
 
     const syncedVideos = getAllDbItemsObservable(findRecombeeSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
 
-    const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(setModelItemsForReSync(syncedVideos, ytVideo), WAIT_TILL_NEXT_REQUEST))
+    const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(setModelItemsForReSync(syncedVideos, ytVideo), 4 * WAIT_TILL_NEXT_REQUEST))
 
     const recombeeVideoReSyncerSubscription = safeRecursiveReSyncer
       .subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.log(err))

@@ -59,7 +59,7 @@ module.exports = function (elasticVideo) {
         return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
       })
 
-    const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), recursiveTimeOutDeferredObservable(resyncSetter, WAIT_TILL_NEXT_REQUEST))
+    const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), recursiveTimeOutDeferredObservable(resyncSetter, 4 * WAIT_TILL_NEXT_REQUEST))
 
     const elasticReSyncerSubscription = safeRecursiveResyncer
       .subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),

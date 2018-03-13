@@ -6,14 +6,20 @@ const ytUtils = require('../../lib/yt-utils')
 const loginAssist = require('../../lib/login-assist')
 
 const getAllDbItemsObservable = require('../../lib/misc-utils').getAllDbItemsObservable
+const recursiveTimeOutDeferredObservable = require('../../lib/misc-utils').recursiveTimeOutDeferredObservable
+const terminateAllActiveInterferingSubscriptions = require('../../lib/misc-utils').terminateAllActiveInterferingSubscriptions
 
 const RETRY_COUNT = 3
 const MAX_RESULTS = 300
 const MAX_BATCH = 5000
 const THRESHOLD_CONCURRENT_VIEWERS = 50
-const THRESHOLD_CHANNEL_SUBSCRIBERS = 100
+const THRESHOLD_CHANNEL_SUBSCRIBERS = 10000
 const REQUEST_BUFFER_SIZE = 50
 const WAIT_TILL_NEXT_REQUEST = 5000
+const SHORT_POLLING_INTERVAL = 60 * 1000
+const LONG_POLLING_INTERVAL = 5 * 60 * 1000
+
+let activeSubscriptions = []
 
 module.exports = function (ytBroadcast) {
 /**
@@ -21,10 +27,12 @@ module.exports = function (ytBroadcast) {
  */
 
   ytBroadcast.syncYtBroadcasts = function () {
-    let counter = 0
-    liveNowBroadcastsUpdater()
-      .do(x => console.log(++counter)).count()
-      .subscribe(x => console.log(x))
+    const safeSearchAndSyncLiveEvents = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), searchAndSyncLiveEvents())
+
+    const syncYtBroadcastsSubscription = safeSearchAndSyncLiveEvents.subscribe(x => console.log(`Setting for sync: ${x.snippet.title}`),
+      err => console.log(err))
+
+    activeSubscriptions.push(syncYtBroadcastsSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -32,10 +40,11 @@ module.exports = function (ytBroadcast) {
   function searchAndSyncLiveEvents () {
     const baseParams = { type: `video`, eventType: `live`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
 
-    const dateSortedSearch = dateSearch(baseParams)
-    const defaultAndViewCountSortedSearch = defaultAndViewCountSearch(baseParams)
+    const dateSortedSearch = Rx.Observable.timer(0, SHORT_POLLING_INTERVAL).concatMap(i => dateSearch(baseParams))
+    const defaultAndViewCountSortedSearch = Rx.Observable.timer(0, LONG_POLLING_INTERVAL).concatMap(i => defaultAndViewCountSearch(baseParams))
+    const liveBroadCastsUpdater = recursiveTimeOutDeferredObservable(liveNowBroadcastsUpdater(), LONG_POLLING_INTERVAL)
 
-    const allSearchResultsSynced = Rx.Observable.merge(dateSortedSearch, defaultAndViewCountSortedSearch)
+    const allSearchResultsSynced = Rx.Observable.merge(dateSortedSearch, defaultAndViewCountSortedSearch, liveBroadCastsUpdater)
       .concatMap(event => Rx.Observable.fromPromise(ytBroadcast.replaceOrCreate(event)))
 
     return allSearchResultsSynced
@@ -93,7 +102,7 @@ module.exports = function (ytBroadcast) {
     const updatedBroadCasts = getAllDbItemsObservable(findLiveNowBroadcasts, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
       .concatMap(liveNowBroadcasts => {
         const broadcastNow = Rx.Observable.from(liveNowBroadcasts).pluck('id').bufferCount(REQUEST_BUFFER_SIZE)
-          .concatMap(ids => ytUtils.getBroadcastsByIds(ids)).pluck('items')
+          .concatMap(ids => ytUtils.getBroadcastsByIds(ids).retry(RETRY_COUNT)).pluck('items')
           .concatMap(broadcasts => Rx.Observable.from(broadcasts))
 
         const removedBroadCasts = broadcastNow.bufferCount(MAX_BATCH).concatMap(broadcasts => {
@@ -118,7 +127,11 @@ module.exports = function (ytBroadcast) {
 
   async function findLiveNowBroadcasts (maxResults, offset) {
     const filter = {
-      where: {'snippet.liveBroadcastContent': 'live'},
+      where: {
+        and: [
+          {'snippet.liveBroadcastContent': 'live'},
+          {or: [{isBroadcastRemoved: false}, {isBroadcastRemoved: {exists: false}}]}
+        ]},
       limit: maxResults,
       skip: offset
     }
@@ -126,9 +139,3 @@ module.exports = function (ytBroadcast) {
     return liveNowBroadcasts
   }
 }
-
-/*
-.concatMap(ids => Rx.Observable.from(ids)).pluck('id')
-      .bufferCount(BUFFER_SIZE).concatMap(ids => ytUtils.getBroadcastsByIds(ids)).pluck('items').concatMap(broadcasts => Rx.Observable.from(broadcasts))
-      .filter(x => x.snippet.liveBroadcastContent === 'none')
-*/
