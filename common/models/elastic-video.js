@@ -23,6 +23,7 @@ module.exports = function (elasticVideo) {
     const ytVideo = app.models.ytVideo
 
     const elasticSyncer = getAllDbItemsObservable(findElasticUnsyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
+      .concatMap(items => Rx.Observable.from(items))
       .concatMap((video) => {
         const {id} = video
 
@@ -52,6 +53,7 @@ module.exports = function (elasticVideo) {
     const ytVideo = app.models.ytVideo
 
     const resyncSetter = getAllDbItemsObservable(findElasticSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
+      .concatMap(items => Rx.Observable.from(items))
       .concatMap(video => {
         video.isVideoElasticSearchSynced = false
         return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))

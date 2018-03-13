@@ -21,8 +21,6 @@ module.exports = function (ytBroadcast) {
  */
 
   ytBroadcast.syncYtBroadcasts = function () {
-    const baseParams = { type: `video`, eventType: `live`, regionCode: `US`, safeSearch: `none`, videoEmbeddable: `true`, videoSyndicated: `true` }
-
     let counter = 0
     liveNowBroadcastsUpdater()
       .do(x => console.log(++counter)).count()
@@ -93,7 +91,6 @@ module.exports = function (ytBroadcast) {
 
   function liveNowBroadcastsUpdater () {
     const updatedBroadCasts = getAllDbItemsObservable(findLiveNowBroadcasts, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
-      .bufferCount(MAX_BATCH)
       .concatMap(liveNowBroadcasts => {
         const broadcastNow = Rx.Observable.from(liveNowBroadcasts).pluck('id').bufferCount(REQUEST_BUFFER_SIZE)
           .concatMap(ids => ytUtils.getBroadcastsByIds(ids)).pluck('items')

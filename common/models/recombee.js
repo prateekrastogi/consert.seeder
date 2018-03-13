@@ -27,6 +27,7 @@ module.exports = function (recombee) {
     const ytVideo = app.models.ytVideo
 
     const videos = getAllDbItemsObservable(findRecombeeUnSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
+      .concatMap(items => Rx.Observable.from(items))
 
     const recombeeSyncer = videos.map(video => {
       const {id} = video
@@ -122,7 +123,7 @@ module.exports = function (recombee) {
   recombee.setVideosForRecombeeReSync = function () {
     const ytVideo = app.models.ytVideo
 
-    const syncedVideos = getAllDbItemsObservable(findRecombeeSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH).bufferCount(1) // Using bufferCount=1 coz below method expects an array emission from the passed Observable, and larger buffer will fail to have intended affect on last remaining items in bufferSize < bufferCountSize
+    const syncedVideos = getAllDbItemsObservable(findRecombeeSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
 
     const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(setModelItemsForReSync(syncedVideos, ytVideo), WAIT_TILL_NEXT_REQUEST))
 
