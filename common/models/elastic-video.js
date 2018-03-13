@@ -22,23 +22,8 @@ module.exports = function (elasticVideo) {
   elasticVideo.syncYtVideosWithElastic = function () {
     const ytVideo = app.models.ytVideo
 
-    const elasticSyncer = getAllDbItemsObservable(findElasticUnsyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
-      .concatMap(items => Rx.Observable.from(items))
-      .concatMap((video) => {
-        const {id} = video
-
-        const crawlRecorder = Rx.Observable.fromPromise(ytVideo.findById(id))
-          .map((intactVideo) => {
-            intactVideo.isVideoElasticSearchSynced = true
-            return intactVideo
-          }).concatMap(intactVideo => Rx.Observable.fromPromise(ytVideo.replaceOrCreate(intactVideo)))
-
-        const elasticWriter = Rx.Observable.fromPromise(elasticVideo.upsert(video))
-
-        return Rx.Observable.concat(elasticWriter, crawlRecorder)
-      })
-
-    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions), recursiveDeferredObservable(elasticSyncer))
+    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
+      recursiveDeferredObservable(elasticSyncer(ytVideo, findElasticUnsyncedYtVideosInBatches)))
 
     const elasticSyncerSubscription = safeRecursiveSyncer
       .subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
@@ -52,14 +37,8 @@ module.exports = function (elasticVideo) {
   elasticVideo.setYtVideosForElasticReSync = function () {
     const ytVideo = app.models.ytVideo
 
-    const resyncSetter = getAllDbItemsObservable(findElasticSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
-      .concatMap(items => Rx.Observable.from(items))
-      .concatMap(video => {
-        video.isVideoElasticSearchSynced = false
-        return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
-      })
-
-    const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(resyncSetter, 4 * WAIT_TILL_NEXT_REQUEST))
+    const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
+      recursiveTimeOutDeferredObservable(elasticReSyncer(ytVideo, findElasticSyncedYtVideosInBatches), 4 * WAIT_TILL_NEXT_REQUEST))
 
     const elasticReSyncerSubscription = safeRecursiveResyncer
       .subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
@@ -74,6 +53,51 @@ module.exports = function (elasticVideo) {
   elasticVideo.syncYtBroadcastsWithElastic = function () {}
 
   elasticVideo.setYtBroadcastsForElasticReSync = function () {}
+
+  function elasticSyncer (model, filterFunction) {
+    const elasticSyncingObservable = getAllDbItemsObservable(filterFunction, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
+      .concatMap(items => Rx.Observable.from(items))
+      .concatMap((item) => {
+        const {id} = item
+
+        const crawlRecorder = Rx.Observable.fromPromise(model.findById(id))
+          .map((intactItem) => {
+            switch (model.modelName) {
+              case 'ytBroadcast':
+                intactItem.isBroadcastElasticSearchSynced = true
+                break
+              case 'ytVideo':
+                intactItem.isVideoElasticSearchSynced = true
+                break
+            }
+            return intactItem
+          }).concatMap(modifiedItem => Rx.Observable.fromPromise(model.replaceOrCreate(modifiedItem)))
+
+        const elasticWriter = Rx.Observable.fromPromise(elasticVideo.upsert(item))
+
+        return Rx.Observable.concat(elasticWriter, crawlRecorder)
+      })
+
+    return elasticSyncingObservable
+  }
+
+  function elasticReSyncer (model, filterFunction) {
+    const reSyncingObservable = getAllDbItemsObservable(filterFunction, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
+      .concatMap(items => Rx.Observable.from(items))
+      .concatMap(item => {
+        switch (model.modelName) {
+          case 'ytBroadcast':
+            item.isBroadcastElasticSearchSynced = false
+            break
+          case 'ytVideo':
+            item.isVideoElasticSearchSynced = false
+            break
+        }
+        return Rx.Observable.fromPromise(model.replaceOrCreate(item))
+      })
+
+    return reSyncingObservable
+  }
 
   async function findElasticUnsyncedYtVideosInBatches (maxResults, offset) {
     const ytVideo = app.models.ytVideo
