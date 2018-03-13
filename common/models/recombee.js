@@ -26,16 +26,8 @@ module.exports = function (recombee) {
   recombee.syncPastShows = function () {
     const ytVideo = app.models.ytVideo
 
-    const videos = getAllDbItemsObservable(findRecombeeUnSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
-      .concatMap(items => Rx.Observable.from(items))
-
-    const recombeeSyncer = videos.map(video => {
-      const {id} = video
-      const recombeeItem = recombeeUtils.convertVideoToRecombeeVideo(video)
-      return {recombeeItem, id}
-    }).bufferCount(MAX_BATCH).concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, ytVideo))
-
-    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions), recursiveDeferredObservable(recombeeSyncer))
+    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
+      recursiveDeferredObservable(recombeeBatchSyncer(ytVideo, findRecombeeUnSyncedYtVideosInBatches)))
 
     const recombeeVideoSyncerSubscription = safeRecursiveSyncer.subscribe({
       error: err => console.log(err)
@@ -125,9 +117,8 @@ module.exports = function (recombee) {
   recombee.setVideosForRecombeeReSync = function () {
     const ytVideo = app.models.ytVideo
 
-    const syncedVideos = getAllDbItemsObservable(findRecombeeSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
-
-    const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(setModelItemsForReSync(syncedVideos, ytVideo), 4 * WAIT_TILL_NEXT_REQUEST))
+    const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
+      recursiveTimeOutDeferredObservable(recombeeBatchReSyncer(ytVideo, findRecombeeSyncedYtVideosInBatches), 4 * WAIT_TILL_NEXT_REQUEST))
 
     const recombeeVideoReSyncerSubscription = safeRecursiveReSyncer
       .subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.log(err))
@@ -150,6 +141,25 @@ module.exports = function (recombee) {
     result.subscribe(x => console.log(x), e => console.error(e))
 
     return new Promise((resolve, reject) => resolve())
+  }
+
+  function recombeeBatchSyncer (model, filterFunction) {
+    const mediaItems = getAllDbItemsObservable(filterFunction, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
+      .concatMap(items => Rx.Observable.from(items))
+
+    const recombeeSyncer = mediaItems.map(mediaItem => {
+      const {id} = mediaItem
+      const recombeeItem = recombeeUtils.convertMediaItemToRecombeeItem(mediaItem)
+      return {recombeeItem, id}
+    }).bufferCount(MAX_BATCH).concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, model))
+
+    return recombeeSyncer
+  }
+
+  function recombeeBatchReSyncer (model, filterFunction) {
+    const syncedItems = getAllDbItemsObservable(filterFunction, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
+
+    return setModelItemsForReSync(syncedItems, model)
   }
 
   async function findRecombeeUnSyncedArtistsByPopularity (lowerBound, upperBound) {
@@ -325,6 +335,9 @@ module.exports = function (recombee) {
             break
           case 'ytVideo':
             item.isVideoRecombeeSynced = false
+            break
+          case 'ytBroadcast':
+            item.isBroadcastRecombeeSynced = false
             break
         }
         return item
