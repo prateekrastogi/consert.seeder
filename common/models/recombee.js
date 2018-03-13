@@ -23,7 +23,7 @@ module.exports = function (recombee) {
    * Synchronizes the past recorded concerts with recombee for recommendations
    */
 
-  recombee.syncPastShows = async function () {
+  recombee.syncPastShows = function () {
     const ytVideo = app.models.ytVideo
 
     const videos = getAllDbItemsObservable(findRecombeeUnSyncedYtVideosInBatches, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
@@ -74,6 +74,8 @@ module.exports = function (recombee) {
 
     return new Promise((resolve, reject) => resolve())
   }
+
+  recombee.syncBroadcasts = function () {}
 
   /**
    * sets the itemProperties of recombee database items
@@ -134,6 +136,8 @@ module.exports = function (recombee) {
 
     return new Promise((resolve, reject) => resolve())
   }
+
+  recombee.setBroadcastsForRecombeeReSync = function () {}
 
   /**
    * Remote method for performing miscellaneous operations in recombee

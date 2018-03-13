@@ -21,6 +21,17 @@
         }
       ]
     },
+    "syncBroadcasts": {
+      "accepts": [],
+      "returns": [],
+      "description": "Synchronizes the broadcasts with recombee for recommendations",
+      "http": [
+        {
+          "path": "/syncBroadcasts",
+          "verb": "put"
+        }
+      ]
+    },
     "syncArtists": {
       "accepts": [
         {
@@ -110,6 +121,17 @@
       "http": [
         {
           "path": "/setVideosForRecombeeReSync",
+          "verb": "put"
+        }
+      ]
+    },
+    "setBroadcastsForRecombeeReSync": {
+      "accepts": [],
+      "returns": [],
+      "description": "sets the broadcasts for re-sync with recombee item catalog",
+      "http": [
+        {
+          "path": "/setBroadcastsForRecombeeReSync",
           "verb": "put"
         }
       ]
