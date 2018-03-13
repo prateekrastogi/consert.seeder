@@ -12,7 +12,7 @@ const recursiveTimeOutDeferredObservable = require('../../lib/misc-utils').recur
 const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 5000
 
-let activeSubscriptions = []
+let videoRelatedActiveSubscriptions = []
 
 module.exports = function (elasticVideo) {
 /**
@@ -38,13 +38,13 @@ module.exports = function (elasticVideo) {
         return Rx.Observable.concat(elasticWriter, crawlRecorder)
       })
 
-    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), recursiveDeferredObservable(elasticSyncer))
+    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions), recursiveDeferredObservable(elasticSyncer))
 
     const elasticSyncerSubscription = safeRecursiveSyncer
       .subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
         err => console.log(err))
 
-    activeSubscriptions.push(elasticSyncerSubscription)
+    videoRelatedActiveSubscriptions.push(elasticSyncerSubscription)
 
     return Promise.resolve()
   }
@@ -59,14 +59,14 @@ module.exports = function (elasticVideo) {
         return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(video))
       })
 
-    const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), recursiveTimeOutDeferredObservable(resyncSetter, 4 * WAIT_TILL_NEXT_REQUEST))
+    const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(resyncSetter, 4 * WAIT_TILL_NEXT_REQUEST))
 
     const elasticReSyncerSubscription = safeRecursiveResyncer
       .subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
         err => console.log(err),
         () => console.log('Setting for re-sync with es completed'))
 
-    activeSubscriptions.push(elasticReSyncerSubscription)
+    videoRelatedActiveSubscriptions.push(elasticReSyncerSubscription)
 
     return Promise.resolve()
   }
@@ -140,5 +140,44 @@ module.exports = function (elasticVideo) {
     const videos = await ytVideo.find(filter)
 
     return videos
+  }
+
+  async function findElasticUnsyncedYtBroadcastsInBatches (maxResults, offset) {
+    const ytBroadcast = app.models.ytBroadcast
+
+    const filter = {
+      where: {
+        and: [
+          {or: [{isBroadcastElasticSearchSynced: false}, {isBroadcastElasticSearchSynced: {exists: false}}]},
+          {or: [{isBroadcastRemoved: false}, {isBroadcastRemoved: {exists: false}}]}
+        ]},
+      fields: {id: true,
+        liveStreamingDetails: true,
+        contentDetails: true,
+        statistics: true,
+        snippet: true},
+      limit: maxResults,
+      skip: offset
+    }
+    const broadcasts = await ytBroadcast.find(filter)
+
+    return broadcasts
+  }
+
+  async function findElasticSyncedYtBroadcastsInBatches (maxResults, offset) {
+    const ytBroadcast = app.models.ytBroadcast
+
+    const filter = {
+      where: {
+        and: [
+          {isBroadcastElasticSearchSynced: true},
+          {or: [{isBroadcastRemoved: false}, {isBroadcastRemoved: {exists: false}}]}
+        ]},
+      limit: maxResults,
+      skip: offset
+    }
+    const broadcasts = await ytBroadcast.find(filter)
+
+    return broadcasts
   }
 }

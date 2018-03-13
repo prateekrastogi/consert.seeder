@@ -241,6 +241,10 @@ module.exports = function (recombee) {
     return videos
   }
 
+  async function findRecombeeUnSyncedYtBroadcastsInBatches (maxResults, offset) {}
+
+  async function findRecombeeSyncedYtBroadcastsInBatches (maxResults, offset) {}
+
   function resetDatabase () {
     if (app.get('env') !== 'production') {
       recombeeClient.send(new recombeeRqs.ResetDatabase(), (err, result) => err ? console.log('Some error occurred while resetting db') : console.log('Database reset successful'))
