@@ -13,6 +13,7 @@ const MAX_BATCH = 5000
 const WAIT_TILL_NEXT_REQUEST = 5000
 
 let videoRelatedActiveSubscriptions = []
+let broadcastRelatedActiveSubscriptions = []
 
 module.exports = function (elasticVideo) {
 /**
@@ -34,6 +35,21 @@ module.exports = function (elasticVideo) {
     return Promise.resolve()
   }
 
+  elasticVideo.syncYtBroadcastsWithElastic = function () {
+    const ytBroadcast = app.models.ytBroadcast
+
+    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
+      recursiveDeferredObservable(elasticSyncer(ytBroadcast, findElasticUnsyncedYtBroadcastsInBatches)))
+
+    const elasticSyncerSubscription = safeRecursiveSyncer
+      .subscribe(x => console.log(`Working on syncing with es, the broadcast: ${x.snippet.title}`),
+        err => console.log(err))
+
+    broadcastRelatedActiveSubscriptions.push(elasticSyncerSubscription)
+
+    return Promise.resolve()
+  }
+
   elasticVideo.setYtVideosForElasticReSync = function () {
     const ytVideo = app.models.ytVideo
 
@@ -50,9 +66,21 @@ module.exports = function (elasticVideo) {
     return Promise.resolve()
   }
 
-  elasticVideo.syncYtBroadcastsWithElastic = function () {}
+  elasticVideo.setYtBroadcastsForElasticReSync = function () {
+    const ytBroadcast = app.models.ytBroadcast
 
-  elasticVideo.setYtBroadcastsForElasticReSync = function () {}
+    const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
+      recursiveTimeOutDeferredObservable(elasticReSyncer(ytBroadcast, findElasticSyncedYtBroadcastsInBatches), 4 * WAIT_TILL_NEXT_REQUEST))
+
+    const elasticReSyncerSubscription = safeRecursiveResyncer
+      .subscribe(x => console.log(`Setting for re-sync with es, the broadcast: ${x.snippet.title}`),
+        err => console.log(err),
+        () => console.log('Setting for re-sync with es completed'))
+
+    broadcastRelatedActiveSubscriptions.push(elasticReSyncerSubscription)
+
+    return Promise.resolve()
+  }
 
   function elasticSyncer (model, filterFunction) {
     const elasticSyncingObservable = getAllDbItemsObservable(filterFunction, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
