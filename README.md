@@ -55,7 +55,8 @@ All models set* methods: Mostly used for cleanly restarting/resetting model sync
 Item Properties:
 ---------------
 
-itemType <string>: ItemType of uploaded recommendation items, can be of multiple types such as 'video','artist','genre' 
+itemType <string>: ItemType of uploaded recommendation items, can be of multiple types such as 'video', 'broadcast',
+'artist','genre' 
 kind <string>: Youtube resource kind
 etag <string>: Http etag of the resource
 contentDetails-duration <string>
@@ -96,6 +97,7 @@ artists-popularity <set>: Popularity of all the artists involved in any particul
 artists-followers <set>: Followers of all the artists involved in any particular video
 artists-relatedArtists <set>: Related artists of all the artists involved in any particular video
 artists-type <set>: Types of all the artists involved in any particular video
+item-isRemoved <boolean>: flag indicating whether item is removed
 
 Not including artist top tracks in metadata due to biases in spotify top tracks algo. Similarly, excluding album meta data as un-necessary result matching in youtube search makes it a very weak correlation signal. 
 
