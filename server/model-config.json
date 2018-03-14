@@ -70,7 +70,8 @@
         "sharedMethods": {
           "*": false,
           "putArtistsVideosLive": true,
-          "setArtistsByPopularityForVideoReCrawl": true
+          "setArtistsByPopularityForVideoReCrawl": true,
+          "markUnpublishedVideos": true
         }
       }
     }

@@ -6,8 +6,12 @@ const _ = require('lodash')
 const ytUtils = require('../../lib/yt-utils')
 
 const terminateAllActiveInterferingSubscriptions = require('../../lib/misc-utils').terminateAllActiveInterferingSubscriptions
+const getAllDbItemsObservable = require('../../lib/misc-utils').getAllDbItemsObservable
 
 const RETRY_COUNT = 3
+const MAX_BATCH = 5000
+const REQUEST_BUFFER_SIZE = 50
+const WAIT_TILL_NEXT_REQUEST = 5000
 
 let activeSubscriptions = []
 
@@ -98,7 +102,16 @@ module.exports = function (ytVideo) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  ytVideo.markUnpublishedVideos = function () {}
+  ytVideo.markUnpublishedVideos = function () {
+    let count = 0
+    getAllDbItemsObservable(findNonRemovedVideosInBatch, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
+      .concatMap(
+
+      )
+      .subscribe(x => console.log(x))
+
+    return new Promise((resolve, reject) => resolve())
+  }
 
   async function videoObjectUpdater (video, {artists, albums, tracks}) {
     const videoInstance = await ytVideo.findById(video.id)
@@ -140,6 +153,7 @@ module.exports = function (ytVideo) {
         and: [
           {or: [{isRemoved: false}, {isRemoved: {exists: false}}]}
         ]},
+      fields: {id: true},
       limit: maxResults,
       skip: offset
     }

@@ -101,9 +101,8 @@ module.exports = function (ytBroadcast) {
   function liveNowBroadcastsUpdater () {
     const updatedBroadCasts = getAllDbItemsObservable(findLiveNowBroadcastsInBatch, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
       .concatMap(liveNowBroadcasts => {
-        const broadcastNow = Rx.Observable.from(liveNowBroadcasts).pluck('id').bufferCount(REQUEST_BUFFER_SIZE)
-          .concatMap(ids => ytUtils.getBroadcastsByIds(ids).retry(RETRY_COUNT)).pluck('items')
-          .concatMap(broadcasts => Rx.Observable.from(broadcasts))
+        const broadcastNow = mapByIdYtItems(ytUtils.getBroadcastsByIds, liveNowBroadcasts, REQUEST_BUFFER_SIZE)
+          .concatMap(mappedItems => Rx.Observable.from(mappedItems))
 
         const removedBroadCasts = broadcastNow.bufferCount(MAX_BATCH).concatMap(broadcasts => {
           const missingBroadcasts = R.differenceWith(
@@ -124,6 +123,13 @@ module.exports = function (ytBroadcast) {
 
     return updatedBroadCasts
   }
+
+  function mapByIdYtItems (mapperFn, ytItems, REQUEST_BUFFER_SIZE) {
+    return Rx.Observable.from(ytItems).pluck('id').bufferCount(REQUEST_BUFFER_SIZE)
+      .concatMap(ids => mapperFn(ids).retry(RETRY_COUNT)).pluck('items')
+  }
+
+  function mapByIdUnmappedYtItems () {}
 
   async function findLiveNowBroadcastsInBatch (maxResults, offset) {
     const filter = {
