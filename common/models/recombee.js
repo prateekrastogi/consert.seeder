@@ -5,6 +5,7 @@ const recombeeClient = require('../../lib/login-assist').recombeeLogin()
 const recombeeRqs = require('recombee-api-client').requests
 const Rx = require('rxjs')
 const _ = require('lodash')
+const R = require('ramda')
 const recombeeUtils = require('../../lib/recombee-utils')
 
 const getAllDbItemsObservable = require('../../lib/misc-utils').getAllDbItemsObservable
@@ -17,6 +18,7 @@ const WAIT_TILL_NEXT_REQUEST = 10000
 
 let artistRelatedActiveSubscriptions = []
 let videoRelatedActiveSubscriptions = []
+let broadcastRelatedActiveSubscriptions = []
 
 module.exports = function (recombee) {
   /**
@@ -67,7 +69,20 @@ module.exports = function (recombee) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  recombee.syncBroadcasts = function () {}
+  recombee.syncBroadcasts = function () {
+    const ytBroadcast = app.models.ytBroadcast
+
+    const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
+      recursiveDeferredObservable(recombeeBatchSyncer(ytBroadcast, findRecombeeUnSyncedYtBroadcastsInBatches)))
+
+    const recombeeBroadcastSyncerSubscription = safeRecursiveSyncer.subscribe({
+      error: err => console.log(err)
+    })
+
+    broadcastRelatedActiveSubscriptions.push(recombeeBroadcastSyncerSubscription)
+
+    return new Promise((resolve, reject) => resolve())
+  }
 
   /**
    * sets the itemProperties of recombee database items
@@ -128,7 +143,19 @@ module.exports = function (recombee) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  recombee.setBroadcastsForRecombeeReSync = function () {}
+  recombee.setBroadcastsForRecombeeReSync = function () {
+    const ytBroadcast = app.models.ytBroadcast
+
+    const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
+      recursiveTimeOutDeferredObservable(recombeeBatchReSyncer(ytBroadcast, findRecombeeSyncedYtBroadcastsInBatches), 4 * WAIT_TILL_NEXT_REQUEST))
+
+    const recombeeBroadcastReSyncerSubscription = safeRecursiveReSyncer
+      .subscribe(({snippet}) => console.log(`Broadcast marked for Recombee Re-sync: ${snippet.title}`), err => console.log(err))
+
+    broadcastRelatedActiveSubscriptions.push(recombeeBroadcastReSyncerSubscription)
+
+    return new Promise((resolve, reject) => resolve())
+  }
 
   /**
    * Remote method for performing miscellaneous operations in recombee
@@ -145,13 +172,16 @@ module.exports = function (recombee) {
 
   function recombeeBatchSyncer (model, filterFunction) {
     const mediaItems = getAllDbItemsObservable(filterFunction, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
-      .concatMap(items => Rx.Observable.from(items))
 
-    const recombeeSyncer = mediaItems.map(mediaItem => {
-      const {id} = mediaItem
-      const recombeeItem = recombeeUtils.convertMediaItemToRecombeeItem(mediaItem)
-      return {recombeeItem, id}
-    }).bufferCount(MAX_BATCH).concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, model))
+    const recombeeSyncer = mediaItems.map((items) => {
+      const mapperFn = (mediaItem) => {
+        const {id} = mediaItem
+        const recombeeItem = recombeeUtils.convertMediaItemToRecombeeItem(mediaItem)
+        return {recombeeItem, id}
+      }
+
+      return R.map(mapperFn, items)
+    }).concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, model))
 
     return recombeeSyncer
   }
@@ -249,9 +279,37 @@ module.exports = function (recombee) {
     return videos
   }
 
-  async function findRecombeeUnSyncedYtBroadcastsInBatches (maxResults, offset) {}
+  async function findRecombeeUnSyncedYtBroadcastsInBatches (maxResults, offset) {
+    const ytBroadcast = app.models.ytBroadcast
 
-  async function findRecombeeSyncedYtBroadcastsInBatches (maxResults, offset) {}
+    const filter = {
+      where: {
+        and: [
+          {or: [{isBroadcastRecombeeSynced: false}, {isBroadcastRecombeeSynced: {exists: false}}]}
+        ]},
+      limit: maxResults,
+      skip: offset
+    }
+    const broadcasts = await ytBroadcast.find(filter)
+
+    return broadcasts
+  }
+
+  async function findRecombeeSyncedYtBroadcastsInBatches (maxResults, offset) {
+    const ytBroadcast = app.models.ytBroadcast
+
+    const filter = {
+      where: {
+        and: [
+          {isBroadcastRecombeeSynced: true}
+        ]},
+      limit: maxResults,
+      skip: offset
+    }
+    const broadcasts = await ytBroadcast.find(filter)
+
+    return broadcasts
+  }
 
   function resetDatabase () {
     if (app.get('env') !== 'production') {
