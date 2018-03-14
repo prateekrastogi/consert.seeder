@@ -99,7 +99,7 @@ module.exports = function (ytBroadcast) {
   }
 
   function liveNowBroadcastsUpdater () {
-    const updatedBroadCasts = getAllDbItemsObservable(findLiveNowBroadcasts, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
+    const updatedBroadCasts = getAllDbItemsObservable(findLiveNowBroadcastsInBatch, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
       .concatMap(liveNowBroadcasts => {
         const broadcastNow = Rx.Observable.from(liveNowBroadcasts).pluck('id').bufferCount(REQUEST_BUFFER_SIZE)
           .concatMap(ids => ytUtils.getBroadcastsByIds(ids).retry(RETRY_COUNT)).pluck('items')
@@ -125,7 +125,7 @@ module.exports = function (ytBroadcast) {
     return updatedBroadCasts
   }
 
-  async function findLiveNowBroadcasts (maxResults, offset) {
+  async function findLiveNowBroadcastsInBatch (maxResults, offset) {
     const filter = {
       where: {
         and: [

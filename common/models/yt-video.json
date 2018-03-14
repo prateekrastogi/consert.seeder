@@ -105,6 +105,17 @@
           "verb": "put"
         }
       ]
+    },
+    "markUnpublishedVideos": {
+      "accepts": [],
+      "returns": [],
+      "description": "sets the userProperties of recombee user type",
+      "http": [
+        {
+          "path": "/markUnpublishedVideos",
+          "verb": "put"
+        }
+      ]
     }
   }
 }

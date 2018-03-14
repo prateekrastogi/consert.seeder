@@ -29,7 +29,7 @@ module.exports = function (recombee) {
     const ytVideo = app.models.ytVideo
 
     const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
-      recursiveDeferredObservable(recombeeBatchSyncer(ytVideo, findRecombeeUnSyncedYtVideosInBatches)))
+      recursiveDeferredObservable(recombeeBatchSyncer(ytVideo, findRecombeeUnSyncedYtVideosInBatch)))
 
     const recombeeVideoSyncerSubscription = safeRecursiveSyncer.subscribe({
       error: err => console.log(err)
@@ -73,7 +73,7 @@ module.exports = function (recombee) {
     const ytBroadcast = app.models.ytBroadcast
 
     const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
-      recursiveDeferredObservable(recombeeBatchSyncer(ytBroadcast, findRecombeeUnSyncedYtBroadcastsInBatches)))
+      recursiveDeferredObservable(recombeeBatchSyncer(ytBroadcast, findRecombeeUnSyncedYtBroadcastsInBatch)))
 
     const recombeeBroadcastSyncerSubscription = safeRecursiveSyncer.subscribe({
       error: err => console.log(err)
@@ -133,7 +133,7 @@ module.exports = function (recombee) {
     const ytVideo = app.models.ytVideo
 
     const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
-      recursiveTimeOutDeferredObservable(recombeeBatchReSyncer(ytVideo, findRecombeeSyncedYtVideosInBatches), 4 * WAIT_TILL_NEXT_REQUEST))
+      recursiveTimeOutDeferredObservable(recombeeBatchReSyncer(ytVideo, findRecombeeSyncedYtVideosInBatch), 4 * WAIT_TILL_NEXT_REQUEST))
 
     const recombeeVideoReSyncerSubscription = safeRecursiveReSyncer
       .subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.log(err))
@@ -147,7 +147,7 @@ module.exports = function (recombee) {
     const ytBroadcast = app.models.ytBroadcast
 
     const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
-      recursiveTimeOutDeferredObservable(recombeeBatchReSyncer(ytBroadcast, findRecombeeSyncedYtBroadcastsInBatches), 4 * WAIT_TILL_NEXT_REQUEST))
+      recursiveTimeOutDeferredObservable(recombeeBatchReSyncer(ytBroadcast, findRecombeeSyncedYtBroadcastsInBatch), 4 * WAIT_TILL_NEXT_REQUEST))
 
     const recombeeBroadcastReSyncerSubscription = safeRecursiveReSyncer
       .subscribe(({snippet}) => console.log(`Broadcast marked for Recombee Re-sync: ${snippet.title}`), err => console.log(err))
@@ -218,7 +218,7 @@ module.exports = function (recombee) {
     return artists
   }
 
-  async function findRecombeeUnSyncedYtVideosInBatches (maxResults, offset) {
+  async function findRecombeeUnSyncedYtVideosInBatch (maxResults, offset) {
     const ytVideo = app.models.ytVideo
     const filter = {
       where: {
@@ -264,7 +264,7 @@ module.exports = function (recombee) {
     return videoWithArtistsExtractedAndProcessed
   }
 
-  async function findRecombeeSyncedYtVideosInBatches (maxResults, offset) {
+  async function findRecombeeSyncedYtVideosInBatch (maxResults, offset) {
     const ytVideo = app.models.ytVideo
     const filter = {
       where: {
@@ -279,7 +279,7 @@ module.exports = function (recombee) {
     return videos
   }
 
-  async function findRecombeeUnSyncedYtBroadcastsInBatches (maxResults, offset) {
+  async function findRecombeeUnSyncedYtBroadcastsInBatch (maxResults, offset) {
     const ytBroadcast = app.models.ytBroadcast
 
     const filter = {
@@ -295,7 +295,7 @@ module.exports = function (recombee) {
     return broadcasts
   }
 
-  async function findRecombeeSyncedYtBroadcastsInBatches (maxResults, offset) {
+  async function findRecombeeSyncedYtBroadcastsInBatch (maxResults, offset) {
     const ytBroadcast = app.models.ytBroadcast
 
     const filter = {

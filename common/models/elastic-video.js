@@ -24,7 +24,7 @@ module.exports = function (elasticVideo) {
     const ytVideo = app.models.ytVideo
 
     const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
-      recursiveDeferredObservable(elasticSyncer(ytVideo, findElasticUnsyncedYtVideosInBatches)))
+      recursiveDeferredObservable(elasticSyncer(ytVideo, findElasticUnsyncedYtVideosInBatch)))
 
     const elasticSyncerSubscription = safeRecursiveSyncer
       .subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
@@ -39,7 +39,7 @@ module.exports = function (elasticVideo) {
     const ytBroadcast = app.models.ytBroadcast
 
     const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
-      recursiveDeferredObservable(elasticSyncer(ytBroadcast, findElasticUnsyncedYtBroadcastsInBatches)))
+      recursiveDeferredObservable(elasticSyncer(ytBroadcast, findElasticUnsyncedYtBroadcastsInBatch)))
 
     const elasticSyncerSubscription = safeRecursiveSyncer
       .subscribe(x => console.log(`Working on syncing with es, the broadcast: ${x.snippet.title}`),
@@ -54,7 +54,7 @@ module.exports = function (elasticVideo) {
     const ytVideo = app.models.ytVideo
 
     const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
-      recursiveTimeOutDeferredObservable(elasticReSyncer(ytVideo, findElasticSyncedYtVideosInBatches), 4 * WAIT_TILL_NEXT_REQUEST))
+      recursiveTimeOutDeferredObservable(elasticReSyncer(ytVideo, findElasticSyncedYtVideosInBatch), 4 * WAIT_TILL_NEXT_REQUEST))
 
     const elasticReSyncerSubscription = safeRecursiveResyncer
       .subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
@@ -70,7 +70,7 @@ module.exports = function (elasticVideo) {
     const ytBroadcast = app.models.ytBroadcast
 
     const safeRecursiveResyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
-      recursiveTimeOutDeferredObservable(elasticReSyncer(ytBroadcast, findElasticSyncedYtBroadcastsInBatches), 4 * WAIT_TILL_NEXT_REQUEST))
+      recursiveTimeOutDeferredObservable(elasticReSyncer(ytBroadcast, findElasticSyncedYtBroadcastsInBatch), 4 * WAIT_TILL_NEXT_REQUEST))
 
     const elasticReSyncerSubscription = safeRecursiveResyncer
       .subscribe(x => console.log(`Setting for re-sync with es, the broadcast: ${x.snippet.title}`),
@@ -127,7 +127,7 @@ module.exports = function (elasticVideo) {
     return reSyncingObservable
   }
 
-  async function findElasticUnsyncedYtVideosInBatches (maxResults, offset) {
+  async function findElasticUnsyncedYtVideosInBatch (maxResults, offset) {
     const ytVideo = app.models.ytVideo
 
     const filter = {
@@ -170,7 +170,7 @@ module.exports = function (elasticVideo) {
     return augmentedVideos
   }
 
-  async function findElasticSyncedYtVideosInBatches (maxResults, offset) {
+  async function findElasticSyncedYtVideosInBatch (maxResults, offset) {
     const ytVideo = app.models.ytVideo
 
     const filter = {
@@ -186,7 +186,7 @@ module.exports = function (elasticVideo) {
     return videos
   }
 
-  async function findElasticUnsyncedYtBroadcastsInBatches (maxResults, offset) {
+  async function findElasticUnsyncedYtBroadcastsInBatch (maxResults, offset) {
     const ytBroadcast = app.models.ytBroadcast
 
     const filter = {
@@ -208,7 +208,7 @@ module.exports = function (elasticVideo) {
     return broadcasts
   }
 
-  async function findElasticSyncedYtBroadcastsInBatches (maxResults, offset) {
+  async function findElasticSyncedYtBroadcastsInBatch (maxResults, offset) {
     const ytBroadcast = app.models.ytBroadcast
 
     const filter = {

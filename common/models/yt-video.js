@@ -98,6 +98,8 @@ module.exports = function (ytVideo) {
     return new Promise((resolve, reject) => resolve())
   }
 
+  ytVideo.markUnpublishedVideos = function () {}
+
   async function videoObjectUpdater (video, {artists, albums, tracks}) {
     const videoInstance = await ytVideo.findById(video.id)
     if (videoInstance !== null) {
@@ -130,6 +132,20 @@ module.exports = function (ytVideo) {
     }
     const artists = await enrichedArtist.find(filter)
     return artists
+  }
+
+  async function findNonRemovedVideosInBatch (maxResults, offset) {
+    const filter = {
+      where: {
+        and: [
+          {or: [{isRemoved: false}, {isRemoved: {exists: false}}]}
+        ]},
+      limit: maxResults,
+      skip: offset
+    }
+
+    const videos = await ytVideo.find(filter)
+    return videos
   }
 
   function putArtistsTopTracksLive (artists) {
