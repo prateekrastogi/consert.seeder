@@ -36,7 +36,7 @@
       "required": false,
       "default": false
     },
-    "isVideoRemoved": {
+    "isRemoved": {
       "type": "boolean",
       "required": false,
       "default": false

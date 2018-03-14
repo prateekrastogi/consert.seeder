@@ -105,18 +105,11 @@ module.exports = function (elasticVideo) {
     const filter = {
       where: {
         and: [
-          {or: [{isVideoElasticSearchSynced: false}, {isVideoElasticSearchSynced: {exists: false}}]},
-          {or: [{isVideoRemoved: false}, {isVideoRemoved: {exists: false}}]}
+          {or: [{isVideoElasticSearchSynced: false}, {isVideoElasticSearchSynced: {exists: false}}]}
         ]},
       fields: {id: true,
         artists: true,
-        tracks: false,
-        albums: false,
-        isVideoElasticSearchSynced: false,
-        isVideoRecombeeSynced: false,
-        isVideoRemoved: false,
-        kind: false,
-        etag: false,
+        isRemoved: true,
         contentDetails: true,
         statistics: true,
         snippet: true},
@@ -155,8 +148,7 @@ module.exports = function (elasticVideo) {
     const filter = {
       where: {
         and: [
-          {isVideoElasticSearchSynced: true},
-          {or: [{isVideoRemoved: false}, {isVideoRemoved: {exists: false}}]}
+          {isVideoElasticSearchSynced: true}
         ]},
       limit: maxResults,
       skip: offset
@@ -172,10 +164,10 @@ module.exports = function (elasticVideo) {
     const filter = {
       where: {
         and: [
-          {or: [{isBroadcastElasticSearchSynced: false}, {isBroadcastElasticSearchSynced: {exists: false}}]},
-          {or: [{isBroadcastRemoved: false}, {isBroadcastRemoved: {exists: false}}]}
+          {or: [{isBroadcastElasticSearchSynced: false}, {isBroadcastElasticSearchSynced: {exists: false}}]}
         ]},
       fields: {id: true,
+        isRemoved: true,
         liveStreamingDetails: true,
         contentDetails: true,
         statistics: true,
@@ -194,8 +186,7 @@ module.exports = function (elasticVideo) {
     const filter = {
       where: {
         and: [
-          {isBroadcastElasticSearchSynced: true},
-          {or: [{isBroadcastRemoved: false}, {isBroadcastRemoved: {exists: false}}]}
+          {isBroadcastElasticSearchSynced: true}
         ]},
       limit: maxResults,
       skip: offset

@@ -22,7 +22,7 @@
       "required": false,
       "default": false
     },
-    "isBroadcastRemoved": {
+    "isRemoved": {
       "type": "boolean",
       "required": false,
       "default": false

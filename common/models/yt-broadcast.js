@@ -113,7 +113,7 @@ module.exports = function (ytBroadcast) {
           )
           return Rx.Observable.from(missingBroadcasts)
         }).map(missingBroadcast => {
-          missingBroadcast.isBroadcastRemoved = true
+          missingBroadcast.isRemoved = true
           return missingBroadcast
         })
 
@@ -130,7 +130,7 @@ module.exports = function (ytBroadcast) {
       where: {
         and: [
           {'snippet.liveBroadcastContent': 'live'},
-          {or: [{isBroadcastRemoved: false}, {isBroadcastRemoved: {exists: false}}]}
+          {or: [{isRemoved: false}, {isRemoved: {exists: false}}]}
         ]},
       limit: maxResults,
       skip: offset

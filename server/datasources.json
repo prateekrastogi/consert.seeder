@@ -37,6 +37,10 @@
                 "type": "keyword",
                 "index": true
             },
+            "isRemoved": {
+                "type": "boolean",
+                "index": true
+            },
             "artists": {
                 "type": "keyword",
                 "fields": {

@@ -193,8 +193,7 @@ module.exports = function (recombee) {
     const filter = {
       where: {
         and: [
-          {or: [{isVideoRecombeeSynced: false}, {isVideoRecombeeSynced: {exists: false}}]},
-          {or: [{isVideoRemoved: false}, {isVideoRemoved: {exists: false}}]}
+          {or: [{isVideoRecombeeSynced: false}, {isVideoRecombeeSynced: {exists: false}}]}
         ]},
       limit: maxResults,
       skip: offset
@@ -240,8 +239,7 @@ module.exports = function (recombee) {
     const filter = {
       where: {
         and: [
-          {isVideoRecombeeSynced: true},
-          {or: [{isVideoRemoved: false}, {isVideoRemoved: {exists: false}}]}
+          {isVideoRecombeeSynced: true}
         ]},
       limit: maxResults,
       skip: offset
@@ -304,6 +302,7 @@ module.exports = function (recombee) {
     const artistsFollowers = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-followers', 'set')))
     const artistsRelatedArtists = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-relatedArtists', 'set')))
     const artistsType = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-type', 'set')))
+    const itemIsRemoved = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('item-isRemoved', 'boolean')))
 
     const result = Rx.Observable.concat(itemType, kind, etag, contentDetailsDuration, contentDetailsDimension, contentDetailsDefinition, contentDetailsLicensedContent,
       contentDetailsRegionRestriction, contentDetailsContentRating, contentDetailsCaption, contentDetailsProjection, contentDetailsHasCustomThumbnail,
@@ -312,7 +311,7 @@ module.exports = function (recombee) {
       snippetDefaultLanguage, snippetLocalized, snippetDefaultAudioLanguage, liveStreamingDetailsActualStartTime,
       liveStreamingDetailsActualEndTime, liveStreamingDetailsScheduledStartTime, liveStreamingDetailsScheduledEndTime,
       liveStreamingDetailsConcurrentViewers, liveStreamingDetailsActiveLiveChatId, artistsIds, artistsGenres, artistsNames,
-      artistsPopularity, artistsFollowers, artistsRelatedArtists, artistsType)
+      artistsPopularity, artistsFollowers, artistsRelatedArtists, artistsType, itemIsRemoved)
 
     return result
   }
