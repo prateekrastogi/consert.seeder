@@ -81,7 +81,7 @@ module.exports = function (enrichedArtist) {
         console.log(`Successfully added/replaced the artist: ${x.artist.name}`)
         console.log(`Total artists added/replaced in the running execution: ${count}`)
       },
-      error: err => console.log(err)
+      error: err => console.error(err)
     })
 
     activeSubscriptions.push(putEnrichedArtistsSubscription)
@@ -111,7 +111,8 @@ module.exports = function (enrichedArtist) {
         count++
         console.log(`Added artist ${x.name} in pending crawl list`)
         console.log(`Total artists added in the pending crawl list: ${count}`)
-      })
+      },
+      err => console.error(err))
 
       activeSubscriptions.push(setEnrichedArtistsForReCrawlSubscription)
     }

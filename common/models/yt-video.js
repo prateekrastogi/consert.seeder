@@ -12,8 +12,10 @@ const RETRY_COUNT = 3
 const MAX_BATCH = 5000
 const REQUEST_BUFFER_SIZE = 50
 const WAIT_TILL_NEXT_REQUEST = 5000
+const POLLING_INTERVAL = 7 * 24 * 60 * 60 * 1000
 
-let activeSubscriptions = []
+let artistRelatedActiveSubscriptions = []
+let unpublishedVideoRelatedActiveSubscriptions = []
 
 module.exports = function (ytVideo) {
   ytVideo.putArtistsVideosLive = async function (lowerBound, upperBound) {
@@ -68,16 +70,16 @@ module.exports = function (ytVideo) {
       return resultWithArtistIdAndCrawlMarked
     }, 4)
 
-    const safeArtistsVideoLivePuttingObservable = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), artistsVideoLivePuttingObservable)
+    const safeArtistsVideoLivePuttingObservable = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), artistsVideoLivePuttingObservable)
 
     const putArtistsVideosLiveSubscription = safeArtistsVideoLivePuttingObservable.subscribe({
       next: async (result) => {
         const updatedVideo = await videoObjectUpdater(result.result, {artists: result.artistId})
         await ytVideo.replaceOrCreate(updatedVideo)
       },
-      error: err => console.log(err)})
+      error: err => console.error(err)})
 
-    activeSubscriptions.push(putArtistsVideosLiveSubscription)
+    artistRelatedActiveSubscriptions.push(putArtistsVideosLiveSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -92,23 +94,47 @@ module.exports = function (ytVideo) {
         return Rx.Observable.fromPromise(enrichedArtist.replaceOrCreate(enrichedArtistInstance))
       })
 
-    const safeReCrawlingObservable = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), reCrawlingObservable)
+    const safeReCrawlingObservable = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), reCrawlingObservable)
 
     const setArtistsByPopularityForVideoReCrawlSubscription = safeReCrawlingObservable
-      .subscribe((artist) => console.log(`Artist marked for re-crawling: ${artist.artist.name}`))
+      .subscribe((artist) => console.log(`Artist marked for re-crawling: ${artist.artist.name}`),
+        err => console.error(err))
 
-    activeSubscriptions.push(setArtistsByPopularityForVideoReCrawlSubscription)
+    artistRelatedActiveSubscriptions.push(setArtistsByPopularityForVideoReCrawlSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
 
   ytVideo.markUnpublishedVideos = function () {
-    let count = 0
-    getAllDbItemsObservable(findNonRemovedVideosInBatch, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
-      .concatMap(
+    const removedItems = getAllDbItemsObservable(findNonRemovedVideosInBatch, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
+      .concatMap(videos => {
+        return ytUtils.mapUnmappedYtItems(ytUtils.getVideoIdsByVideoIds, videos, RETRY_COUNT, REQUEST_BUFFER_SIZE, MAX_BATCH)
+      }).concatMap(unMappedItems => Rx.Observable.from(unMappedItems)).pluck('id')
+      .timeoutWith(12 * WAIT_TILL_NEXT_REQUEST, Rx.Observable.empty()).bufferCount()
 
-      )
-      .subscribe(x => console.log(x))
+    const removedItemsDbSync = removedItems.concatMap(ids => Rx.Observable.from(ids))
+      .concatMap(id => {
+        const removedItemDbUpdate = Rx.Observable.fromPromise(ytVideo.findById(id))
+          .concatMap(mediaItem => {
+            mediaItem.isRemoved = true
+            return Rx.Observable.fromPromise(ytVideo.replaceOrCreate(mediaItem))
+          })
+
+        return removedItemDbUpdate
+      })
+
+    const polledRemovedItemsDbSync = Rx.Observable.timer(0, POLLING_INTERVAL).concatMap(i => removedItemsDbSync)
+
+    const safelyPolledRemovedItemsDbSync = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(unpublishedVideoRelatedActiveSubscriptions),
+      polledRemovedItemsDbSync)
+
+    const markUnpublishedVideosSubscription = safelyPolledRemovedItemsDbSync.subscribe({
+      next: x => console.log(`Marked as removed, the video: ${x.snippet.title}`),
+      error: err => console.error(err),
+      complete: () => console.log(`markUnpublishedVideos emitted complete notification`)
+    })
+
+    unpublishedVideoRelatedActiveSubscriptions.push(markUnpublishedVideosSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }

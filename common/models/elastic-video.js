@@ -28,7 +28,7 @@ module.exports = function (elasticVideo) {
 
     const elasticSyncerSubscription = safeRecursiveSyncer
       .subscribe(x => console.log(`Working on syncing with es: ${x.snippet.title}`),
-        err => console.log(err))
+        err => console.error(err))
 
     videoRelatedActiveSubscriptions.push(elasticSyncerSubscription)
 
@@ -43,7 +43,7 @@ module.exports = function (elasticVideo) {
 
     const elasticSyncerSubscription = safeRecursiveSyncer
       .subscribe(x => console.log(`Working on syncing with es, the broadcast: ${x.snippet.title}`),
-        err => console.log(err))
+        err => console.error(err))
 
     broadcastRelatedActiveSubscriptions.push(elasticSyncerSubscription)
 
@@ -58,7 +58,7 @@ module.exports = function (elasticVideo) {
 
     const elasticReSyncerSubscription = safeRecursiveResyncer
       .subscribe(x => console.log(`Setting for re-sync with es: ${x.snippet.title}`),
-        err => console.log(err),
+        err => console.error(err),
         () => console.log('Setting for re-sync with es completed'))
 
     videoRelatedActiveSubscriptions.push(elasticReSyncerSubscription)
@@ -74,7 +74,7 @@ module.exports = function (elasticVideo) {
 
     const elasticReSyncerSubscription = safeRecursiveResyncer
       .subscribe(x => console.log(`Setting for re-sync with es, the broadcast: ${x.snippet.title}`),
-        err => console.log(err),
+        err => console.error(err),
         () => console.log('Setting for re-sync with es completed'))
 
     broadcastRelatedActiveSubscriptions.push(elasticReSyncerSubscription)
