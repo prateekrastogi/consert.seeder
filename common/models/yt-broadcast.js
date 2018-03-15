@@ -101,20 +101,15 @@ module.exports = function (ytBroadcast) {
   function liveNowBroadcastsUpdater () {
     const updatedBroadCasts = getAllDbItemsObservable(findLiveNowBroadcastsInBatch, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
       .concatMap(liveNowBroadcasts => {
-        const broadcastNow = mapByIdYtItems(ytUtils.getBroadcastsByIds, liveNowBroadcasts, REQUEST_BUFFER_SIZE)
+        const broadcastNow = ytUtils.mapYtItems(ytUtils.getBroadcastsByIds, liveNowBroadcasts, RETRY_COUNT, REQUEST_BUFFER_SIZE)
           .concatMap(mappedItems => Rx.Observable.from(mappedItems))
 
-        const removedBroadCasts = broadcastNow.bufferCount(MAX_BATCH).concatMap(broadcasts => {
-          const missingBroadcasts = R.differenceWith(
-            (liveNowBroadcast, broadcast) => liveNowBroadcast.id === broadcast.id,
-            liveNowBroadcasts,
-            broadcasts
-          )
-          return Rx.Observable.from(missingBroadcasts)
-        }).map(missingBroadcast => {
-          missingBroadcast.isRemoved = true
-          return missingBroadcast
-        })
+        const removedBroadCasts = ytUtils.mapUnmappedYtItems(ytUtils.getBroadcastsByIds, liveNowBroadcasts,
+          RETRY_COUNT, REQUEST_BUFFER_SIZE, MAX_BATCH)
+          .concatMap(missingBroadcasts => Rx.Observable.from(missingBroadcasts)).map(missingBroadcast => {
+            missingBroadcast.isRemoved = true
+            return missingBroadcast
+          })
 
         const mergedUpdatedBroadCasts = Rx.Observable.merge(broadcastNow, removedBroadCasts)
 
@@ -123,13 +118,6 @@ module.exports = function (ytBroadcast) {
 
     return updatedBroadCasts
   }
-
-  function mapByIdYtItems (mapperFn, ytItems, REQUEST_BUFFER_SIZE) {
-    return Rx.Observable.from(ytItems).pluck('id').bufferCount(REQUEST_BUFFER_SIZE)
-      .concatMap(ids => mapperFn(ids).retry(RETRY_COUNT)).pluck('items')
-  }
-
-  function mapByIdUnmappedYtItems () {}
 
   async function findLiveNowBroadcastsInBatch (maxResults, offset) {
     const filter = {
