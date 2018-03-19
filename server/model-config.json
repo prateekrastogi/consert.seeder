@@ -80,6 +80,10 @@
     "dataSource": null,
     "public": true
   },
+  "genre": {
+    "dataSource": null,
+    "public": true
+  },
   "ytBroadcast": {
     "dataSource": "seeder",
     "public": true,
