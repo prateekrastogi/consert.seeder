@@ -21,10 +21,6 @@ let videoRelatedActiveSubscriptions = []
 let broadcastRelatedActiveSubscriptions = []
 
 module.exports = function (recombee) {
-  /**
-   * Synchronizes the past recorded concerts with recombee for recommendations
-   */
-
   recombee.syncPastShows = function () {
     const ytVideo = app.models.ytVideo
 
@@ -39,12 +35,6 @@ module.exports = function (recombee) {
 
     return new Promise((resolve, reject) => resolve())
   }
-
-  /**
-   * Synchronizes the artist, whose yt videos
-   *  has already been fetched, pseudo-types with the recommendation engine
-   * @param {Function(Error)} callback
-   */
 
   recombee.syncArtists = function (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
@@ -84,30 +74,15 @@ module.exports = function (recombee) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  /**
-   * sets the itemProperties of recombee database items
-   * @param {Function(Error, boolean)} callback
-   */
-
   recombee.setItemProperties = function () {
     setItemProperties().subscribe(x => console.log(x), e => console.error(e))
     return new Promise((resolve, reject) => resolve())
   }
 
-  /**
-   * sets the userProperties of recombee user type
-   * @param {Function(Error)} callback
-   */
-
   recombee.setUserProperties = function () {
     setUserProperties().subscribe(x => console.log(x), e => console.error(e))
     return new Promise((resolve, reject) => resolve())
   }
-
-  /**
-   * sets the artists in a popularity for re-sync with recombee item catalog
-   * @param {Function(Error)} callback
-   */
 
   recombee.setArtistsByPopularityForRecombeeReSync = function (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
@@ -123,11 +98,6 @@ module.exports = function (recombee) {
 
     return new Promise((resolve, reject) => resolve())
   }
-
-  /**
-   *
-   * @param {Function(Error)} callback
-   */
 
   recombee.setVideosForRecombeeReSync = function () {
     const ytVideo = app.models.ytVideo

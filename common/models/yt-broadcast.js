@@ -22,10 +22,6 @@ const LONG_POLLING_INTERVAL = 5 * 60 * 1000
 let activeSubscriptions = []
 
 module.exports = function (ytBroadcast) {
-/**
- * It syncs recently live Youtube music events with recombee & elasticsearch
- */
-
   ytBroadcast.syncYtBroadcasts = function () {
     const safeSearchAndSyncLiveEvents = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), searchAndSyncLiveEvents())
 

@@ -19,9 +19,12 @@ docker run -p 3200:3200 seeder
 
 - Run enriched-artist model put* method, preferably till completion, to get enrich the artist data
 
-- Run yt-Video model put* method, first for top-rated artists, to get all the relevant past live performances of those      artists. The popularity parameters to be passed 'priority-wise' are (70-100, 60-70, 44-60). Take special care to pass     lower bounds of popularity exactly as stated, as they are hard-coded in code and affect the count of returned results
+- Run yt-Video model put* method, first for top-rated artists, to get all the relevant past live performances of those      artists. The popularity parameters to be passed 'priority-wise' are (70-100, 60-70, 44-60). Take special care to pass     lower bounds of popularity exactly as stated, as they are hard-coded in code and affect the count of returned results.
+  Also, run mark* method of yt-Video model to periodically check fo removed items.
 
-- Run sync* methods of recombee & elastic-video to keep the fetched videos in sync with those services 
+- Run recombee set(item/user)properties methods to initialize recombee data model. 
+
+- Run seed* method of genre, and sync* methods of recombee, elastic-video, & yt-broadcast to keep the fetched videos in     sync with those services 
 
 - You can use set* methods of the models to reset/restart cleanly that model processes. Using set* methods anytime &        anywhere will ideally not affect the correctness/stability of the overall system. Although, it may trigger the            reprocessing on the dependent models processes. So beware of computation costs/time. Ideally, set* methods are 'very      rarely' needed
 
@@ -32,6 +35,8 @@ docker run -p 3200:3200 seeder
 artist-seed: Fetches the spotify id and name of artists
 dependent on: nothing
 ---
+genre: Seeds the itemType `genre` to recombee. Also, provides a getter method to fetch the list of genre clusters and cluster keys
+---
 enriched-artist: Fetches the detailed spotify data of artists from artist-seeds
 dependent on: artist-seed
 ---
@@ -40,11 +45,15 @@ dependent on: enriched-artist
 model field 'artist': enriched 'artists' whose yt search returned this video
 model field 'albums': enriched 'artist albums' whose yt search returned this video
 model field 'tracks': enriched 'artist top tracks' whose yt search returned this video
+model field 'isRemoved': tells whether the video isRemoved from yt
+---
+yt-broadcast: Handles the fetching, updation, and removal of  `live now` yt broadcasts   
+model field 'isRemoved': tells whether the broadcast isRemoved from yt
 ---
 recombee: Continuously Syncs the yt-videos of type 'video' and enriched-artist of type 'artist' to recombee
 dependent on: enriched-artist and yt-video
 ---
-elastic-video: Continuously syncs the modified yt-videos with artist ids replaced by artist names
+elastic-video: Continuously syncs the modified yt-videos with artists ids replaced by artists 'names' and 'genres' 
 dependent on: enriched-artist and yt-video
 ---
 All models set* methods: Mostly used for cleanly restarting/resetting model sync/put methods from scratch, otherwise no usage in running regular system

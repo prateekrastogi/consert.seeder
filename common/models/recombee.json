@@ -139,7 +139,7 @@
     "miscOperations": {
       "accepts": [],
       "returns": [],
-      "description": "Remote method for performaing miscelleneous operations in recombee",
+      "description": "Remote method for performing miscellaneous operations in recombee",
       "http": [
         {
           "path": "/miscOperations",

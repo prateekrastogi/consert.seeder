@@ -5,10 +5,6 @@ const _ = require('lodash')
 const async = require('async')
 
 module.exports = function (artistSeed) {
-  /**
-   * Put the top N spotify artists of various spotify genre seeds
-   */
-
   artistSeed.putTopSpotifyArtists = async function () {
     const spotifyApi = await loginAssist.spotifyLogin()
     const {genres} = (await spotifyApi.getAvailableGenreSeeds()).body

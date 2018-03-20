@@ -16,10 +16,6 @@ let videoRelatedActiveSubscriptions = []
 let broadcastRelatedActiveSubscriptions = []
 
 module.exports = function (elasticVideo) {
-/**
- * Synchronizes ytVideos data with elasticsearch
- */
-
   elasticVideo.syncYtVideosWithElastic = function () {
     const ytVideo = app.models.ytVideo
 
