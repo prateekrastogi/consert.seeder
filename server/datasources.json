@@ -42,16 +42,32 @@
                 "index": true
             },
             "artists": {
-                "type": "keyword",
-                "fields": {
-                    "search": {
-                        "type": "text"
+                "properties": {
+                    "names": {
+                        "type": "keyword",
+                        "fields": {
+                            "search": {
+                                "type": "text"
+                            },
+                            "autocomplete": {
+                                "type": "completion"
+                            }
+                        },
+                        "index": true
                     },
-                    "autocomplete": {
-                        "type": "completion"
+                    "genres": {
+                        "type": "keyword",
+                        "fields": {
+                            "search": {
+                                "type": "text"
+                            },
+                            "autocomplete": {
+                                "type": "completion"
+                            }
+                        },
+                        "index": true
                     }
-                },
-                "index": true
+                }
             },
             "contentDetails": {
                 "properties": {

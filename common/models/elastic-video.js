@@ -161,8 +161,13 @@ module.exports = function (elasticVideo) {
       const findArtist = R.compose(R.map(R.compose(R.find(R.__, artists), R.propEq('id'))), R.pluck('id'))
 
       const artistNames = R.compose(R.pluck('name'), R.pluck('artist'), findArtist)(artistsId)
-      video.artists = artistNames
-      return video
+
+      // Not using uniq in last step of composition to preserve frequency information for elasticsearch
+      const artistsGenres = R.compose(R.flatten, R.pluck('genres'), R.pluck('artist'), findArtist)(artistsId)
+
+      let augmentedVideo = R.clone(video)
+      augmentedVideo.artists = {names: artistNames, genres: artistsGenres}
+      return augmentedVideo
     }
 
     const augmentedVideos = R.zipWith(zipArtistAndVideo, videos, videoArtistsIdExtractor(videos))
