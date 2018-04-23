@@ -3,6 +3,9 @@
 const loginAssist = require('../../lib/login-assist')
 const _ = require('lodash')
 const async = require('async')
+const Rx = require('rxjs')
+
+const RETRY_COUNT = 10
 
 module.exports = function (artistSeed) {
   artistSeed.putTopSpotifyArtists = async function () {
@@ -15,10 +18,12 @@ module.exports = function (artistSeed) {
       let recommendedArtists
       // Gets the artists recommended for each genre from the genre seed
       async.eachLimit(genres, 10, async (value) => {
-        const genreRecommendedTracks = (await spotifyApi.getRecommendations({
+        const resilientGetRecommendationsPromise = Rx.Observable.fromPromise(spotifyApi.getRecommendations({
           seed_genres: [value],
           limit: 100
-        })).body.tracks
+        })).retry(RETRY_COUNT).toPromise()
+
+        const genreRecommendedTracks = (await resilientGetRecommendationsPromise).body.tracks
 
         const genreRecommendedArtists = _.flatMap(genreRecommendedTracks, (track) => {
           return _.map(track.artists, (artist) => {
@@ -46,7 +51,10 @@ module.exports = function (artistSeed) {
       console.log(`Fetching list of related artists...`)
       async.eachLimit(recommendedArtists, 3, async (artist) => {
         const spotifyApi = await loginAssist.spotifyLogin()
-        const relatedArtists = (await spotifyApi.getArtistRelatedArtists(artist.id)).body.artists
+
+        const resilientGetArtistRelatedArtistsPromise = Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artist.id))
+          .retry(RETRY_COUNT).toPromise()
+        const relatedArtists = (await resilientGetArtistRelatedArtistsPromise).body.artists
 
         _.map(relatedArtists, (artist) => {
           const {id, name} = artist
