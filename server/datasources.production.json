@@ -1,4 +1,8 @@
 {
+    "seeder": {
+        "name": "seeder",
+        "connector": "memory"
+    },
     "elastic-search": {
         "name": "elastic-search",
         "index": "video",
@@ -242,4 +246,3 @@
         }
     }
 }
-
