@@ -5,7 +5,7 @@ RUN mkdir -p /seeder
 WORKDIR /seeder
 
 # Bundle app source
-COPY package.json package-lock.json /seeder/
+COPY package.json  /seeder/
 COPY /client  /seeder/client
 COPY /common  /seeder/common
 COPY /server  /seeder/server
