@@ -1,6 +1,6 @@
 {
     "seeder": {
-        "host": "mongodb://mongo-mongodb-replicaset:27017",
+        "host": "mongo-mongodb-replicaset",
         "port": 27017,
         "database": "seeder",
         "password": "",
