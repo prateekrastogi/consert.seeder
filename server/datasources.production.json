@@ -1,11 +1,24 @@
 {
+    "seeder": {
+        "host": "mongodb://mongo-mongodb-replicaset:27017/seeder?",
+        "database": "seeder",
+        "password": "",
+        "name": "seeder",
+        "user": "",
+        "allowExtendedOperators": true,
+        "connector": "mongodb"
+    },
+    "in-mem-persist": {
+        "name": "in-mem-persist",
+        "connector": "memory"
+    },
     "elastic-search": {
         "name": "elastic-search",
         "index": "video",
         "hosts": [
             {
                 "protocol": "http",
-                "host": "elasticsearch",
+                "host": "elastic-elasticsearch",
                 "port": 9200
             }
         ],
@@ -242,4 +255,3 @@
         }
     }
 }
-
