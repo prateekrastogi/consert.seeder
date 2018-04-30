@@ -1,7 +1,6 @@
 {
     "seeder": {
-        "host": "mongodb://mongo-mongodb-replicaset",
-        "port": 27017,
+        "url": "mongodb://mongo-mongodb-replicaset:27017/backend?replicaSet=rs0&readConcernLevel=majority&readPreference=secondaryPreferred",
         "database": "seeder",
         "password": "",
         "name": "seeder",
