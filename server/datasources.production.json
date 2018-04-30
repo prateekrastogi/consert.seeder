@@ -1,11 +1,10 @@
 {
     "seeder": {
-        "url": "mongodb://mongo-mongodb-replicaset:27017/backend?replicaSet=rs0&readConcernLevel=majority&readPreference=secondaryPreferred",
+        "url": "mongodb://mongo-mongodb-replicaset:27017/seeder?replicaSet=rs0&readConcernLevel=majority&readPreference=secondaryPreferred",
         "database": "seeder",
         "password": "",
         "name": "seeder",
         "user": "",
-        "allowExtendedOperators": true,
         "connector": "mongodb"
     },
     "in-mem-persist": {
