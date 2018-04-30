@@ -5,6 +5,7 @@
         "password": "",
         "name": "seeder",
         "user": "",
+        "allowExtendedOperators": true,
         "connector": "mongodb"
     },
     "in-mem-persist": {
