@@ -1,6 +1,6 @@
 {
     "seeder": {
-        "url": "mongodb://mongo-mongodb-replicaset:27017/seeder?replicaSet=rs0&readConcernLevel=majority&readPreference=secondaryPreferred",
+        "url": "mongodb://mongo-mongodb-replicaset-0,mongo-mongodb-replicaset-1,mongo-mongodb-replicaset-2:27017/seeder?replicaSet=rs0&readConcernLevel=majority&readPreference=secondaryPreferred",
         "database": "seeder",
         "password": "",
         "name": "seeder",
