@@ -17,7 +17,7 @@ module.exports = function (artistSeed) {
     function getRecommendedArtists (cb) {
       let recommendedArtists
       // Gets the artists recommended for each genre from the genre seed
-      async.eachLimit(genres, 10, async (value) => {
+      async.eachLimit(genres, 3, async (value) => {
         const resilientGetRecommendationsPromise = Rx.Observable.fromPromise(spotifyApi.getRecommendations({
           seed_genres: [value],
           limit: 100
