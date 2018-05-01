@@ -49,7 +49,7 @@ module.exports = function (artistSeed) {
       let allRelevantArtists = _.cloneDeep(recommendedArtists)
 
       console.log(`Fetching list of related artists...`)
-      async.eachLimit(recommendedArtists, 3, async (artist) => {
+      async.eachLimit(recommendedArtists, 2, async (artist) => {
         const spotifyApi = await loginAssist.spotifyLogin()
 
         const resilientGetArtistRelatedArtistsPromise = Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artist.id))
