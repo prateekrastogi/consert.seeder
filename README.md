@@ -12,6 +12,7 @@ docker run -p 3200:3200 seeder
 "password": "openssssame"
 }
 
+Hit /users/login endpoint with this credential, and the id property of the response object is access token. 
 
 ------ Deployment Guidelines ------
 

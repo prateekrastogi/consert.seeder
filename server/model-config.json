@@ -1,114 +1,122 @@
 {
-  "_meta": {
-    "sources": [
-      "loopback/common/models",
-      "loopback/server/models",
-      "../common/models",
-      "./models"
-    ],
-    "mixins": [
-      "loopback/common/mixins",
-      "loopback/server/mixins",
-      "../common/mixins",
-      "./mixins"
-    ]
-  },
-  "user": {
-    "dataSource": "in-mem-persist",
-    "public": true
-  },
-  "User": {
-    "dataSource": "in-mem-persist",
-    "public": false
-  },
-  "AccessToken": {
-    "dataSource": "in-mem-persist",
-    "public": false
-  },
-  "ACL": {
-    "dataSource": "in-mem-persist",
-    "public": false
-  },
-  "RoleMapping": {
-    "dataSource": "in-mem-persist",
-    "public": false
-  },
-  "Role": {
-    "dataSource": "in-mem-persist",
-    "public": false
-  },
-  "artistSeed": {
-    "dataSource": "seeder",
-    "public": true,
-    "options": {
-      "remoting": {
-        "sharedMethods": {
-          "*": false,
-          "putTopSpotifyArtists": true
-        }
+    "_meta": {
+        "sources": [
+            "loopback/common/models",
+            "loopback/server/models",
+            "../common/models",
+            "./models"
+        ],
+        "mixins": [
+            "loopback/common/mixins",
+            "loopback/server/mixins",
+            "../common/mixins",
+            "./mixins"
+        ]
+    },
+    "User": {
+        "dataSource": "in-mem-persist",
+        "public": false
+    },
+    "AccessToken": {
+        "dataSource": "in-mem-persist",
+        "public": false
+    },
+    "ACL": {
+        "dataSource": "in-mem-persist",
+        "public": false
+    },
+    "RoleMapping": {
+        "dataSource": "in-mem-persist",
+        "public": false
+    },
+    "Role": {
+        "dataSource": "in-mem-persist",
+        "public": false
+    },
+    "user": {
+        "dataSource": "in-mem-persist",
+        "public": true,
+        "options": {
+          "remoting": {
+              "sharedMethods": {
+                  "*": false,
+                  "login": true
+              }
+          }
       }
-    }
-  },
-  "enrichedArtist": {
-    "dataSource": "seeder",
-    "public": true,
-    "options": {
-      "remoting": {
-        "sharedMethods": {
-          "*": false,
-          "putEnrichedArtists": true,
-          "setEnrichedArtistsForReCrawl": true
+    },
+    "artistSeed": {
+        "dataSource": "seeder",
+        "public": true,
+        "options": {
+            "remoting": {
+                "sharedMethods": {
+                    "*": false,
+                    "putTopSpotifyArtists": true
+                }
+            }
         }
-      }
-    }
-  },
-  "ytVideo": {
-    "dataSource": "seeder",
-    "public": true,
-    "options": {
-      "remoting": {
-        "sharedMethods": {
-          "*": false,
-          "putArtistsVideosLive": true,
-          "setArtistsByPopularityForVideoReCrawl": true,
-          "markUnpublishedVideos": true
+    },
+    "enrichedArtist": {
+        "dataSource": "seeder",
+        "public": true,
+        "options": {
+            "remoting": {
+                "sharedMethods": {
+                    "*": false,
+                    "putEnrichedArtists": true,
+                    "setEnrichedArtistsForReCrawl": true
+                }
+            }
         }
-      }
-    }
-  },
-  "recombee": {
-    "dataSource": null,
-    "public": true
-  },
-  "genre": {
-    "dataSource": null,
-    "public": true
-  },
-  "ytBroadcast": {
-    "dataSource": "seeder",
-    "public": true,
-    "options": {
-      "remoting": {
-        "sharedMethods": {
-          "*": false,
-          "syncYtBroadcasts": true
+    },
+    "ytVideo": {
+        "dataSource": "seeder",
+        "public": true,
+        "options": {
+            "remoting": {
+                "sharedMethods": {
+                    "*": false,
+                    "putArtistsVideosLive": true,
+                    "setArtistsByPopularityForVideoReCrawl": true,
+                    "markUnpublishedVideos": true
+                }
+            }
         }
-      }
-    }
-  },
-  "elasticVideo": {
-    "dataSource": "elastic-search",
-    "public": true,
-    "options": {
-      "remoting": {
-        "sharedMethods": {
-          "*": false,
-          "syncYtVideosWithElastic": true,
-          "setYtVideosForElasticReSync": true,
-          "syncYtBroadcastsWithElastic": true,
-          "setYtBroadcastsForElasticReSync": true
+    },
+    "recombee": {
+        "dataSource": null,
+        "public": true
+    },
+    "genre": {
+        "dataSource": null,
+        "public": true
+    },
+    "ytBroadcast": {
+        "dataSource": "seeder",
+        "public": true,
+        "options": {
+            "remoting": {
+                "sharedMethods": {
+                    "*": false,
+                    "syncYtBroadcasts": true
+                }
+            }
         }
-      }
+    },
+    "elasticVideo": {
+        "dataSource": "elastic-search",
+        "public": true,
+        "options": {
+            "remoting": {
+                "sharedMethods": {
+                    "*": false,
+                    "syncYtVideosWithElastic": true,
+                    "setYtVideosForElasticReSync": true,
+                    "syncYtBroadcastsWithElastic": true,
+                    "setYtBroadcastsForElasticReSync": true
+                }
+            }
+        }
     }
-  }
 }
