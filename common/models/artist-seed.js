@@ -7,7 +7,7 @@ const Rx = require('rxjs')
 
 const RETRY_COUNT = 10
 const MAX_CONCURRENCY = 1
-const REQUEST_INTERVAL = 250
+const REQUEST_INTERVAL = 100
 
 module.exports = function (artistSeed) {
   artistSeed.putTopSpotifyArtists = async function () {
