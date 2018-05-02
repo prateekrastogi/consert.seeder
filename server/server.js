@@ -3,18 +3,6 @@
 const loopback = require('loopback')
 const boot = require('loopback-boot')
 const app = module.exports = loopback()
-const appInsights = require('applicationinsights')
-
-// Setting up application insights only for production
-if (app.get('env') === 'production') {
-  appInsights.setup('b0668788-e520-48d6-ba26-805781b8e251')
-    .setAutoDependencyCorrelation(true)
-    .setAutoCollectRequests(true)
-    .setAutoCollectPerformance(true)
-    .setAutoCollectExceptions(true)
-    .setAutoCollectDependencies(true)
-    .start()
-}
 
 app.start = function () {
   // start the web server

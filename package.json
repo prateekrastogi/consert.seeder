@@ -12,7 +12,6 @@
     "security-check": "nsp check"
   },
   "dependencies": {
-    "applicationinsights": "^1.0.2",
     "async": "^2.6.0",
     "compression": "^1.7.2",
     "cors": "^2.8.4",
