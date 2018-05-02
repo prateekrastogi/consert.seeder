@@ -6,7 +6,7 @@ const async = require('async')
 const Rx = require('rxjs')
 
 const RETRY_COUNT = 10
-const MAX_CONCURRENCY = 2
+const MAX_CONCURRENCY = 1
 
 module.exports = function (artistSeed) {
   artistSeed.putTopSpotifyArtists = async function () {
@@ -50,7 +50,7 @@ module.exports = function (artistSeed) {
       let allRelevantArtists = _.cloneDeep(recommendedArtists)
 
       console.log(`Fetching list of related artists...`)
-      async.eachLimit(recommendedArtists, (MAX_CONCURRENCY / 2), async (artist) => {
+      async.eachLimit(recommendedArtists, MAX_CONCURRENCY, async (artist) => {
         const spotifyApi = await loginAssist.spotifyLogin()
 
         const resilientGetArtistRelatedArtistsPromise = Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artist.id))
