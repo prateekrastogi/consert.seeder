@@ -6,6 +6,7 @@ const async = require('async')
 const Rx = require('rxjs')
 
 const RETRY_COUNT = 1000
+const RETRY_INTERVAL = 1000
 const MAX_CONCURRENCY = 1
 
 module.exports = function (artistSeed) {
@@ -54,7 +55,7 @@ module.exports = function (artistSeed) {
         const spotifyApi = await loginAssist.spotifyLogin()
 
         const resilientGetArtistRelatedArtistsPromise = Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artist.id))
-          .retry(RETRY_COUNT).toPromise()
+          .retryWhen(err => err.delay(RETRY_INTERVAL).take(RETRY_COUNT)).toPromise()
         const relatedArtists = (await resilientGetArtistRelatedArtistsPromise).body.artists
 
         _.map(relatedArtists, (artist) => {
