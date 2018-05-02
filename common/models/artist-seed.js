@@ -5,8 +5,9 @@ const _ = require('lodash')
 const async = require('async')
 const Rx = require('rxjs')
 
-const RETRY_COUNT = 25
+const RETRY_COUNT = 10
 const MAX_CONCURRENCY = 1
+const THROTTLE_INTERVAL = 1000
 
 module.exports = function (artistSeed) {
   artistSeed.putTopSpotifyArtists = async function () {
@@ -53,7 +54,8 @@ module.exports = function (artistSeed) {
       async.eachLimit(recommendedArtists, MAX_CONCURRENCY, async (artist) => {
         const spotifyApi = await loginAssist.spotifyLogin()
 
-        const resilientGetArtistRelatedArtistsPromise = Rx.Observable.defer(() => Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artist.id)))
+        const resilientGetArtistRelatedArtistsPromise =
+        Rx.Observable.interval(THROTTLE_INTERVAL).take(1).concatMap(i => Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artist.id)))
           .retry(RETRY_COUNT).toPromise()
         const relatedArtists = (await resilientGetArtistRelatedArtistsPromise).body.artists
 
