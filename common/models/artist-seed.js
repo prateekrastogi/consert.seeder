@@ -5,7 +5,7 @@ const _ = require('lodash')
 const async = require('async')
 const Rx = require('rxjs')
 
-const RETRY_COUNT = 10
+const RETRY_COUNT = 1000
 const MAX_CONCURRENCY = 1
 
 module.exports = function (artistSeed) {
