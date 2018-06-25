@@ -2,7 +2,7 @@
 
 const genresList = require('../../lib/genres')
 const _ = require('lodash')
-const Rx = require('rxjs')
+const Rx = require('rxjs-compat')
 const recombeeClient = require('../../lib/login-assist').recombeeLogin()
 const recombeeRqs = require('recombee-api-client').requests
 

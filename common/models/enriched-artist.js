@@ -1,6 +1,6 @@
 'use strict'
 
-const Rx = require('rxjs')
+const Rx = require('rxjs-compat')
 const _ = require('lodash')
 const loginAssist = require('../../lib/login-assist')
 const app = require('../../server/server')

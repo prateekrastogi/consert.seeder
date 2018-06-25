@@ -1,7 +1,7 @@
 'use strict'
 
 const app = require('../../server/server')
-const Rx = require('rxjs')
+const Rx = require('rxjs-compat')
 const _ = require('lodash')
 const ytUtils = require('../../lib/yt-utils')
 

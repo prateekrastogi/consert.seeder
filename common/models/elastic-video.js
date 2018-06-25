@@ -1,7 +1,7 @@
 'use strict'
 
 const app = require('../../server/server')
-const Rx = require('rxjs')
+const Rx = require('rxjs-compat')
 const R = require('ramda')
 
 const getAllDbItemsObservable = require('../../lib/misc-utils').getAllDbItemsObservable

@@ -1,7 +1,7 @@
 'use strict'
 
 const R = require('ramda')
-const Rx = require('rxjs')
+const Rx = require('rxjs-compat')
 const ytUtils = require('../../lib/yt-utils')
 const loginAssist = require('../../lib/login-assist')
 

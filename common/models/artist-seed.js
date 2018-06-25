@@ -3,7 +3,7 @@
 const loginAssist = require('../../lib/login-assist')
 const _ = require('lodash')
 const async = require('async')
-const Rx = require('rxjs')
+const Rx = require('rxjs-compat')
 
 const RETRY_COUNT = 10
 const MAX_CONCURRENCY = 1
