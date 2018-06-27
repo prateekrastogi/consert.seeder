@@ -114,5 +114,5 @@ Not including artist top tracks in metadata due to biases in spotify top tracks 
 User Properties:
 ---------------
 
-userType <string>: Type of user accessing the site such as 'guest', 'spotify' signed up etc. Guest user's primary id is                      generated via cuid library from frontend
+userType <string>: Type of user accessing the site such as 'guest', 'spotify' signed up etc. Guest user's primary                       id is generated via cuid library from frontend
 browser-ids <set>: Browser Id's of the browsers from which user has accessed us so far 
