@@ -365,7 +365,7 @@ module.exports = {
     ]
   }],
 
-// Albums with popularity 50- lt 60 (approx 15,000)
+  // Albums with popularity 50- lt 60 (approx 15,000)
   cGradeAlbums: [{
     'album_type': 'album',
     'genres': [],
