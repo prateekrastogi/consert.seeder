@@ -31,7 +31,7 @@
       "required": false,
       "default": false
     },
-    "isVideoRecombeeSynced": {
+    "isVideoRecSysSynced": {
       "type": "boolean",
       "required": false,
       "default": false

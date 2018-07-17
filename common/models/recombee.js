@@ -193,7 +193,7 @@ module.exports = function (recombee) {
     const filter = {
       where: {
         and: [
-          {or: [{isVideoRecombeeSynced: false}, {isVideoRecombeeSynced: {exists: false}}]}
+          {or: [{isVideoRecSysSynced: false}, {isVideoRecSysSynced: {exists: false}}]}
         ]},
       limit: maxResults,
       skip: offset
@@ -239,7 +239,7 @@ module.exports = function (recombee) {
     const filter = {
       where: {
         and: [
-          {isVideoRecombeeSynced: true}
+          {isVideoRecSysSynced: true}
         ]},
       limit: maxResults,
       skip: offset
@@ -325,6 +325,7 @@ module.exports = function (recombee) {
     const liveStreamingDetailsActiveLiveChatId = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('liveStreamingDetails-activeLiveChatId', 'string')))
     const artistsIds = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-ids', 'set')))
     const genres = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('genres', 'set')))
+    const children = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('children', 'set')))
     const artistsNames = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-names', 'set')))
     const artistsPopularity = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-popularity', 'set')))
     const artistsFollowers = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-followers', 'set')))
@@ -338,7 +339,7 @@ module.exports = function (recombee) {
       snippetTitle, snippetDescription, snippetChannelTitle, snippetThumbnails, snippetTags, snippetCategoryId, snippetLiveBroadcastContent,
       snippetDefaultLanguage, snippetLocalized, snippetDefaultAudioLanguage, liveStreamingDetailsActualStartTime,
       liveStreamingDetailsActualEndTime, liveStreamingDetailsScheduledStartTime, liveStreamingDetailsScheduledEndTime,
-      liveStreamingDetailsConcurrentViewers, liveStreamingDetailsActiveLiveChatId, artistsIds, genres, artistsNames,
+      liveStreamingDetailsConcurrentViewers, liveStreamingDetailsActiveLiveChatId, artistsIds, genres, children, artistsNames,
       artistsPopularity, artistsFollowers, artistsRelatedArtists, artistsType, itemIsRemoved)
 
     return result
@@ -361,7 +362,7 @@ module.exports = function (recombee) {
             item.isArtistRecSysSynced = false
             break
           case 'ytVideo':
-            item.isVideoRecombeeSynced = false
+            item.isVideoRecSysSynced = false
             break
           case 'ytBroadcast':
             item.isBroadcastRecSysSynced = false
