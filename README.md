@@ -102,10 +102,11 @@ liveStreamingDetails-concurrentViewers <string>
 liveStreamingDetails-activeLiveChatId <string>
 artists-ids <set>: Id's of all the artists that returns that particular video
 genres <set>: Genres associated with that item
+childrenItems <set>: children of the item(sub-genres etc.)
 artists-names <set>: Names of all the artists involved in any particular video
 artists-popularity <set>: Popularity of all the artists involved in any particular video
 artists-followers <set>: Followers of all the artists involved in any particular video
-artists-relatedArtists <set>: Related artists of all the artists involved in any particular video
+relatedItems <set>: Related artists, radio stations, genres etc. of the item
 artists-type <set>: Types of all the artists involved in any particular video
 item-isRemoved <boolean>: flag indicating whether item is removed
 

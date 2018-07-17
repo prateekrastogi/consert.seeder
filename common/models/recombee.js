@@ -325,11 +325,11 @@ module.exports = function (recombee) {
     const liveStreamingDetailsActiveLiveChatId = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('liveStreamingDetails-activeLiveChatId', 'string')))
     const artistsIds = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-ids', 'set')))
     const genres = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('genres', 'set')))
-    const children = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('children', 'set')))
+    const childrenItems = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('childrenItems', 'set')))
     const artistsNames = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-names', 'set')))
     const artistsPopularity = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-popularity', 'set')))
     const artistsFollowers = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-followers', 'set')))
-    const artistsRelatedArtists = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-relatedArtists', 'set')))
+    const relatedItems = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('relatedItems', 'set')))
     const artistsType = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-type', 'set')))
     const itemIsRemoved = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('item-isRemoved', 'boolean')))
 
@@ -339,8 +339,8 @@ module.exports = function (recombee) {
       snippetTitle, snippetDescription, snippetChannelTitle, snippetThumbnails, snippetTags, snippetCategoryId, snippetLiveBroadcastContent,
       snippetDefaultLanguage, snippetLocalized, snippetDefaultAudioLanguage, liveStreamingDetailsActualStartTime,
       liveStreamingDetailsActualEndTime, liveStreamingDetailsScheduledStartTime, liveStreamingDetailsScheduledEndTime,
-      liveStreamingDetailsConcurrentViewers, liveStreamingDetailsActiveLiveChatId, artistsIds, genres, children, artistsNames,
-      artistsPopularity, artistsFollowers, artistsRelatedArtists, artistsType, itemIsRemoved)
+      liveStreamingDetailsConcurrentViewers, liveStreamingDetailsActiveLiveChatId, artistsIds, genres, childrenItems, artistsNames,
+      artistsPopularity, artistsFollowers, relatedItems, artistsType, itemIsRemoved)
 
     return result
   }
