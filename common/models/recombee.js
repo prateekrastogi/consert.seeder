@@ -324,7 +324,7 @@ module.exports = function (recombee) {
     const liveStreamingDetailsConcurrentViewers = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('liveStreamingDetails-concurrentViewers', 'string')))
     const liveStreamingDetailsActiveLiveChatId = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('liveStreamingDetails-activeLiveChatId', 'string')))
     const artistsIds = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-ids', 'set')))
-    const artistsGenres = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('genres', 'set')))
+    const genres = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('genres', 'set')))
     const artistsNames = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-names', 'set')))
     const artistsPopularity = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-popularity', 'set')))
     const artistsFollowers = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-followers', 'set')))
@@ -338,7 +338,7 @@ module.exports = function (recombee) {
       snippetTitle, snippetDescription, snippetChannelTitle, snippetThumbnails, snippetTags, snippetCategoryId, snippetLiveBroadcastContent,
       snippetDefaultLanguage, snippetLocalized, snippetDefaultAudioLanguage, liveStreamingDetailsActualStartTime,
       liveStreamingDetailsActualEndTime, liveStreamingDetailsScheduledStartTime, liveStreamingDetailsScheduledEndTime,
-      liveStreamingDetailsConcurrentViewers, liveStreamingDetailsActiveLiveChatId, artistsIds, artistsGenres, artistsNames,
+      liveStreamingDetailsConcurrentViewers, liveStreamingDetailsActiveLiveChatId, artistsIds, genres, artistsNames,
       artistsPopularity, artistsFollowers, artistsRelatedArtists, artistsType, itemIsRemoved)
 
     return result
