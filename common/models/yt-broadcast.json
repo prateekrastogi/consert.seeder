@@ -17,7 +17,7 @@
       "required": false,
       "default": false
     },
-    "isBroadcastRecombeeSynced": {
+    "isBroadcastRecSysSynced": {
       "type": "boolean",
       "required": false,
       "default": false

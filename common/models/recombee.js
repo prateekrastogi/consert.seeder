@@ -165,7 +165,7 @@ module.exports = function (recombee) {
   async function findRecombeeUnSyncedArtistsByPopularity (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
     const filter = {
-      where: {and: [{or: [{isArtistRecombeeSynced: false}, {isArtistRecombeeSynced: {exists: false}}]}, {areArtistVideosCrawled: true}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
+      where: {and: [{or: [{isArtistRecSysSynced: false}, {isArtistRecSysSynced: {exists: false}}]}, {areArtistVideosCrawled: true}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
       fields: {id: true, artist: true, topTracks: false, albums: false, relatedArtists: true}
     }
     const artists = await enrichedArtist.find(filter)
@@ -181,7 +181,7 @@ module.exports = function (recombee) {
   async function findRecombeeSyncedArtistsByPopularity (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
     const filter = {
-      where: {and: [{'isArtistRecombeeSynced': true}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
+      where: {and: [{'isArtistRecSysSynced': true}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
       fields: {id: true, artist: true, topTracks: false, albums: false}
     }
     const artists = await enrichedArtist.find(filter)
@@ -255,7 +255,7 @@ module.exports = function (recombee) {
     const filter = {
       where: {
         and: [
-          {or: [{isBroadcastRecombeeSynced: false}, {isBroadcastRecombeeSynced: {exists: false}}]}
+          {or: [{isBroadcastRecSysSynced: false}, {isBroadcastRecSysSynced: {exists: false}}]}
         ]},
       limit: maxResults,
       skip: offset
@@ -271,7 +271,7 @@ module.exports = function (recombee) {
     const filter = {
       where: {
         and: [
-          {isBroadcastRecombeeSynced: true}
+          {isBroadcastRecSysSynced: true}
         ]},
       limit: maxResults,
       skip: offset
@@ -358,13 +358,13 @@ module.exports = function (recombee) {
       .map((item) => {
         switch (model.modelName) {
           case 'enrichedArtist':
-            item.isArtistRecombeeSynced = false
+            item.isArtistRecSysSynced = false
             break
           case 'ytVideo':
             item.isVideoRecombeeSynced = false
             break
           case 'ytBroadcast':
-            item.isBroadcastRecombeeSynced = false
+            item.isBroadcastRecSysSynced = false
             break
         }
         return item
