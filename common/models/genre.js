@@ -22,12 +22,12 @@ module.exports = function (genre) {
 
   genre.seedGenreItemsToRecombee = function () {
     let genres = []
-    _.forIn(Object.assign({}, genresList.genres, genresList.spotifyGenres), (value, key) => {
+    _.forIn(Object.assign({}, genresList.genreTree), (value, key) => {
       genres = _.concat(genres, {key, value})
     })
 
     const genreItemsSyncer = Rx.Observable.from(genres).concatMap(({key, value}) => {
-      const genreItem = convertGenreToRecombeeGenre(value)
+      const genreItem = convertGenreToRecombeeGenreItem(value)
 
       return Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.SetItemValues(key, genreItem, {'cascadeCreate': true})))
     })
@@ -43,10 +43,12 @@ module.exports = function (genre) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  function convertGenreToRecombeeGenre (genre) {
+  function convertGenreToRecombeeGenreItem (genre) {
     const recombeeGenre = {
       'itemType': 'genre',
-      'genres': genre
+      'genres': genre.leaves,
+      'childrenItems': genre.children,
+      'snippet-thumbnails': genre.thumbnails
     }
 
     return recombeeGenre
