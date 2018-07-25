@@ -10,24 +10,6 @@
   "relations": {},
   "acls": [],
   "methods": {
-    "getGenres": {
-      "accepts": [],
-      "returns": [
-        {
-          "arg": "genres",
-          "type": "array",
-          "root": false,
-          "description": "Returns the list of genres available for filtering"
-        }
-      ],
-      "description": "gets the list of available genres available to viewer for filtering recommendations and results",
-      "http": [
-        {
-          "path": "/getGenres",
-          "verb": "get"
-        }
-      ]
-    },
     "seedGenreItemsToRecombee": {
       "accepts": [],
       "returns": [],

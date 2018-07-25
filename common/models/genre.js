@@ -11,15 +11,6 @@ const terminateAllActiveInterferingSubscriptions = require('../../lib/misc-utils
 let activeSubscriptions = []
 
 module.exports = function (genre) {
-  genre.getGenres = function () {
-    let genres = ['All']
-
-    const genreSerialized = serializeGenres(genresList.genres)
-    genres = _.concat(genres, _.sortBy(genreSerialized))
-
-    return new Promise((resolve, reject) => resolve(genres))
-  }
-
   genre.seedGenreItemsToRecombee = function () {
     let genres = []
     _.forIn(Object.assign({}, genresList.genreTree), (value, key) => {
@@ -52,13 +43,5 @@ module.exports = function (genre) {
     }
 
     return recombeeGenre
-  }
-
-  function serializeGenres (genres) {
-    const serializedGenres = _.map(_.keys(genres), genres => {
-      const genre = _.replace(genres, 'And', ' & ')
-      return _.replace(genre, 'dash', '-')
-    })
-    return serializedGenres
   }
 }
