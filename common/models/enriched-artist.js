@@ -141,9 +141,9 @@ module.exports = function (enrichedArtist) {
 
   function truncateFullAlbum ({album_type, genres, id, name, popularity, release_date, tracks, artists}) {
     const slimArtists = _.map(artists, (artist) => truncateSimplifiedArtist(artist))
-    // As tracks returned are wrqpped inside a paging objects (No need for next until 27 tracks for sure)
-    // Also, dropping the track objects from the album to keep the size of output small i.e. not searching yt based on it
-    const slimTracks = _.map((tracks.items), (track) => truncateSimplifiedTrack(track))
+
+    // Dropping the track objects from the album to keep the size of output small i.e. not searching yt based on it
+
     const slimAlbum = {
       album_type,
       genres,
