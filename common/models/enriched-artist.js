@@ -62,7 +62,7 @@ module.exports = function (enrichedArtist) {
         const artistDetailedAlbums = artistAlbums.concatMap((albums) => Rx.Observable.from(albums).pluck('id'))
           .bufferCount(20).concatMap((bufferedAlbums) => {
             return spotifyApi.getAlbums(bufferedAlbums)
-          }).retry(RETRY_COUNT).pluck('body', 'albums').map((albums) => _.map(albums, (album) => truncateFullAlbum(album)))
+          }).retry(RETRY_COUNT).pluck('body', 'albums').map((albums) => _.map(_.compact(albums), (album) => truncateFullAlbum(album)))
           .reduce((accum, curr) => _.concat(accum, curr))
 
         const enrichedArtist = Rx.Observable.zip(id, artist, artistDetailedAlbums, artistTopTracksWithAudioFeatures, artistRelatedArtists, (id, artist, albums, topTracks, relatedArtists) => {
