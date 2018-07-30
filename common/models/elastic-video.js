@@ -162,7 +162,8 @@ module.exports = function (elasticVideo) {
       const artistsGenres = R.compose(R.flatten, R.pluck('genres'), R.pluck('artist'), findArtist)(artistsId)
 
       let augmentedVideo = R.clone(video)
-      augmentedVideo.artists = {names: artistNames, genres: artistsGenres}
+      augmentedVideo.artists = {names: artistNames}
+      augmentedVideo.genres = artistsGenres
       return augmentedVideo
     }
 

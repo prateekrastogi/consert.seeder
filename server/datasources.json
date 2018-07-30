@@ -54,20 +54,20 @@
                             }
                         },
                         "index": true
-                    },
-                    "genres": {
-                        "type": "keyword",
-                        "fields": {
-                            "search": {
-                                "type": "text"
-                            },
-                            "autocomplete": {
-                                "type": "completion"
-                            }
-                        },
-                        "index": true
                     }
                 }
+            },
+            "genres": {
+                "type": "keyword",
+                "fields": {
+                    "search": {
+                        "type": "text"
+                    },
+                    "autocomplete": {
+                        "type": "completion"
+                    }
+                },
+                "index": true
             },
             "contentDetails": {
                 "properties": {
