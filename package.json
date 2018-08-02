@@ -8,7 +8,7 @@
   "scripts": {
     "lint": "standard",
     "lint-fix": "standard --fix",
-    "start": "node ."
+    "start": "node --max-old-space-size=8192 ."
   },
   "dependencies": {
     "async": "^2.6.1",
