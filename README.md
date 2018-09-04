@@ -2,7 +2,7 @@
 
 docker build -t seeder .
 
-docker run -p 3200:3200 seeder
+docker run -p 3200:3200 -it seeder
 
 
 ------ API Authentication Access Token ------
