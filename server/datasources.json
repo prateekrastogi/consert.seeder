@@ -20,7 +20,7 @@
             {
                 "protocol": "http",
                 "host": "127.0.0.1",
-                "port": 9200
+                "port": 9201
             }
         ],
         "apiVersion": "6.0",
