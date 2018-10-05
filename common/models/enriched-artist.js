@@ -15,7 +15,7 @@ module.exports = function (enrichedArtist) {
   enrichedArtist.putEnrichedArtists = async function () {
     let count = 0
     const artistSeed = app.models.artistSeed
-    const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
+    const uncrawledArtists = await artistSeed.find({ where: { or: [{ isCrawled: false }, { isCrawled: { exists: false } }] } })
 
     const spotifyApi = Rx.Observable.timer(0, 1500).concatMap((i) => Rx.Observable.fromPromise(loginAssist.spotifyLogin()))
     const artistList = Rx.Observable.from(uncrawledArtists)
@@ -45,7 +45,7 @@ module.exports = function (enrichedArtist) {
           .concatMap(features => Rx.Observable.from(features))
 
         const artistTopTracksWithAudioFeatures = Rx.Observable.zip(artistTopTracks, artistTopTrackFeatures, (track, audioFeatures) => {
-          return {track, audioFeatures}
+          return { track, audioFeatures }
         }).reduce((accum, curr) => _.concat(accum, curr))
 
         const artistRelatedArtists = Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artistId)).retry(RETRY_COUNT).pluck('body', 'artists')
@@ -66,7 +66,7 @@ module.exports = function (enrichedArtist) {
           .reduce((accum, curr) => _.concat(accum, curr))
 
         const enrichedArtist = Rx.Observable.zip(id, artist, artistDetailedAlbums, artistTopTracksWithAudioFeatures, artistRelatedArtists, (id, artist, albums, topTracks, relatedArtists) => {
-          return {id, artist, albums, topTracks, relatedArtists}
+          return { id, artist, albums, topTracks, relatedArtists }
         })
 
         return enrichedArtist
@@ -93,12 +93,12 @@ module.exports = function (enrichedArtist) {
     let count = 0
     const artistSeed = app.models.artistSeed
 
-    const uncrawledArtists = await artistSeed.find({where: {or: [{isCrawled: false}, {isCrawled: {exists: false}}]}})
+    const uncrawledArtists = await artistSeed.find({ where: { or: [{ isCrawled: false }, { isCrawled: { exists: false } }] } })
 
     if (uncrawledArtists.length === 0) {
       let crawledArtists = await artistSeed.find()
-      const tbCrawled = _.map(crawledArtists, ({id, name, isCrawled}) => {
-        return {id, name, isCrawled: false}
+      const tbCrawled = _.map(crawledArtists, ({ id, name, isCrawled }) => {
+        return { id, name, isCrawled: false }
       })
 
       const enrichedArtistReCrawler = Rx.Observable.from(tbCrawled).concatMap((artist) => {
@@ -119,15 +119,15 @@ module.exports = function (enrichedArtist) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  function truncateFullArtist ({followers, genres, id, name, popularity, type}) {
-    return {followers, genres, id, name, popularity, type}
+  function truncateFullArtist ({ followers, genres, id, name, popularity, type }) {
+    return { followers, genres, id, name, popularity, type }
   }
 
-  function truncateSimplifiedArtist ({id, name, type}) {
-    return {id, name, type}
+  function truncateSimplifiedArtist ({ id, name, type }) {
+    return { id, name, type }
   }
 
-  function truncateSimplifiedAlbum ({album_type, id, name, type, artists}) {
+  function truncateSimplifiedAlbum ({ album_type, id, name, type, artists }) {
     const slimArtists = _.map(artists, (artist) => truncateSimplifiedArtist(artist))
     const slimAlbum = {
       album_type,
@@ -139,7 +139,7 @@ module.exports = function (enrichedArtist) {
     return slimAlbum
   }
 
-  function truncateFullAlbum ({album_type, genres, id, name, popularity, release_date, tracks, artists}) {
+  function truncateFullAlbum ({ album_type, genres, id, name, popularity, release_date, tracks, artists }) {
     const slimArtists = _.map(artists, (artist) => truncateSimplifiedArtist(artist))
 
     // Dropping the track objects from the album to keep the size of output small i.e. not searching yt based on it
@@ -156,13 +156,13 @@ module.exports = function (enrichedArtist) {
     return slimAlbum
   }
 
-  function truncateSimplifiedTrack ({artists, disc_number, duration_ms, explicit, id, name, track_number, type}) {
+  function truncateSimplifiedTrack ({ artists, disc_number, duration_ms, explicit, id, name, track_number, type }) {
     const slimArtists = _.map(artists, (artist) => truncateSimplifiedArtist(artist))
-    const slimTrack = {artists: slimArtists, disc_number, duration_ms, explicit, id, name, track_number, type}
+    const slimTrack = { artists: slimArtists, disc_number, duration_ms, explicit, id, name, track_number, type }
     return slimTrack
   }
 
-  function truncateFullTrack ({album, artists, disc_number, duration_ms, explicit, id, name, popularity, track_number, type}) {
+  function truncateFullTrack ({ album, artists, disc_number, duration_ms, explicit, id, name, popularity, track_number, type }) {
     const slimAlbum = truncateSimplifiedAlbum(album)
     const slimArtists = _.map(artists, (artist) => truncateSimplifiedArtist(artist))
     const slimTrack = {
@@ -180,7 +180,7 @@ module.exports = function (enrichedArtist) {
     return slimTrack
   }
 
-  function truncateTrackAudioFeature ({acousticness, danceability, duration_ms, energy, id, instrumentalness, key, liveness, loudness, mode, speechiness, tempo, time_signature, type, valence}) {
+  function truncateTrackAudioFeature ({ acousticness, danceability, duration_ms, energy, id, instrumentalness, key, liveness, loudness, mode, speechiness, tempo, time_signature, type, valence }) {
     return {
       acousticness,
       danceability,

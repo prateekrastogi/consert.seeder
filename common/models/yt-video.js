@@ -61,7 +61,7 @@ module.exports = function (ytVideo) {
         .concatMap((obj) => Rx.Observable.empty())
 
       const resultWithArtistId = videoResult.map(result => {
-        return {result: result, artistId: artist.id}
+        return { result: result, artistId: artist.id }
       })
 
       // Marking the artist as crawled after all its search result returned.
@@ -74,10 +74,10 @@ module.exports = function (ytVideo) {
 
     const putArtistsVideosLiveSubscription = safeArtistsVideoLivePuttingObservable.subscribe({
       next: async (result) => {
-        const updatedVideo = await videoObjectUpdater(result.result, {artists: result.artistId})
+        const updatedVideo = await videoObjectUpdater(result.result, { artists: result.artistId })
         await ytVideo.replaceOrCreate(updatedVideo)
       },
-      error: err => console.error(err)})
+      error: err => console.error(err) })
 
     artistRelatedActiveSubscriptions.push(putArtistsVideosLiveSubscription)
 
@@ -139,7 +139,7 @@ module.exports = function (ytVideo) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  async function videoObjectUpdater (video, {artists, albums, tracks}) {
+  async function videoObjectUpdater (video, { artists, albums, tracks }) {
     const videoInstance = await ytVideo.findById(video.id)
     if (videoInstance !== null) {
       artists = _.union(artists, videoInstance.artists)
@@ -156,8 +156,8 @@ module.exports = function (ytVideo) {
   async function findVideoUnCrawledArtistsByPopularity (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
     const filter = {
-      where: {and: [{or: [{areArtistVideosCrawled: false}, {areArtistVideosCrawled: {exists: false}}]}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
-      fields: {id: true, artist: true, topTracks: false, albums: false}
+      where: { and: [{ or: [{ areArtistVideosCrawled: false }, { areArtistVideosCrawled: { exists: false } }] }, { 'artist.popularity': { 'gte': lowerBound } }, { 'artist.popularity': { 'lt': upperBound } }] },
+      fields: { id: true, artist: true, topTracks: false, albums: false }
     }
     const artists = await enrichedArtist.find(filter)
     return artists
@@ -166,8 +166,8 @@ module.exports = function (ytVideo) {
   async function findVideoCrawledArtistsByPopularity (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
     const filter = {
-      where: {and: [{'areArtistVideosCrawled': true}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
-      fields: {id: true, artist: true, topTracks: false, albums: false}
+      where: { and: [{ 'areArtistVideosCrawled': true }, { 'artist.popularity': { 'gte': lowerBound } }, { 'artist.popularity': { 'lt': upperBound } }] },
+      fields: { id: true, artist: true, topTracks: false, albums: false }
     }
     const artists = await enrichedArtist.find(filter)
     return artists
@@ -177,9 +177,9 @@ module.exports = function (ytVideo) {
     const filter = {
       where: {
         and: [
-          {or: [{isRemoved: false}, {isRemoved: {exists: false}}]}
-        ]},
-      fields: {id: true},
+          { or: [{ isRemoved: false }, { isRemoved: { exists: false } }] }
+        ] },
+      fields: { id: true },
       limit: maxResults,
       skip: offset
     }
@@ -193,8 +193,8 @@ module.exports = function (ytVideo) {
       const track = _.flatMap(_.compact(artist.topTracks), track => track.track)
       return track
     })
-    const truncatedTracks = _.map(_.compact(tracks), ({id, name, popularity}) => {
-      return {id, name, popularity}
+    const truncatedTracks = _.map(_.compact(tracks), ({ id, name, popularity }) => {
+      return { id, name, popularity }
     })
 
     const uniqueTruncatedTracks = _.uniqBy(truncatedTracks, 'id')
@@ -203,8 +203,8 @@ module.exports = function (ytVideo) {
 
   function putArtistsAlbumsLive (artists) {
     const albums = _.flatMapDeep(artists, artist => artist.albums)
-    const truncatedAlbums = _.map(_.compact(albums), ({name, popularity, id}) => {
-      return {name, popularity, id}
+    const truncatedAlbums = _.map(_.compact(albums), ({ name, popularity, id }) => {
+      return { name, popularity, id }
     })
     const uniqueTruncatedAlbums = _.uniqBy(truncatedAlbums, 'id')
     // const topAlbums = _.filter(uniqueTruncatedAlbums, album => album.popularity >= 26 && album.popularity < 40)

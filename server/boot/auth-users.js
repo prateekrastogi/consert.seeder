@@ -7,7 +7,7 @@ module.exports = function (app) {
   const User = app.models.user
 
   User.create([
-    {username: 'Prateek Rastogi', email: 'prtk6592@gmail.com', password: 'openssssame'}
+    { username: 'Prateek Rastogi', email: 'prtk6592@gmail.com', password: 'openssssame' }
   ], function (err, users) {
     if (err) throw err
   })

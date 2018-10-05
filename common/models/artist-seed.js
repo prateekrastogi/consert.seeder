@@ -12,7 +12,7 @@ const REQUEST_INTERVAL = 50
 module.exports = function (artistSeed) {
   artistSeed.putTopSpotifyArtists = async function () {
     const spotifyApi = await loginAssist.spotifyLogin()
-    const {genres} = (await spotifyApi.getAvailableGenreSeeds()).body
+    const { genres } = (await spotifyApi.getAvailableGenreSeeds()).body
 
     async.waterfall([getRecommendedArtists, getRelatedArtists, saveToDb, getRelatedArtists, saveToDb])
 
@@ -29,8 +29,8 @@ module.exports = function (artistSeed) {
 
         const genreRecommendedArtists = _.flatMap(genreRecommendedTracks, (track) => {
           return _.map(track.artists, (artist) => {
-            const {id, name} = artist
-            return {id, name}
+            const { id, name } = artist
+            return { id, name }
           })
         })
         recommendedArtists = _.concat(recommendedArtists, genreRecommendedArtists)
@@ -60,9 +60,9 @@ module.exports = function (artistSeed) {
         const relatedArtists = (await resilientGetArtistRelatedArtistsPromise).body.artists
 
         _.map(relatedArtists, (artist) => {
-          const {id, name} = artist
+          const { id, name } = artist
 
-          allRelevantArtists = _.concat(allRelevantArtists, {id, name})
+          allRelevantArtists = _.concat(allRelevantArtists, { id, name })
           process.stdout.write(`Total Artist fetched: ${allRelevantArtists.length}\r`)
         })
       }, (err) => {

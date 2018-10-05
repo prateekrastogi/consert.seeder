@@ -14,13 +14,13 @@ module.exports = function (genre) {
   genre.seedGenreItemsToRecombee = function () {
     let genres = []
     _.forIn(Object.assign({}, genresList.genreTree), (value, key) => {
-      genres = _.concat(genres, {key, value})
+      genres = _.concat(genres, { key, value })
     })
 
-    const genreItemsSyncer = Rx.Observable.from(genres).concatMap(({key, value}) => {
+    const genreItemsSyncer = Rx.Observable.from(genres).concatMap(({ key, value }) => {
       const genreItem = convertGenreToRecombeeGenreItem(value)
 
-      return Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.SetItemValues(key, genreItem, {'cascadeCreate': true})))
+      return Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.SetItemValues(key, genreItem, { 'cascadeCreate': true })))
     })
 
     const safeGenreItemsSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions),

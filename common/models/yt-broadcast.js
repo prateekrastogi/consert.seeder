@@ -47,7 +47,7 @@ module.exports = function (ytBroadcast) {
   }
 
   function dateSearch (baseParams) {
-    const dateParams = {...baseParams, order: `date`}
+    const dateParams = { ...baseParams, order: `date` }
     const dateSearch = ytUtils.searchYtVideos([`music | song | radio -news -politics -sports`], MAX_RESULTS, dateParams).retry(RETRY_COUNT)
 
     const dateSearchFilteredByChannelPopularity = dateSearch.bufferCount(REQUEST_BUFFER_SIZE).concatMap((bufferedBroadcasts) => {
@@ -55,11 +55,11 @@ module.exports = function (ytBroadcast) {
 
       const listChannels = Rx.Observable.bindNodeCallback(loginAssist.ytBroadcastLogin().listChannels)
 
-      const channelStatistics = listChannels({id: `${channelIds}`}, [`statistics`], {}).retry(RETRY_COUNT).pluck('items')
+      const channelStatistics = listChannels({ id: `${channelIds}` }, [`statistics`], {}).retry(RETRY_COUNT).pluck('items')
         .concatMap(channels => Rx.Observable.from(channels))
 
-      const eligibleBroadcastsObservable = channelStatistics.filter(({statistics}) => {
-        const {subscriberCount} = statistics
+      const eligibleBroadcastsObservable = channelStatistics.filter(({ statistics }) => {
+        const { subscriberCount } = statistics
         return parseInt(subscriberCount) >= THRESHOLD_CHANNEL_SUBSCRIBERS
       }).bufferCount(REQUEST_BUFFER_SIZE)
         .map((filteredChannels) => {
@@ -80,14 +80,14 @@ module.exports = function (ytBroadcast) {
   }
 
   function defaultAndViewCountSearch (baseParams) {
-    const viewCountParams = {...baseParams, order: `viewCount`}
+    const viewCountParams = { ...baseParams, order: `viewCount` }
 
     const defaultSearch = ytUtils.searchYtVideos([`music | song | radio -news -politics -sports`], MAX_RESULTS, baseParams).retry(RETRY_COUNT)
     const viewCountSearch = ytUtils.searchYtVideos([`music | song | radio -news -politics -sports`], MAX_RESULTS, viewCountParams).retry(RETRY_COUNT)
 
     const mergedSearch = Rx.Observable.merge(defaultSearch, viewCountSearch)
-      .distinct(value => value.id).filter(({liveStreamingDetails}) => {
-        const {concurrentViewers} = liveStreamingDetails
+      .distinct(value => value.id).filter(({ liveStreamingDetails }) => {
+        const { concurrentViewers } = liveStreamingDetails
         return parseInt(concurrentViewers) >= THRESHOLD_CONCURRENT_VIEWERS
       })
 
@@ -119,9 +119,9 @@ module.exports = function (ytBroadcast) {
     const filter = {
       where: {
         and: [
-          {'snippet.liveBroadcastContent': 'live'},
-          {or: [{isRemoved: false}, {isRemoved: {exists: false}}]}
-        ]},
+          { 'snippet.liveBroadcastContent': 'live' },
+          { or: [{ isRemoved: false }, { isRemoved: { exists: false } }] }
+        ] },
       limit: maxResults,
       skip: offset
     }

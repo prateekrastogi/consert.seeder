@@ -82,7 +82,7 @@ module.exports = function (elasticVideo) {
     const elasticSyncingObservable = getAllDbItemsObservable(filterFunction, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
       .concatMap(items => Rx.Observable.from(items))
       .concatMap((item) => {
-        const {id} = item
+        const { id } = item
 
         const crawlRecorder = Rx.Observable.fromPromise(model.findById(id))
           .map((intactItem) => {
@@ -129,27 +129,27 @@ module.exports = function (elasticVideo) {
     const filter = {
       where: {
         and: [
-          {or: [{isVideoElasticSearchSynced: false}, {isVideoElasticSearchSynced: {exists: false}}]}
-        ]},
-      fields: {id: true,
+          { or: [{ isVideoElasticSearchSynced: false }, { isVideoElasticSearchSynced: { exists: false } }] }
+        ] },
+      fields: { id: true,
         artists: true,
         isRemoved: true,
         contentDetails: true,
         statistics: true,
-        snippet: true},
+        snippet: true },
       limit: maxResults,
       skip: offset
     }
     const videos = await ytVideo.find(filter)
 
-    const videoArtistsIdExtractor = R.compose(R.map(R.chain((id) => { return {id: id} })), R.pluck('artists'))
+    const videoArtistsIdExtractor = R.compose(R.map(R.chain((id) => { return { id: id } })), R.pluck('artists'))
 
     const artistsId = R.compose(R.flatten, videoArtistsIdExtractor)(videos)
 
     const enrichedArtist = app.models.enrichedArtist
     const artistsFilter = {
-      where: {or: artistsId},
-      fields: {id: true, artist: true, topTracks: false, albums: false, relatedArtists: false}
+      where: { or: artistsId },
+      fields: { id: true, artist: true, topTracks: false, albums: false, relatedArtists: false }
     }
     const artists = await enrichedArtist.find(artistsFilter)
 
@@ -162,7 +162,7 @@ module.exports = function (elasticVideo) {
       const artistsGenres = R.compose(R.flatten, R.pluck('genres'), R.pluck('artist'), findArtist)(artistsId)
 
       let augmentedVideo = R.clone(video)
-      augmentedVideo.artists = {names: artistNames}
+      augmentedVideo.artists = { names: artistNames }
       augmentedVideo.genres = artistsGenres
       return augmentedVideo
     }
@@ -178,8 +178,8 @@ module.exports = function (elasticVideo) {
     const filter = {
       where: {
         and: [
-          {isVideoElasticSearchSynced: true}
-        ]},
+          { isVideoElasticSearchSynced: true }
+        ] },
       limit: maxResults,
       skip: offset
     }
@@ -194,14 +194,14 @@ module.exports = function (elasticVideo) {
     const filter = {
       where: {
         and: [
-          {or: [{isBroadcastElasticSearchSynced: false}, {isBroadcastElasticSearchSynced: {exists: false}}]}
-        ]},
-      fields: {id: true,
+          { or: [{ isBroadcastElasticSearchSynced: false }, { isBroadcastElasticSearchSynced: { exists: false } }] }
+        ] },
+      fields: { id: true,
         isRemoved: true,
         liveStreamingDetails: true,
         contentDetails: true,
         statistics: true,
-        snippet: true},
+        snippet: true },
       limit: maxResults,
       skip: offset
     }
@@ -216,8 +216,8 @@ module.exports = function (elasticVideo) {
     const filter = {
       where: {
         and: [
-          {isBroadcastElasticSearchSynced: true}
-        ]},
+          { isBroadcastElasticSearchSynced: true }
+        ] },
       limit: maxResults,
       skip: offset
     }

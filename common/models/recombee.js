@@ -41,10 +41,10 @@ module.exports = function (recombee) {
     const artists = Rx.Observable.fromPromise(findRecombeeUnSyncedArtistsByPopularity(lowerBound, upperBound))
 
     const artistSyncer = artists.concatMap(artists => Rx.Observable.from(artists)).map(value => {
-      const {artist, id, relatedArtists} = value
+      const { artist, id, relatedArtists } = value
       const recombeeItem = recombeeUtils.convertArtistToRecombeeArtist(artist, relatedArtists)
 
-      return {recombeeItem, id}
+      return { recombeeItem, id }
     }).bufferCount(MAX_BATCH)
       .concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, enrichedArtist))
 
@@ -92,7 +92,7 @@ module.exports = function (recombee) {
     const safeArtistReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), setModelItemsForReSync(artists, enrichedArtist))
 
     const artistReSyncerSubscription = safeArtistReSyncer
-      .subscribe(({artist}) => console.log(`Artist marked for Recombee Re-sync: ${artist.name}`), err => console.error(err))
+      .subscribe(({ artist }) => console.log(`Artist marked for Recombee Re-sync: ${artist.name}`), err => console.error(err))
 
     artistRelatedActiveSubscriptions.push(artistReSyncerSubscription)
 
@@ -106,7 +106,7 @@ module.exports = function (recombee) {
       recursiveTimeOutDeferredObservable(recombeeBatchReSyncer(ytVideo, findRecombeeSyncedYtVideosInBatch), 4 * WAIT_TILL_NEXT_REQUEST))
 
     const recombeeVideoReSyncerSubscription = safeRecursiveReSyncer
-      .subscribe(({snippet}) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.error(err))
+      .subscribe(({ snippet }) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.error(err))
 
     videoRelatedActiveSubscriptions.push(recombeeVideoReSyncerSubscription)
 
@@ -120,7 +120,7 @@ module.exports = function (recombee) {
       recursiveTimeOutDeferredObservable(recombeeBatchReSyncer(ytBroadcast, findRecombeeSyncedYtBroadcastsInBatch), 4 * WAIT_TILL_NEXT_REQUEST))
 
     const recombeeBroadcastReSyncerSubscription = safeRecursiveReSyncer
-      .subscribe(({snippet}) => console.log(`Broadcast marked for Recombee Re-sync: ${snippet.title}`), err => console.error(err))
+      .subscribe(({ snippet }) => console.log(`Broadcast marked for Recombee Re-sync: ${snippet.title}`), err => console.error(err))
 
     broadcastRelatedActiveSubscriptions.push(recombeeBroadcastReSyncerSubscription)
 
@@ -145,9 +145,9 @@ module.exports = function (recombee) {
 
     const recombeeSyncer = mediaItems.map((items) => {
       const mapperFn = (mediaItem) => {
-        const {id} = mediaItem
+        const { id } = mediaItem
         const recombeeItem = recombeeUtils.convertMediaItemToRecombeeItem(mediaItem)
-        return {recombeeItem, id}
+        return { recombeeItem, id }
       }
 
       return R.map(mapperFn, items)
@@ -165,13 +165,13 @@ module.exports = function (recombee) {
   async function findRecombeeUnSyncedArtistsByPopularity (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
     const filter = {
-      where: {and: [{or: [{isArtistRecSysSynced: false}, {isArtistRecSysSynced: {exists: false}}]}, {areArtistVideosCrawled: true}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
-      fields: {id: true, artist: true, topTracks: false, albums: false, relatedArtists: true}
+      where: { and: [{ or: [{ isArtistRecSysSynced: false }, { isArtistRecSysSynced: { exists: false } }] }, { areArtistVideosCrawled: true }, { 'artist.popularity': { 'gte': lowerBound } }, { 'artist.popularity': { 'lt': upperBound } }] },
+      fields: { id: true, artist: true, topTracks: false, albums: false, relatedArtists: true }
     }
     const artists = await enrichedArtist.find(filter)
 
     const artistWithRelatedArtists = _.map(artists, (artist) => {
-      const {relatedArtists} = artist
+      const { relatedArtists } = artist
       artist.relatedArtists = _.map(relatedArtists, 'id')
       return artist
     })
@@ -181,8 +181,8 @@ module.exports = function (recombee) {
   async function findRecombeeSyncedArtistsByPopularity (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
     const filter = {
-      where: {and: [{'isArtistRecSysSynced': true}, {'artist.popularity': {'gte': lowerBound}}, {'artist.popularity': {'lt': upperBound}}]},
-      fields: {id: true, artist: true, topTracks: false, albums: false}
+      where: { and: [{ 'isArtistRecSysSynced': true }, { 'artist.popularity': { 'gte': lowerBound } }, { 'artist.popularity': { 'lt': upperBound } }] },
+      fields: { id: true, artist: true, topTracks: false, albums: false }
     }
     const artists = await enrichedArtist.find(filter)
     return artists
@@ -193,8 +193,8 @@ module.exports = function (recombee) {
     const filter = {
       where: {
         and: [
-          {or: [{isVideoRecSysSynced: false}, {isVideoRecSysSynced: {exists: false}}]}
-        ]},
+          { or: [{ isVideoRecSysSynced: false }, { isVideoRecSysSynced: { exists: false } }] }
+        ] },
       limit: maxResults,
       skip: offset
     }
@@ -202,19 +202,19 @@ module.exports = function (recombee) {
 
     const artists = _.uniq(_.flatMap(videos, (video) => video.artists))
     const artistsFilter = _.map(artists, (id) => {
-      return {id: id}
+      return { id: id }
     })
 
     const enrichedArtist = app.models.enrichedArtist
     const artistFilter = {
-      where: {or: artistsFilter},
-      fields: {id: true, artist: true, topTracks: false, albums: false, relatedArtists: true}
+      where: { or: artistsFilter },
+      fields: { id: true, artist: true, topTracks: false, albums: false, relatedArtists: true }
     }
 
     const detailedArtists = await enrichedArtist.find(artistFilter)
 
     const artistWithRelatedArtists = _.map(detailedArtists, (artist) => {
-      const {relatedArtists} = artist
+      const { relatedArtists } = artist
       artist.relatedArtists = _.map(relatedArtists, 'id')
       return artist
     })
@@ -239,8 +239,8 @@ module.exports = function (recombee) {
     const filter = {
       where: {
         and: [
-          {isVideoRecSysSynced: true}
-        ]},
+          { isVideoRecSysSynced: true }
+        ] },
       limit: maxResults,
       skip: offset
     }
@@ -255,8 +255,8 @@ module.exports = function (recombee) {
     const filter = {
       where: {
         and: [
-          {or: [{isBroadcastRecSysSynced: false}, {isBroadcastRecSysSynced: {exists: false}}]}
-        ]},
+          { or: [{ isBroadcastRecSysSynced: false }, { isBroadcastRecSysSynced: { exists: false } }] }
+        ] },
       limit: maxResults,
       skip: offset
     }
@@ -271,8 +271,8 @@ module.exports = function (recombee) {
     const filter = {
       where: {
         and: [
-          {isBroadcastRecSysSynced: true}
-        ]},
+          { isBroadcastRecSysSynced: true }
+        ] },
       limit: maxResults,
       skip: offset
     }
@@ -355,7 +355,7 @@ module.exports = function (recombee) {
   }
 
   function setModelItemsForReSync (itemsObservable, model) {
-    return itemsObservable.concatMap(items => Rx.Observable.from(items)).concatMap(({id}) => Rx.Observable.fromPromise(model.findById(id)))
+    return itemsObservable.concatMap(items => Rx.Observable.from(items)).concatMap(({ id }) => Rx.Observable.fromPromise(model.findById(id)))
       .map((item) => {
         switch (model.modelName) {
           case 'enrichedArtist':
