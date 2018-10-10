@@ -14,7 +14,7 @@
     "syncPastShows": {
       "accepts": [],
       "returns": [],
-      "description": "Synchronizes the past recorded concerts with recombee for recommendations",
+      "description": "Synchronizes the past recorded concerts with recommender system for recommendations",
       "http": [
         {
           "path": "/syncPastShows",
@@ -25,7 +25,7 @@
     "syncBroadcasts": {
       "accepts": [],
       "returns": [],
-      "description": "Synchronizes the broadcasts with recombee for recommendations",
+      "description": "Synchronizes the broadcasts with recommender system for recommendations",
       "http": [
         {
           "path": "/syncBroadcasts",
@@ -85,7 +85,7 @@
         }
       ],
       "returns": [],
-      "description": "sets the artists in a popularity range for re-sync with recombee item catalog",
+      "description": "sets the artists in a popularity range for re-sync with recommender system",
       "http": [
         {
           "path": "/setArtistsByPopularityForRecommenderReSync",
@@ -96,7 +96,7 @@
     "setVideosForRecommenderReSync": {
       "accepts": [],
       "returns": [],
-      "description": "sets the previously seeded videos for re-sync with recombee item catalog",
+      "description": "sets the previously seeded videos for re-sync with recommender system",
       "http": [
         {
           "path": "/setVideosForRecommenderReSync",
@@ -107,7 +107,7 @@
     "setBroadcastsForRecommenderReSync": {
       "accepts": [],
       "returns": [],
-      "description": "sets the broadcasts for re-sync with recombee item catalog",
+      "description": "sets the broadcasts for re-sync with recommender system",
       "http": [
         {
           "path": "/setBroadcastsForRecommenderReSync",
