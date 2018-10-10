@@ -13,7 +13,7 @@
     "seedGenreItemsToRecommender": {
       "accepts": [],
       "returns": [],
-      "description": "seeds the genres as recombee items to get item based recommendation",
+      "description": "seeds the genres to recommender system",
       "http": [
         {
           "path": "/seedGenreItemsToRecommender",
