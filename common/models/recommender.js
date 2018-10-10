@@ -1,12 +1,10 @@
 'use strict'
 
 const app = require('../../server/server')
-const recombeeClient = require('../../lib/login-assist').recombeeLogin()
-const recombeeRqs = require('recombee-api-client').requests
 const Rx = require('rxjs-compat')
 const _ = require('lodash')
 const R = require('ramda')
-const recombeeUtils = require('../../lib/recombee-utils')
+const recombeeUtils = require('../../lib/recommender-utils')
 
 const getAllDbItemsObservable = require('../../lib/misc-utils').getAllDbItemsObservable
 const terminateAllActiveInterferingSubscriptions = require('../../lib/misc-utils').terminateAllActiveInterferingSubscriptions
@@ -20,8 +18,8 @@ let artistRelatedActiveSubscriptions = []
 let videoRelatedActiveSubscriptions = []
 let broadcastRelatedActiveSubscriptions = []
 
-module.exports = function (recombee) {
-  recombee.syncPastShows = function () {
+module.exports = function (recommender) {
+  recommender.syncPastShows = function () {
     const ytVideo = app.models.ytVideo
 
     const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
@@ -36,7 +34,7 @@ module.exports = function (recombee) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  recombee.syncArtists = function (lowerBound, upperBound) {
+  recommender.syncArtists = function (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
     const artists = Rx.Observable.fromPromise(findRecombeeUnSyncedArtistsByPopularity(lowerBound, upperBound))
 
@@ -59,7 +57,7 @@ module.exports = function (recombee) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  recombee.syncBroadcasts = function () {
+  recommender.syncBroadcasts = function () {
     const ytBroadcast = app.models.ytBroadcast
 
     const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
@@ -74,17 +72,7 @@ module.exports = function (recombee) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  recombee.setItemProperties = function () {
-    setItemProperties().subscribe(x => console.log(x), e => console.error(e))
-    return new Promise((resolve, reject) => resolve())
-  }
-
-  recombee.setUserProperties = function () {
-    setUserProperties().subscribe(x => console.log(x), e => console.error(e))
-    return new Promise((resolve, reject) => resolve())
-  }
-
-  recombee.setArtistsByPopularityForRecombeeReSync = function (lowerBound, upperBound) {
+  recommender.setArtistsByPopularityForRecSysReSync = function (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
 
     const artists = Rx.Observable.fromPromise(findRecombeeSyncedArtistsByPopularity(lowerBound, upperBound))
@@ -99,7 +87,7 @@ module.exports = function (recombee) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  recombee.setVideosForRecombeeReSync = function () {
+  recommender.setVideosForRecSysReSync = function () {
     const ytVideo = app.models.ytVideo
 
     const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
@@ -113,7 +101,7 @@ module.exports = function (recombee) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  recombee.setBroadcastsForRecombeeReSync = function () {
+  recommender.setBroadcastsForRecSysReSync = function () {
     const ytBroadcast = app.models.ytBroadcast
 
     const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
@@ -123,19 +111,6 @@ module.exports = function (recombee) {
       .subscribe(({ snippet }) => console.log(`Broadcast marked for Recombee Re-sync: ${snippet.title}`), err => console.error(err))
 
     broadcastRelatedActiveSubscriptions.push(recombeeBroadcastReSyncerSubscription)
-
-    return new Promise((resolve, reject) => resolve())
-  }
-
-  /**
-   * Remote method for performing miscellaneous operations in recombee
-   * @param {Function(Error)} callback
-   */
-
-  recombee.miscOperations = function () {
-    const clientSendAsObservable = Rx.Observable.bindNodeCallback(recombeeClient.send.bind(recombeeClient))
-    const result = clientSendAsObservable(new recombeeRqs.ListUserDetailViews('596806b770753032e85e1b6d'))
-    result.subscribe(x => console.log(x), e => console.error(e))
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -279,79 +254,6 @@ module.exports = function (recombee) {
     const broadcasts = await ytBroadcast.find(filter)
 
     return broadcasts
-  }
-
-  function resetDatabase () {
-    if (app.get('env') !== 'production') {
-      recombeeClient.send(new recombeeRqs.ResetDatabase(), (err, result) => err ? console.log('Some error occurred while resetting db') : console.log('Database reset successful'))
-    }
-  }
-
-  function setItemProperties () {
-    const itemType = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('itemType', 'string')))
-    const kind = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('kind', 'string')))
-    const etag = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('etag', 'string')))
-    const contentDetailsDuration = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('contentDetails-duration', 'string')))
-    const contentDetailsDimension = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('contentDetails-dimension', 'string')))
-    const contentDetailsDefinition = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('contentDetails-definition', 'string')))
-    const contentDetailsCaption = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('contentDetails-caption', 'string')))
-    const contentDetailsLicensedContent = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('contentDetails-licensedContent', 'boolean')))
-    const contentDetailsRegionRestriction = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('contentDetails-regionRestriction', 'string')))
-    const contentDetailsContentRating = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('contentDetails-contentRating', 'string')))
-    const contentDetailsProjection = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('contentDetails-projection', 'string')))
-    const contentDetailsHasCustomThumbnail = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('contentDetails-hasCustomThumbnail', 'boolean')))
-    const statisticsViewCount = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('statistics-viewCount', 'string')))
-    const statisticsLikeCount = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('statistics-likeCount', 'string')))
-    const statisticsDisLikeCount = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('statistics-dislikeCount', 'string')))
-    const statisticsFavoriteCount = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('statistics-favoriteCount', 'string')))
-    const statisticsCommentCount = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('statistics-commentCount', 'string')))
-    const snippetPublishedAt = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-publishedAt', 'timestamp')))
-    const snippetChannelId = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-channelId', 'string')))
-    const snippetTitle = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-title', 'string')))
-    const snippetDescription = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-description', 'string')))
-    const snippetChannelTitle = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-channelTitle', 'string')))
-    const snippetThumbnails = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-thumbnails', 'string')))
-    const snippetTags = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-tags', 'set')))
-    const snippetCategoryId = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-categoryId', 'string')))
-    const snippetLiveBroadcastContent = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-liveBroadcastContent', 'string')))
-    const snippetDefaultLanguage = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-defaultLanguage', 'string')))
-    const snippetLocalized = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-localized', 'string')))
-    const snippetDefaultAudioLanguage = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('snippet-defaultAudioLanguage', 'string')))
-    const liveStreamingDetailsActualStartTime = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('liveStreamingDetails-actualStartTime', 'timestamp')))
-    const liveStreamingDetailsActualEndTime = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('liveStreamingDetails-actualEndTime', 'timestamp')))
-    const liveStreamingDetailsScheduledStartTime = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('liveStreamingDetails-scheduledStartTime', 'timestamp')))
-    const liveStreamingDetailsScheduledEndTime = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('liveStreamingDetails-scheduledEndTime', 'timestamp')))
-    const liveStreamingDetailsConcurrentViewers = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('liveStreamingDetails-concurrentViewers', 'string')))
-    const liveStreamingDetailsActiveLiveChatId = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('liveStreamingDetails-activeLiveChatId', 'string')))
-    const artistsIds = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-ids', 'set')))
-    const genres = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('genres', 'set')))
-    const childrenItems = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('childrenItems', 'set')))
-    const artistsNames = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-names', 'set')))
-    const artistsPopularity = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-popularity', 'set')))
-    const artistsFollowers = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-followers', 'set')))
-    const relatedItems = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('relatedItems', 'set')))
-    const artistsType = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('artists-type', 'set')))
-    const itemIsRemoved = Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.AddItemProperty('item-isRemoved', 'boolean')))
-
-    const result = Rx.Observable.concat(itemType, kind, etag, contentDetailsDuration, contentDetailsDimension, contentDetailsDefinition, contentDetailsLicensedContent,
-      contentDetailsRegionRestriction, contentDetailsContentRating, contentDetailsCaption, contentDetailsProjection, contentDetailsHasCustomThumbnail,
-      statisticsViewCount, statisticsLikeCount, statisticsDisLikeCount, statisticsFavoriteCount, statisticsCommentCount, snippetPublishedAt, snippetChannelId,
-      snippetTitle, snippetDescription, snippetChannelTitle, snippetThumbnails, snippetTags, snippetCategoryId, snippetLiveBroadcastContent,
-      snippetDefaultLanguage, snippetLocalized, snippetDefaultAudioLanguage, liveStreamingDetailsActualStartTime,
-      liveStreamingDetailsActualEndTime, liveStreamingDetailsScheduledStartTime, liveStreamingDetailsScheduledEndTime,
-      liveStreamingDetailsConcurrentViewers, liveStreamingDetailsActiveLiveChatId, artistsIds, genres, childrenItems, artistsNames,
-      artistsPopularity, artistsFollowers, relatedItems, artistsType, itemIsRemoved)
-
-    return result
-  }
-
-  function setUserProperties () {
-    const clientSendAsObservable = Rx.Observable.bindNodeCallback(recombeeClient.send.bind(recombeeClient))
-    const userType = clientSendAsObservable(new recombeeRqs.AddUserProperty('userType', 'string'))
-    const browserIds = clientSendAsObservable(new recombeeRqs.AddUserProperty('browser-ids', 'set'))
-
-    const result = Rx.Observable.concat(userType, browserIds)
-    return result
   }
 
   function setModelItemsForReSync (itemsObservable, model) {

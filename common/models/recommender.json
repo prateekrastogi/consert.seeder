@@ -1,5 +1,5 @@
 {
-  "name": "recombee",
+  "name": "recommender",
   "base": "Model",
   "idInjection": true,
   "options": {
@@ -62,29 +62,7 @@
         }
       ]
     },
-    "setItemProperties": {
-      "accepts": [],
-      "returns": [],
-      "description": "sets the itemProperties of recombee database items",
-      "http": [
-        {
-          "path": "/setItemProperties",
-          "verb": "post"
-        }
-      ]
-    },
-    "setUserProperties": {
-      "accepts": [],
-      "returns": [],
-      "description": "sets the userProperties of recombee user type",
-      "http": [
-        {
-          "path": "/setUserProperties",
-          "verb": "post"
-        }
-      ]
-    },
-    "setArtistsByPopularityForRecombeeReSync": {
+    "setArtistsByPopularityForRecSysReSync": {
       "accepts": [
         {
           "arg": "lowerBound",
@@ -109,40 +87,29 @@
       "description": "sets the artists in a popularity range for re-sync with recombee item catalog",
       "http": [
         {
-          "path": "/setArtistsByPopularityForRecombeeReSync",
+          "path": "/setArtistsByPopularityForRecSysReSync",
           "verb": "put"
         }
       ]
     },
-    "setVideosForRecombeeReSync": {
+    "setVideosForRecSysReSync": {
       "accepts": [],
       "returns": [],
       "description": "sets the previously seeded videos for re-sync with recombee item catalog",
       "http": [
         {
-          "path": "/setVideosForRecombeeReSync",
+          "path": "/setVideosForRecSysReSync",
           "verb": "put"
         }
       ]
     },
-    "setBroadcastsForRecombeeReSync": {
+    "setBroadcastsForRecSysReSync": {
       "accepts": [],
       "returns": [],
       "description": "sets the broadcasts for re-sync with recombee item catalog",
       "http": [
         {
-          "path": "/setBroadcastsForRecombeeReSync",
-          "verb": "put"
-        }
-      ]
-    },
-    "miscOperations": {
-      "accepts": [],
-      "returns": [],
-      "description": "Remote method for performing miscellaneous operations in recombee",
-      "http": [
-        {
-          "path": "/miscOperations",
+          "path": "/setBroadcastsForRecSysReSync",
           "verb": "put"
         }
       ]

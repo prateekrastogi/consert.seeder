@@ -84,7 +84,7 @@
             }
         }
     },
-    "recombee": {
+    "recommender": {
         "dataSource": null,
         "public": true
     },
