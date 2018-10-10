@@ -1,5 +1,6 @@
 {
   "name": "recommender",
+  "plural": "recommender",
   "base": "Model",
   "idInjection": true,
   "options": {
@@ -62,7 +63,7 @@
         }
       ]
     },
-    "setArtistsByPopularityForRecSysReSync": {
+    "setArtistsByPopularityForRecommenderReSync": {
       "accepts": [
         {
           "arg": "lowerBound",
@@ -87,29 +88,29 @@
       "description": "sets the artists in a popularity range for re-sync with recombee item catalog",
       "http": [
         {
-          "path": "/setArtistsByPopularityForRecSysReSync",
+          "path": "/setArtistsByPopularityForRecommenderReSync",
           "verb": "put"
         }
       ]
     },
-    "setVideosForRecSysReSync": {
+    "setVideosForRecommenderReSync": {
       "accepts": [],
       "returns": [],
       "description": "sets the previously seeded videos for re-sync with recombee item catalog",
       "http": [
         {
-          "path": "/setVideosForRecSysReSync",
+          "path": "/setVideosForRecommenderReSync",
           "verb": "put"
         }
       ]
     },
-    "setBroadcastsForRecSysReSync": {
+    "setBroadcastsForRecommenderReSync": {
       "accepts": [],
       "returns": [],
       "description": "sets the broadcasts for re-sync with recombee item catalog",
       "http": [
         {
-          "path": "/setBroadcastsForRecSysReSync",
+          "path": "/setBroadcastsForRecommenderReSync",
           "verb": "put"
         }
       ]

@@ -11,7 +11,7 @@ const terminateAllActiveInterferingSubscriptions = require('../../lib/misc-utils
 let activeSubscriptions = []
 
 module.exports = function (genre) {
-  genre.seedGenreItemsToRecombee = function () {
+  genre.seedGenreItemsToRecommender = function () {
     let genres = []
     _.forIn(Object.assign({}, genresList.genreTree), (value, key) => {
       genres = _.concat(genres, { key, value })

@@ -72,7 +72,7 @@ module.exports = function (recommender) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  recommender.setArtistsByPopularityForRecSysReSync = function (lowerBound, upperBound) {
+  recommender.setArtistsByPopularityForRecommenderReSync = function (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
 
     const artists = Rx.Observable.fromPromise(findRecombeeSyncedArtistsByPopularity(lowerBound, upperBound))
@@ -87,7 +87,7 @@ module.exports = function (recommender) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  recommender.setVideosForRecSysReSync = function () {
+  recommender.setVideosForRecommenderReSync = function () {
     const ytVideo = app.models.ytVideo
 
     const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
@@ -101,7 +101,7 @@ module.exports = function (recommender) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  recommender.setBroadcastsForRecSysReSync = function () {
+  recommender.setBroadcastsForRecommenderReSync = function () {
     const ytBroadcast = app.models.ytBroadcast
 
     const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
