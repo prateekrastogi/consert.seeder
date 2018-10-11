@@ -23,7 +23,7 @@ module.exports = function (recommender) {
     const ytVideo = app.models.ytVideo
 
     const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
-      recursiveDeferredObservable(recombeeBatchSyncer(ytVideo, findRecombeeUnSyncedYtVideosInBatch)))
+      recursiveDeferredObservable(recommenderBatchSyncer(ytVideo, findRecommenderUnSyncedYtVideosInBatch)))
 
     const recombeeVideoSyncerSubscription = safeRecursiveSyncer.subscribe({
       error: err => console.error(err)
@@ -36,15 +36,15 @@ module.exports = function (recommender) {
 
   recommender.syncArtists = function (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
-    const artists = Rx.Observable.fromPromise(findRecombeeUnSyncedArtistsByPopularity(lowerBound, upperBound))
+    const artists = Rx.Observable.fromPromise(findRecommmenderUnSyncedArtistsByPopularity(lowerBound, upperBound))
 
     const artistSyncer = artists.concatMap(artists => Rx.Observable.from(artists)).map(value => {
       const { artist, id, relatedArtists } = value
-      const recombeeItem = recombeeUtils.convertArtistToRecombeeArtist(artist, relatedArtists)
+      const recombeeItem = recombeeUtils.convertArtistToRecommenderArtist(artist, relatedArtists)
 
       return { recombeeItem, id }
     }).bufferCount(MAX_BATCH)
-      .concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, enrichedArtist))
+      .concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommender(bufferedItems, enrichedArtist))
 
     const safeArtistSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(artistSyncer, 4 * WAIT_TILL_NEXT_REQUEST))
 
@@ -61,7 +61,7 @@ module.exports = function (recommender) {
     const ytBroadcast = app.models.ytBroadcast
 
     const safeRecursiveSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
-      recursiveDeferredObservable(recombeeBatchSyncer(ytBroadcast, findRecombeeUnSyncedYtBroadcastsInBatch)))
+      recursiveDeferredObservable(recommenderBatchSyncer(ytBroadcast, findRecommenderUnSyncedYtBroadcastsInBatch)))
 
     const recombeeBroadcastSyncerSubscription = safeRecursiveSyncer.subscribe({
       error: err => console.error(err)
@@ -75,7 +75,7 @@ module.exports = function (recommender) {
   recommender.setArtistsByPopularityForRecommenderReSync = function (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
 
-    const artists = Rx.Observable.fromPromise(findRecombeeSyncedArtistsByPopularity(lowerBound, upperBound))
+    const artists = Rx.Observable.fromPromise(findRecommenderSyncedArtistsByPopularity(lowerBound, upperBound))
 
     const safeArtistReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), setModelItemsForReSync(artists, enrichedArtist))
 
@@ -91,7 +91,7 @@ module.exports = function (recommender) {
     const ytVideo = app.models.ytVideo
 
     const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
-      recursiveTimeOutDeferredObservable(recombeeBatchReSyncer(ytVideo, findRecombeeSyncedYtVideosInBatch), 4 * WAIT_TILL_NEXT_REQUEST))
+      recursiveTimeOutDeferredObservable(recommenderBatchReSyncer(ytVideo, findRecommenderSyncedYtVideosInBatch), 4 * WAIT_TILL_NEXT_REQUEST))
 
     const recombeeVideoReSyncerSubscription = safeRecursiveReSyncer
       .subscribe(({ snippet }) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.error(err))
@@ -105,7 +105,7 @@ module.exports = function (recommender) {
     const ytBroadcast = app.models.ytBroadcast
 
     const safeRecursiveReSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
-      recursiveTimeOutDeferredObservable(recombeeBatchReSyncer(ytBroadcast, findRecombeeSyncedYtBroadcastsInBatch), 4 * WAIT_TILL_NEXT_REQUEST))
+      recursiveTimeOutDeferredObservable(recommenderBatchReSyncer(ytBroadcast, findRecommenderSyncedYtBroadcastsInBatch), 4 * WAIT_TILL_NEXT_REQUEST))
 
     const recombeeBroadcastReSyncerSubscription = safeRecursiveReSyncer
       .subscribe(({ snippet }) => console.log(`Broadcast marked for Recombee Re-sync: ${snippet.title}`), err => console.error(err))
@@ -115,29 +115,29 @@ module.exports = function (recommender) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  function recombeeBatchSyncer (model, filterFunction) {
+  function recommenderBatchSyncer (model, filterFunction) {
     const mediaItems = getAllDbItemsObservable(filterFunction, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
 
     const recombeeSyncer = mediaItems.map((items) => {
       const mapperFn = (mediaItem) => {
         const { id } = mediaItem
-        const recombeeItem = recombeeUtils.convertMediaItemToRecombeeItem(mediaItem)
+        const recombeeItem = recombeeUtils.convertMediaItemToRecommenderItem(mediaItem)
         return { recombeeItem, id }
       }
 
       return R.map(mapperFn, items)
-    }).concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommbee(bufferedItems, model))
+    }).concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommender(bufferedItems, model))
 
     return recombeeSyncer
   }
 
-  function recombeeBatchReSyncer (model, filterFunction) {
+  function recommenderBatchReSyncer (model, filterFunction) {
     const syncedItems = getAllDbItemsObservable(filterFunction, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
 
     return setModelItemsForReSync(syncedItems, model)
   }
 
-  async function findRecombeeUnSyncedArtistsByPopularity (lowerBound, upperBound) {
+  async function findRecommmenderUnSyncedArtistsByPopularity (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
     const filter = {
       where: { and: [{ or: [{ isArtistRecSysSynced: false }, { isArtistRecSysSynced: { exists: false } }] }, { areArtistVideosCrawled: true }, { 'artist.popularity': { 'gte': lowerBound } }, { 'artist.popularity': { 'lt': upperBound } }] },
@@ -153,7 +153,7 @@ module.exports = function (recommender) {
     return artistWithRelatedArtists
   }
 
-  async function findRecombeeSyncedArtistsByPopularity (lowerBound, upperBound) {
+  async function findRecommenderSyncedArtistsByPopularity (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
     const filter = {
       where: { and: [{ 'isArtistRecSysSynced': true }, { 'artist.popularity': { 'gte': lowerBound } }, { 'artist.popularity': { 'lt': upperBound } }] },
@@ -163,7 +163,7 @@ module.exports = function (recommender) {
     return artists
   }
 
-  async function findRecombeeUnSyncedYtVideosInBatch (maxResults, offset) {
+  async function findRecommenderUnSyncedYtVideosInBatch (maxResults, offset) {
     const ytVideo = app.models.ytVideo
     const filter = {
       where: {
@@ -209,7 +209,7 @@ module.exports = function (recommender) {
     return videoWithArtistsExtractedAndProcessed
   }
 
-  async function findRecombeeSyncedYtVideosInBatch (maxResults, offset) {
+  async function findRecommenderSyncedYtVideosInBatch (maxResults, offset) {
     const ytVideo = app.models.ytVideo
     const filter = {
       where: {
@@ -224,7 +224,7 @@ module.exports = function (recommender) {
     return videos
   }
 
-  async function findRecombeeUnSyncedYtBroadcastsInBatch (maxResults, offset) {
+  async function findRecommenderUnSyncedYtBroadcastsInBatch (maxResults, offset) {
     const ytBroadcast = app.models.ytBroadcast
 
     const filter = {
@@ -240,7 +240,7 @@ module.exports = function (recommender) {
     return broadcasts
   }
 
-  async function findRecombeeSyncedYtBroadcastsInBatch (maxResults, offset) {
+  async function findRecommenderSyncedYtBroadcastsInBatch (maxResults, offset) {
     const ytBroadcast = app.models.ytBroadcast
 
     const filter = {
