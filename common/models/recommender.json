@@ -114,6 +114,27 @@
           "verb": "put"
         }
       ]
+    },
+    "peekEvents": {
+      "accepts": [
+        {
+          "arg": "optionalParams",
+          "required": false,
+          "description": "Events filter parameters",
+          "type": "object",
+          "http": {
+            "source": "query"
+          }
+        }
+      ],
+      "returns": [],
+      "description": "Peek events logged in the EventServer on server console output for security.",
+      "http": [
+        {
+          "path": "/peekEvents",
+          "verb": "get"
+        }
+      ]
     }
   }
 }

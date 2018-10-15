@@ -5,7 +5,7 @@ const { concat, from } = require('rxjs')
 const { concatMap, map, bufferCount } = require('rxjs/operators')
 const _ = require('lodash')
 const R = require('ramda')
-const recombeeUtils = require('../../lib/recommender-utils')
+const recommenderUtils = require('../../lib/recommender-utils')
 
 const getAllDbItemsObservable = require('../../lib/misc-utils').getAllDbItemsObservable
 const terminateAllActiveInterferingSubscriptions = require('../../lib/misc-utils').terminateAllActiveInterferingSubscriptions
@@ -43,12 +43,12 @@ module.exports = function (recommender) {
       concatMap(artists => from(artists)),
       map(value => {
         const { artist, id, relatedArtists } = value
-        const recombeeItem = recombeeUtils.convertArtistToRecommenderArtist(artist, relatedArtists)
+        const recombeeItem = recommenderUtils.convertArtistToRecommenderArtist(artist, relatedArtists)
 
         return { recombeeItem, id }
       }),
       bufferCount(MAX_BATCH),
-      concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommender(bufferedItems, enrichedArtist))
+      concatMap(bufferedItems => recommenderUtils.writeBufferedItemsToRecommender(bufferedItems, enrichedArtist))
     )
 
     const safeArtistSyncer = concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(artistSyncer, 4 * WAIT_TILL_NEXT_REQUEST))
@@ -120,6 +120,11 @@ module.exports = function (recommender) {
     return new Promise((resolve, reject) => resolve())
   }
 
+  recommender.peekEvents = function (optionalParams = {}) {
+    recommenderUtils.peekEvents(optionalParams)
+    return new Promise((resolve, reject) => resolve())
+  }
+
   function recommenderBatchSyncer (model, filterFunction) {
     const mediaItems = getAllDbItemsObservable(filterFunction, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
 
@@ -127,13 +132,13 @@ module.exports = function (recommender) {
       map((items) => {
         const mapperFn = (mediaItem) => {
           const { id } = mediaItem
-          const recombeeItem = recombeeUtils.convertMediaItemToRecommenderItem(mediaItem)
+          const recombeeItem = recommenderUtils.convertMediaItemToRecommenderItem(mediaItem)
           return { recombeeItem, id }
         }
 
         return R.map(mapperFn, items)
       }),
-      concatMap(bufferedItems => recombeeUtils.writeBufferedItemsToRecommender(bufferedItems, model))
+      concatMap(bufferedItems => recommenderUtils.writeBufferedItemsToRecommender(bufferedItems, model))
     )
 
     return recombeeSyncer
