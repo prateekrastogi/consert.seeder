@@ -132,7 +132,7 @@ module.exports = function (recommender) {
       map((items) => {
         const mapperFn = (mediaItem) => {
           const { id } = mediaItem
-          const recommenderItem = recommenderUtils.convertMediaItemToRecommenderItem(mediaItem)
+          const recommenderItem = recommenderUtils.convertMediaItemToRecommenderMediaItem(mediaItem)
           return { recommenderItem, id }
         }
 
