@@ -51,7 +51,7 @@ model field 'isRemoved': tells whether the video isRemoved from yt
 yt-broadcast: Handles the fetching, updation, and removal of  `live now` yt broadcasts   
 model field 'isRemoved': tells whether the broadcast isRemoved from yt
 ---
-recombee: Continuously Syncs the yt-videos of type 'video' and enriched-artist of type 'artist' to recombee
+recommender: Continuously Syncs the yt-videos of type 'video' and enriched-artist of type 'artist' to recommender
 dependent on: enriched-artist and yt-video
 ---
 elastic-video: Continuously syncs the modified yt-videos with artists ids replaced by artists 'names' and 'genres' 

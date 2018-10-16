@@ -35,7 +35,7 @@
     "syncYtBroadcasts": {
       "accepts": [],
       "returns": [],
-      "description": "It syncs currently live Youtube music events with recombee & elasticsearch",
+      "description": "It syncs currently live Youtube music events with recommender & elasticsearch",
       "http": [
         {
           "path": "/syncYtBroadcasts",

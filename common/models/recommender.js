@@ -26,11 +26,11 @@ module.exports = function (recommender) {
     const safeRecursiveSyncer = concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
       recursiveDeferredObservable(recommenderBatchSyncer(ytVideo, findRecommenderUnSyncedYtVideosInBatch)))
 
-    const recombeeVideoSyncerSubscription = safeRecursiveSyncer.subscribe({
+    const videoSyncerSubscription = safeRecursiveSyncer.subscribe({
       error: err => console.error(err)
     })
 
-    videoRelatedActiveSubscriptions.push(recombeeVideoSyncerSubscription)
+    videoRelatedActiveSubscriptions.push(videoSyncerSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -43,9 +43,9 @@ module.exports = function (recommender) {
       concatMap(artists => from(artists)),
       map(value => {
         const { artist, id, relatedArtists } = value
-        const recombeeItem = recommenderUtils.convertArtistToRecommenderArtist(artist, relatedArtists)
+        const recommenderItem = recommenderUtils.convertArtistToRecommenderArtist(artist, relatedArtists)
 
-        return { recombeeItem, id }
+        return { recommenderItem, id }
       }),
       bufferCount(MAX_BATCH),
       concatMap(bufferedItems => recommenderUtils.writeBufferedItemsToRecommender(bufferedItems, enrichedArtist))
@@ -68,11 +68,11 @@ module.exports = function (recommender) {
     const safeRecursiveSyncer = concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
       recursiveDeferredObservable(recommenderBatchSyncer(ytBroadcast, findRecommenderUnSyncedYtBroadcastsInBatch)))
 
-    const recombeeBroadcastSyncerSubscription = safeRecursiveSyncer.subscribe({
+    const broadcastSyncerSubscription = safeRecursiveSyncer.subscribe({
       error: err => console.error(err)
     })
 
-    broadcastRelatedActiveSubscriptions.push(recombeeBroadcastSyncerSubscription)
+    broadcastRelatedActiveSubscriptions.push(broadcastSyncerSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -85,7 +85,7 @@ module.exports = function (recommender) {
     const safeArtistReSyncer = concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), setModelItemsForReSync(artists, enrichedArtist))
 
     const artistReSyncerSubscription = safeArtistReSyncer
-      .subscribe(({ artist }) => console.log(`Artist marked for Recombee Re-sync: ${artist.name}`), err => console.error(err))
+      .subscribe(({ artist }) => console.log(`Artist marked for Recommender Re-sync: ${artist.name}`), err => console.error(err))
 
     artistRelatedActiveSubscriptions.push(artistReSyncerSubscription)
 
@@ -98,10 +98,10 @@ module.exports = function (recommender) {
     const safeRecursiveReSyncer = concat(terminateAllActiveInterferingSubscriptions(videoRelatedActiveSubscriptions),
       recursiveTimeOutDeferredObservable(recommenderBatchReSyncer(ytVideo, findRecommenderSyncedYtVideosInBatch), 4 * WAIT_TILL_NEXT_REQUEST))
 
-    const recombeeVideoReSyncerSubscription = safeRecursiveReSyncer
-      .subscribe(({ snippet }) => console.log(`Video marked for Recombee Re-sync: ${snippet.title}`), err => console.error(err))
+    const videoReSyncerSubscription = safeRecursiveReSyncer
+      .subscribe(({ snippet }) => console.log(`Video marked for Recommender Re-sync: ${snippet.title}`), err => console.error(err))
 
-    videoRelatedActiveSubscriptions.push(recombeeVideoReSyncerSubscription)
+    videoRelatedActiveSubscriptions.push(videoReSyncerSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -112,10 +112,10 @@ module.exports = function (recommender) {
     const safeRecursiveReSyncer = concat(terminateAllActiveInterferingSubscriptions(broadcastRelatedActiveSubscriptions),
       recursiveTimeOutDeferredObservable(recommenderBatchReSyncer(ytBroadcast, findRecommenderSyncedYtBroadcastsInBatch), 4 * WAIT_TILL_NEXT_REQUEST))
 
-    const recombeeBroadcastReSyncerSubscription = safeRecursiveReSyncer
-      .subscribe(({ snippet }) => console.log(`Broadcast marked for Recombee Re-sync: ${snippet.title}`), err => console.error(err))
+    const broadcastReSyncerSubscription = safeRecursiveReSyncer
+      .subscribe(({ snippet }) => console.log(`Broadcast marked for Recommender Re-sync: ${snippet.title}`), err => console.error(err))
 
-    broadcastRelatedActiveSubscriptions.push(recombeeBroadcastReSyncerSubscription)
+    broadcastRelatedActiveSubscriptions.push(broadcastReSyncerSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
@@ -128,12 +128,12 @@ module.exports = function (recommender) {
   function recommenderBatchSyncer (model, filterFunction) {
     const mediaItems = getAllDbItemsObservable(filterFunction, WAIT_TILL_NEXT_REQUEST, MAX_BATCH)
 
-    const recombeeSyncer = mediaItems.pipe(
+    const recommenderSyncer = mediaItems.pipe(
       map((items) => {
         const mapperFn = (mediaItem) => {
           const { id } = mediaItem
-          const recombeeItem = recommenderUtils.convertMediaItemToRecommenderItem(mediaItem)
-          return { recombeeItem, id }
+          const recommenderItem = recommenderUtils.convertMediaItemToRecommenderItem(mediaItem)
+          return { recommenderItem, id }
         }
 
         return R.map(mapperFn, items)
@@ -141,7 +141,7 @@ module.exports = function (recommender) {
       concatMap(bufferedItems => recommenderUtils.writeBufferedItemsToRecommender(bufferedItems, model))
     )
 
-    return recombeeSyncer
+    return recommenderSyncer
   }
 
   function recommenderBatchReSyncer (model, filterFunction) {
