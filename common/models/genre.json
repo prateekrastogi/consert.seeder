@@ -10,13 +10,13 @@
   "relations": {},
   "acls": [],
   "methods": {
-    "seedGenreItemsToRecommender": {
+    "syncGenreItemsToRecommender": {
       "accepts": [],
       "returns": [],
       "description": "seeds the genres to recommender system",
       "http": [
         {
-          "path": "/seedGenreItemsToRecommender",
+          "path": "/syncGenreItemsToRecommender",
           "verb": "put"
         }
       ]

@@ -3,7 +3,16 @@
   "genreTree": {
     "Root": {
       "leaves": [],
-      "children": ["Live", "HipDashHopSpaceAndSpaceRAndB", "Rock", "Pop", "Country", "Electronic", "JazzCommaSpaceBluesCommaSpaceandSpaceClassical", "Other"],
+      "children": [
+        "Live",
+        "HipDashHopSpaceAndSpaceRAndB",
+        "Rock",
+        "Pop",
+        "Country",
+        "Electronic",
+        "JazzCommaSpaceBluesCommaSpaceandSpaceClassical",
+        "Other"
+      ],
       "thumbnails": {}
     },
     "Live": {
@@ -12,51 +21,221 @@
       "thumbnails": {}
     },
     "HipDashHopSpaceAndSpaceRAndB": {
-      "leaves": ["hip-hop", "groove", "trip-hop", "r-n-b", "soul", "funk", "reggae", "reggaeton", "ska"],
-      "children": ["RAndB", "HipDashHop", "Reggae", "Soul"],
+      "leaves": [
+        "hip-hop",
+        "groove",
+        "trip-hop",
+        "r-n-b",
+        "soul",
+        "funk",
+        "reggae",
+        "reggaeton",
+        "ska"
+      ],
+      "children": [
+        "RAndB",
+        "HipDashHop",
+        "Reggae",
+        "Soul"
+      ],
       "thumbnails": {}
     },
     "Rock": {
       "leaves": [
-        "alt-rock", "grunge",
-        "alternative", "emo", "goth", "hard-rock", "industrial", "j-rock", "psych-rock", "punk", "punk-rock", "rock", "rock-n-roll",
-        "black-metal", "death-metal", "grindcore", "heavy-metal", "metal", "metal-misc", "metalcore", "rainy-day"
+        "alt-rock",
+        "grunge",
+        "alternative",
+        "emo",
+        "goth",
+        "hard-rock",
+        "industrial",
+        "j-rock",
+        "psych-rock",
+        "punk",
+        "punk-rock",
+        "rock",
+        "rock-n-roll",
+        "black-metal",
+        "death-metal",
+        "grindcore",
+        "heavy-metal",
+        "metal",
+        "metal-misc",
+        "metalcore",
+        "rainy-day"
       ],
-      "children": ["Alternative", "Metal", "Progressive", "Psychedelic", "Punk", "Experimental"],
+      "children": [
+        "Alternative",
+        "Metal",
+        "Progressive",
+        "Psychedelic",
+        "Punk",
+        "Experimental"
+      ],
       "thumbnails": {}
     },
     "Pop": {
-      "leaves": ["cantopop", "mandopop", "j-pop", "k-pop", "pop", "pop-film", "power-pop", "romance", "sad", "synth-pop"],
-      "children": ["EastSpaceAsian"],
+      "leaves": [
+        "cantopop",
+        "mandopop",
+        "j-pop",
+        "k-pop",
+        "pop",
+        "pop-film",
+        "power-pop",
+        "romance",
+        "sad",
+        "synth-pop"
+      ],
+      "children": [
+        "EastSpaceAsian"
+      ],
       "thumbnails": {}
     },
     "Country": {
-      "leaves": ["country", "guitar", "bluegrass", "honky-tonk", "rockabilly", "romance", "sad", "singer-songwriter", "songwriter", "acoustic", "folk"],
-      "children": ["Acoustic", "Folk"],
+      "leaves": [
+        "country",
+        "guitar",
+        "bluegrass",
+        "honky-tonk",
+        "rockabilly",
+        "romance",
+        "sad",
+        "singer-songwriter",
+        "songwriter",
+        "acoustic",
+        "folk"
+      ],
+      "children": [
+        "Acoustic",
+        "Folk"
+      ],
       "thumbnails": {}
     },
     "Electronic": {
-      "leaves": ["electronic", "idm", "industrial", "chill", "ambient", "summer", "detroit-techno", "minimal-techno", "techno",
-        "breakbeat", "chicago-house", "club", "trance", "progressive-house", "party", "dub", "dubstep", "post-dubstep",
-        "dance", "dancehall", "deep-house", "disco", "j-dance", "drum-and-bass", "edm", "electro", "garage", "hardstyle", "hardcore",
-        "house", "afrobeat" ],
-      "children": ["Ambient", "DAndB", "Dub", "House", "Techno", "Trance"],
+      "leaves": [
+        "electronic",
+        "idm",
+        "industrial",
+        "chill",
+        "ambient",
+        "summer",
+        "detroit-techno",
+        "minimal-techno",
+        "techno",
+        "breakbeat",
+        "chicago-house",
+        "club",
+        "trance",
+        "progressive-house",
+        "party",
+        "dub",
+        "dubstep",
+        "post-dubstep",
+        "dance",
+        "dancehall",
+        "deep-house",
+        "disco",
+        "j-dance",
+        "drum-and-bass",
+        "edm",
+        "electro",
+        "garage",
+        "hardstyle",
+        "hardcore",
+        "house",
+        "afrobeat"
+      ],
+      "children": [
+        "Ambient",
+        "DAndB",
+        "Dub",
+        "House",
+        "Techno",
+        "Trance"
+      ],
       "thumbnails": {}
     },
     "JazzCommaSpaceBluesCommaSpaceandSpaceClassical": {
-      "leaves": ["blues", "funk", "groove", "jazz", "classical", "opera", "piano"],
-      "children": ["Blues", "Jazz", "Piano", "Classical", "Opera"],
+      "leaves": [
+        "blues",
+        "funk",
+        "groove",
+        "jazz",
+        "classical",
+        "opera",
+        "piano"
+      ],
+      "children": [
+        "Blues",
+        "Jazz",
+        "Piano",
+        "Classical",
+        "Opera"
+      ],
       "thumbnails": {}
     },
     "Other": {
       "leaves": [
-        "work-out", "bossanova", "brazil", "turkish", "swedish", "mpb", "spanish", "pagode", "philippines-opm", "british", "forro", "french", "german",
-        "indian", "iranian", "j-dance", "j-idol", "j-pop", "j-rock", "k-pop", "latin", "latino", "malay", "salsa", "samba", "sertanejo",
-        "anime", "children", "comedy", "disney", "gospel", "work-out", "soundtracks",
-        "happy", "holidays", "kids", "movies", "new-age", "new-release", "road-trip", "show-tunes",
-        "indie", "indie-pop", "romance", "sad", "sleep", "study", "tango"
+        "work-out",
+        "bossanova",
+        "brazil",
+        "turkish",
+        "swedish",
+        "mpb",
+        "spanish",
+        "pagode",
+        "philippines-opm",
+        "british",
+        "forro",
+        "french",
+        "german",
+        "indian",
+        "iranian",
+        "j-dance",
+        "j-idol",
+        "j-pop",
+        "j-rock",
+        "k-pop",
+        "latin",
+        "latino",
+        "malay",
+        "salsa",
+        "samba",
+        "sertanejo",
+        "anime",
+        "children",
+        "comedy",
+        "disney",
+        "gospel",
+        "work-out",
+        "soundtracks",
+        "happy",
+        "holidays",
+        "kids",
+        "movies",
+        "new-age",
+        "new-release",
+        "road-trip",
+        "show-tunes",
+        "indie",
+        "indie-pop",
+        "romance",
+        "sad",
+        "sleep",
+        "study",
+        "tango"
       ],
-      "children": ["Latin", "Soundtracks", "Romance", "Sad", "Sleep", "Indie", "Gospel", "World"],
+      "children": [
+        "Latin",
+        "Soundtracks",
+        "Romance",
+        "Sad",
+        "Sleep",
+        "Indie",
+        "Gospel",
+        "World"
+      ],
       "thumbnails": {}
     },
     "All": {
