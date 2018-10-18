@@ -1,6 +1,6 @@
 'use strict'
 
-const genresList = require('../../lib/genres')
+const genreDataObject = require('../../lib/genreData.json')
 const _ = require('lodash')
 const { from, concat } = require('rxjs')
 const { concatMap } = require('rxjs/operators')
@@ -16,7 +16,7 @@ module.exports = function (genre) {
     let count = 0
 
     let genres = []
-    _.forIn(Object.assign({}, genresList.genreTree), (value, key) => {
+    _.forIn(Object.assign({}, genreDataObject.genreTree), (value, key) => {
       genres = _.concat(genres, { key, value })
     })
 
