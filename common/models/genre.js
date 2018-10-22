@@ -64,7 +64,8 @@ module.exports = function (genre) {
       'itemType': 'genre',
       'genres': genre.leaves,
       'childrenItems': genre.children,
-      'snippet-thumbnails': genre.thumbnails
+      'snippet-thumbnails': genre.thumbnails,
+      'item-isRemoved': genre.isRemoved
     }
 
     return recommenderGenre
