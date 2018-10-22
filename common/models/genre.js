@@ -51,7 +51,7 @@ module.exports = function (genre) {
 
     genreDataObject.areGenresRecSysSynced = false
 
-    fs.writeFile('lib/genreData.json', JSON.stringify(genreDataObject, null, 2), 'utf8', (err) => {
+    fs.writeFile('lib/genreData.json', `${JSON.stringify(genreDataObject, null, 2)}\n`, 'utf8', (err) => {
       if (err) throw err
       console.log('Genre Items marked for Re-sync.')
     })
