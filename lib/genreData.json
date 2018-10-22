@@ -1,5 +1,6 @@
 {
-  "areGenresRecSysSynced": false,
+  "type": "genre",
+  "areGenresRecSysSynced": true,
   "genreTree": {
     "Root": {
       "leaves": [],

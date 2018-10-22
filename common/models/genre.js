@@ -1,6 +1,6 @@
 'use strict'
 
-const genreDataObject = require('../../lib/genreData.json')
+const fs = require('fs')
 const _ = require('lodash')
 const { from, concat, iif } = require('rxjs')
 const { concatMap } = require('rxjs/operators')
@@ -13,6 +13,7 @@ let activeSubscriptions = []
 
 module.exports = function (genre) {
   genre.syncGenreItemsToRecommender = function () {
+    const genreDataObject = JSON.parse(fs.readFileSync('lib/genreData.json')) // parsing here instead of require('jsonfile') for non-stale data on invocation
     let count = 0
 
     let genres = []
@@ -22,13 +23,17 @@ module.exports = function (genre) {
 
     const syncDoneWarning = from(['Genre items are already synced. If re-sync is necessary, please set genre items for re-sync, hence, creating extra $set events in recommender system'])
 
-    const genreItemsSyncer = from(genres).pipe(
+    const genreItemsRecommenderWriter = from(genres).pipe(
       concatMap(({ key, value }) => {
         const recommenderItem = convertGenreToRecommenderGenreItem(value)
 
         return recommenderUtils.writeBufferedItemsToRecommender([{ id: key, recommenderItem }], {})
       })
     )
+
+    const genreJsonFileSyncedStatusMarker = recommenderUtils.markJsonFileRecSysSynced('lib/genreData.json', { ...genreDataObject })
+
+    const genreItemsSyncer = concat(genreItemsRecommenderWriter, genreJsonFileSyncedStatusMarker)
 
     const safeGenreItemsSyncer = concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions),
       iif(() => genreDataObject.areGenresRecSysSynced, syncDoneWarning, genreItemsSyncer))
