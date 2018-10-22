@@ -20,6 +20,28 @@
           "verb": "put"
         }
       ]
+    },
+    "setGenreItemsForRecommenderReSync": {
+      "accepts": [],
+      "returns": [],
+      "description": "sets the genre items for re-sync with recommender system",
+      "http": [
+        {
+          "path": "/setGenreItemsForRecommenderReSync",
+          "verb": "put"
+        }
+      ]
+    },
+    "deleteGenreItemsFromRecommender": {
+      "accepts": [],
+      "returns": [],
+      "description": "delete the genre items from recommender system (To be used only for deletions and modifications in 'key' values of genreData.json)",
+      "http": [
+        {
+          "path": "/deleteGenreItemsFromRecommender",
+          "verb": "put"
+        }
+      ]
     }
   }
 }

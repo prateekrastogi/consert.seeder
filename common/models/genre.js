@@ -46,6 +46,23 @@ module.exports = function (genre) {
     return new Promise((resolve, reject) => resolve())
   }
 
+  genre.setGenreItemsForRecommenderReSync = function () {
+    const genreDataObject = JSON.parse(fs.readFileSync('lib/genreData.json'))
+
+    genreDataObject.areGenresRecSysSynced = false
+
+    fs.writeFile('lib/genreData.json', JSON.stringify(genreDataObject, null, 2), 'utf8', (err) => {
+      if (err) throw err
+      console.log('Genre Items marked for Re-sync.')
+    })
+
+    return new Promise((resolve, reject) => resolve())
+  }
+
+  genre.deleteGenreItemsFromRecommender = function () {
+    return new Promise((resolve, reject) => resolve())
+  }
+
   function convertGenreToRecommenderGenreItem (genre) {
     const recommenderGenre = {
       'itemType': 'genre',
