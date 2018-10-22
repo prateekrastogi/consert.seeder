@@ -48,7 +48,12 @@ module.exports = function (recommender) {
         return { recommenderItem, id }
       }),
       bufferCount(MAX_BATCH),
-      concatMap(bufferedItems => recommenderUtils.writeBufferedItemsToRecommender(bufferedItems, enrichedArtist))
+      concatMap(bufferedItems => {
+        return concat(recommenderUtils.writeBufferedItemsToRecommender(bufferedItems, enrichedArtist),
+          recommenderUtils.markBufferedItemsRecSysSynced(bufferedItems, enrichedArtist)
+        )
+      }
+      )
     )
 
     const safeArtistSyncer = concat(terminateAllActiveInterferingSubscriptions(artistRelatedActiveSubscriptions), recursiveTimeOutDeferredObservable(artistSyncer, 4 * WAIT_TILL_NEXT_REQUEST))
@@ -138,7 +143,11 @@ module.exports = function (recommender) {
 
         return R.map(mapperFn, items)
       }),
-      concatMap(bufferedItems => recommenderUtils.writeBufferedItemsToRecommender(bufferedItems, model))
+      concatMap(bufferedItems => {
+        return concat(recommenderUtils.writeBufferedItemsToRecommender(bufferedItems, model),
+          recommenderUtils.markBufferedItemsRecSysSynced(bufferedItems, model)
+        )
+      })
     )
 
     return recommenderSyncer
