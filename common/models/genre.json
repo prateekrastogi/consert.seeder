@@ -31,17 +31,6 @@
           "verb": "put"
         }
       ]
-    },
-    "deleteGenreItemsFromRecommender": {
-      "accepts": [],
-      "returns": [],
-      "description": "delete the genre items from recommender system (To be used only for deletions and modifications in 'key' values of genreData.json)",
-      "http": [
-        {
-          "path": "/deleteGenreItemsFromRecommender",
-          "verb": "put"
-        }
-      ]
     }
   }
 }

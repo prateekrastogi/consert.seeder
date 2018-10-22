@@ -59,10 +59,6 @@ module.exports = function (genre) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  genre.deleteGenreItemsFromRecommender = function () {
-    return new Promise((resolve, reject) => resolve())
-  }
-
   function convertGenreToRecommenderGenreItem (genre) {
     const recommenderGenre = {
       'itemType': 'genre',
