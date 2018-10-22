@@ -13,7 +13,7 @@ let activeSubscriptions = []
 
 module.exports = function (genre) {
   genre.syncGenreItemsToRecommender = function () {
-    const genreDataObject = JSON.parse(fs.readFileSync('lib/genreData.json')) // parsing here instead of require('jsonfile') for non-stale data on invocation
+    const genreDataObject = JSON.parse(fs.readFileSync('lib/genreData.json'))
     let count = 0
 
     let genres = []
