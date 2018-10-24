@@ -6,7 +6,7 @@
     "node": ">=4"
   },
   "scripts": {
-    "dev": "nodemon --max-old-space-size=8192 .",
+    "dev": "nodemon --inspect=0.0.0.0:3201 --max-old-space-size=8192 .",
     "start": "node --max-old-space-size=8192 .",
     "lint": "standard --fix"
   },
