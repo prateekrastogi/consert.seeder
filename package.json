@@ -8,8 +8,7 @@
   "scripts": {
     "dev": "nodemon --max-old-space-size=8192 .",
     "start": "node --max-old-space-size=8192 .",
-    "lint": "standard",
-    "lint-fix": "standard --fix"
+    "lint": "standard --fix"
   },
   "dependencies": {
     "async": "^2.6.1",
