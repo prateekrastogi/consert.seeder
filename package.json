@@ -7,13 +7,14 @@
   },
   "scripts": {
     "dev": "nodemon --inspect=0.0.0.0:3201 --max-old-space-size=8192 .",
-    "start": "node --max-old-space-size=8192 .",
+    "start": "cross-env NODE_ENV=production node --max-old-space-size=8192 .",
     "lint": "standard --fix"
   },
   "dependencies": {
     "async": "^2.6.1",
     "compression": "^1.7.3",
     "cors": "^2.8.4",
+    "cross-env": "^5.2.0",
     "helmet": "^3.14.0",
     "lodash": "^4.17.11",
     "loopback": "^3.23.0",
