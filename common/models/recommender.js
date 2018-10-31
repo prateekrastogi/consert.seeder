@@ -49,7 +49,7 @@ module.exports = function (recommender) {
       }),
       bufferCount(MAX_BATCH),
       concatMap(bufferedItems => {
-        return concat(recommenderUtils.writeBufferedItemsToRecommender(bufferedItems, enrichedArtist),
+        return concat(recommenderUtils.writeBufferedItemsToRecommender(bufferedItems),
           recommenderUtils.markBufferedItemsRecSysSynced(bufferedItems, enrichedArtist)
         )
       }
@@ -144,7 +144,7 @@ module.exports = function (recommender) {
         return R.map(mapperFn, items)
       }),
       concatMap(bufferedItems => {
-        return concat(recommenderUtils.writeBufferedItemsToRecommender(bufferedItems, model),
+        return concat(recommenderUtils.writeBufferedItemsToRecommender(bufferedItems),
           recommenderUtils.markBufferedItemsRecSysSynced(bufferedItems, model)
         )
       })

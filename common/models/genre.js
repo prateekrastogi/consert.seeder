@@ -27,7 +27,7 @@ module.exports = function (genre) {
       concatMap(({ key, value }) => {
         const recommenderItem = convertGenreToRecommenderGenreItem(value)
 
-        return recommenderUtils.writeBufferedItemsToRecommender([{ id: key, recommenderItem }], {})
+        return recommenderUtils.writeBufferedItemsToRecommender([{ id: key, recommenderItem }])
       })
     )
 
