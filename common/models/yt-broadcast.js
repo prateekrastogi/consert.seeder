@@ -23,7 +23,7 @@ let activeSubscriptions = []
 
 module.exports = function (ytBroadcast) {
   ytBroadcast.syncYtBroadcasts = function () {
-    const safeSearchAndSyncLiveEvents = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), searchAndSyncLiveEvents())
+    const safeSearchAndSyncLiveEvents = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), searchAndSyncLiveEvents()).retry(RETRY_COUNT)
 
     const syncYtBroadcastsSubscription = safeSearchAndSyncLiveEvents.subscribe(x => console.log(`Setting for sync: ${x.snippet.title}`),
       err => console.error(err))
