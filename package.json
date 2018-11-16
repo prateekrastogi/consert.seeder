@@ -13,16 +13,16 @@
   "dependencies": {
     "async": "^2.6.1",
     "compression": "^1.7.3",
-    "cors": "^2.8.4",
+    "cors": "^2.8.5",
     "cross-env": "^5.2.0",
-    "helmet": "^3.14.0",
+    "helmet": "^3.15.0",
     "lodash": "^4.17.11",
-    "loopback": "^3.23.0",
+    "loopback": "^3.24.0",
     "loopback-boot": "^2.27.1",
-    "loopback-component-explorer": "^6.3.0",
-    "loopback-connector-esv6": "^1.0.4",
-    "loopback-connector-mongodb": "^3.8.0",
-    "natural": "^0.6.1",
+    "loopback-component-explorer": "^6.3.1",
+    "loopback-connector-esv6": "^1.2.0",
+    "loopback-connector-mongodb": "^3.9.2",
+    "natural": "^0.6.2",
     "predictionio-driver": "^0.5.2",
     "ramda": "^0.25.0",
     "rxjs": "^6.3.3",
@@ -33,7 +33,7 @@
     "youtube-node-custom": "^1.4.6"
   },
   "devDependencies": {
-    "nodemon": "^1.18.4",
+    "nodemon": "^1.18.6",
     "standard": "^12.0.1"
   },
   "standard": {
