@@ -3,7 +3,8 @@
 const loginAssist = require('../../lib/login-assist')
 const _ = require('lodash')
 const async = require('async')
-const Rx = require('rxjs-compat')
+const { from, interval } = require('rxjs')
+const { concatMap, take, tap, retry } = require('rxjs/operators')
 
 const RETRY_COUNT = 10
 const MAX_CONCURRENCY = 1
@@ -21,10 +22,10 @@ module.exports = function (artistSeed) {
       let recommendedArtists
       // Gets the artists recommended for each genre from the genre seed
       async.eachLimit(genres, MAX_CONCURRENCY, async (value) => {
-        const resilientGetRecommendationsPromise = Rx.Observable.fromPromise(spotifyApi.getRecommendations({
+        const resilientGetRecommendationsPromise = from(spotifyApi.getRecommendations({
           seed_genres: [value],
           limit: 100
-        })).retry(RETRY_COUNT).toPromise()
+        })).pipe(retry(RETRY_COUNT)).toPromise()
 
         const genreRecommendedTracks = (await resilientGetRecommendationsPromise).body.tracks
 
@@ -57,8 +58,9 @@ module.exports = function (artistSeed) {
         const spotifyApi = await loginAssist.spotifyLogin()
 
         const resilientGetArtistRelatedArtistsPromise =
-        Rx.Observable.interval(REQUEST_INTERVAL).take(1).concatMap(i => Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artist.id)))
-          .retry(RETRY_COUNT).toPromise()
+        interval(REQUEST_INTERVAL).pipe(take(1),
+          concatMap(i => from(spotifyApi.getArtistRelatedArtists(artist.id))),
+          retry(RETRY_COUNT)).toPromise()
         const relatedArtists = (await resilientGetArtistRelatedArtistsPromise).body.artists
 
         _.map(relatedArtists, (artist) => {
@@ -90,11 +92,11 @@ module.exports = function (artistSeed) {
       })
     }
 
-    Rx.Observable.interval(LOGGING_INTERVAL).do(val => {
+    interval(LOGGING_INTERVAL).pipe(tap(val => {
       artistSeed.find((err, result) => {
         (err) ? console.log('Error in artistSeed.find ', err) : process.stdout.write(`Total no. of Artists written in mongodb so far: ${result.length}\r`)
       })
-    }).subscribe()
+    })).subscribe()
 
     return new Promise((resolve, reject) => resolve())
   }
