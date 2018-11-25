@@ -8,6 +8,7 @@ const Rx = require('rxjs-compat')
 const RETRY_COUNT = 10
 const MAX_CONCURRENCY = 1
 const REQUEST_INTERVAL = 50
+const LOGGING_INTERVAL = 1000 * 10
 
 module.exports = function (artistSeed) {
   artistSeed.putTopSpotifyArtists = async function () {
@@ -79,7 +80,7 @@ module.exports = function (artistSeed) {
         }
       })
 
-      Rx.Observable.interval(1000 * 10).do(val => {
+      Rx.Observable.interval(LOGGING_INTERVAL).do(val => {
         artistSeed.find((err, result) => {
           (err) ? console.log('Error in artistSeed.find ', err) : process.stdout.write(`Total no. of Artists written in mongodb so far: ${result.length}\r`)
         })
