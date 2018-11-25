@@ -49,6 +49,12 @@ module.exports = function (artistSeed) {
           cb(null, recommendedUniqueArtists)
         }
       })
+
+      Rx.Observable.interval(LOGGING_INTERVAL).do(val => {
+        artistSeed.find((err, result) => {
+          (err) ? console.log('Error in artistSeed.find ', err) : process.stdout.write(`Total no. of Artists written in mongodb so far: ${result.length}\r`)
+        })
+      }).subscribe()
     }
 
     function pullRelatedArtists (recommendedArtists, cb) {
@@ -79,12 +85,6 @@ module.exports = function (artistSeed) {
           cb(null, _.compact(allRelevantArtists))
         }
       })
-
-      Rx.Observable.interval(LOGGING_INTERVAL).do(val => {
-        artistSeed.find((err, result) => {
-          (err) ? console.log('Error in artistSeed.find ', err) : process.stdout.write(`Total no. of Artists written in mongodb so far: ${result.length}\r`)
-        })
-      }).subscribe()
     }
 
     function saveToDb (allRelevantArtists) {
