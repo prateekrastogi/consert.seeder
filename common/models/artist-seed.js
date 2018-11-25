@@ -14,9 +14,9 @@ module.exports = function (artistSeed) {
     const spotifyApi = await loginAssist.spotifyLogin()
     const { genres } = (await spotifyApi.getAvailableGenreSeeds()).body
 
-    async.waterfall([getRecommendedArtists, getRelatedArtists, saveToDb, getRelatedArtists, saveToDb])
+    async.waterfall([pullRecommendedArtists, pullRelatedArtists, pullRelatedArtists])
 
-    function getRecommendedArtists (cb) {
+    function pullRecommendedArtists (cb) {
       let recommendedArtists
       // Gets the artists recommended for each genre from the genre seed
       async.eachLimit(genres, MAX_CONCURRENCY, async (value) => {
@@ -42,12 +42,15 @@ module.exports = function (artistSeed) {
           console.log('Completed Recommended Artists api calls. Filtering unique artists among them....')
           const recommendedUniqueArtists = _.uniqWith(_.compact(recommendedArtists), _.isEqual)
           console.log('Finished filtering unique artists')
+
+          saveToDb(recommendedUniqueArtists)
+
           cb(null, recommendedUniqueArtists)
         }
       })
     }
 
-    function getRelatedArtists (recommendedArtists, cb) {
+    function pullRelatedArtists (recommendedArtists, cb) {
       let allRelevantArtists = _.cloneDeep(recommendedArtists)
 
       console.log(`Fetching list of related artists...`)
@@ -62,8 +65,9 @@ module.exports = function (artistSeed) {
         _.map(relatedArtists, (artist) => {
           const { id, name } = artist
 
+          saveToDb([{ id, name }])
+
           allRelevantArtists = _.concat(allRelevantArtists, { id, name })
-          process.stdout.write(`Total Artist fetched: ${allRelevantArtists.length}\r`)
         })
       }, (err) => {
         if (err) {
@@ -76,9 +80,7 @@ module.exports = function (artistSeed) {
       })
     }
 
-    function saveToDb (allRelevantArtists, cb) {
-      console.log('Starting mongo replaceOrCreate operations for artists')
-
+    function saveToDb (allRelevantArtists) {
       // Performing unique check here by using replaceOrCreate
       async.eachSeries(allRelevantArtists, async (artist) => {
         await artistSeed.replaceOrCreate(artist)
@@ -86,9 +88,8 @@ module.exports = function (artistSeed) {
         if (err) {
           console.log('Error in putTopSpotifyArtists.saveToDb ', err)
         } else {
-          console.log('Successfully written all the data in mongodb')
           artistSeed.find((err, result) => {
-            (err) ? console.log('Error in artistSeed.find ', err) : cb(null, result)
+            (err) ? console.log('Error in artistSeed.find ', err) : process.stdout.write(`Total no. of Artists written in mongodb so far: ${result.length}\r`)
           })
         }
       })
