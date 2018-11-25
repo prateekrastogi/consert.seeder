@@ -52,8 +52,6 @@ module.exports = function (artistSeed) {
     }
 
     function pullRelatedArtists (recommendedArtists, cb) {
-      let allRelevantArtists = _.cloneDeep(recommendedArtists)
-
       console.log(`Fetching list of related artists...`)
       async.eachLimit(recommendedArtists, MAX_CONCURRENCY, async (artist) => {
         const spotifyApi = await loginAssist.spotifyLogin()
@@ -65,10 +63,7 @@ module.exports = function (artistSeed) {
 
         _.map(relatedArtists, (artist) => {
           const { id, name } = artist
-
           saveToDb([{ id, name }])
-
-          allRelevantArtists = _.concat(allRelevantArtists, { id, name })
         })
       }, (err) => {
         if (err) {
@@ -76,14 +71,17 @@ module.exports = function (artistSeed) {
         } else {
           // Don't use lodash uniq to get unique here due to very high processing time.
           console.log(`Completed fetching related artists.`)
-          cb(null, _.compact(allRelevantArtists))
+
+          artistSeed.find((err, relatedUniqueArtists) => {
+            (err) ? console.log('Error in artistSeed.find ', err) : cb(null, relatedUniqueArtists)
+          })
         }
       })
     }
 
-    function saveToDb (allRelevantArtists) {
+    function saveToDb (artists) {
       // Performing unique check here by using replaceOrCreate
-      async.eachSeries(allRelevantArtists, async (artist) => {
+      async.eachSeries(artists, async (artist) => {
         await artistSeed.replaceOrCreate(artist)
       }, (err) => {
         if (err) {
