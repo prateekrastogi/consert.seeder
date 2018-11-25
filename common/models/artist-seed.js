@@ -47,7 +47,9 @@ module.exports = function (artistSeed) {
 
           saveToDb(recommendedUniqueArtists)
 
-          cb(null, recommendedUniqueArtists)
+          artistSeed.find((err, uniqueArtists) => {
+            (err) ? console.log('Error in artistSeed.find ', err) : cb(null, uniqueArtists)
+          })
         }
       })
     }
