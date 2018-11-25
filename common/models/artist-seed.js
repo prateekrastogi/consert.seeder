@@ -94,7 +94,7 @@ module.exports = function (artistSeed) {
 
     interval(LOGGING_INTERVAL).pipe(tap(val => {
       artistSeed.find((err, result) => {
-        (err) ? console.log('Error in artistSeed.find ', err) : process.stdout.write(`Total no. of Artists written in mongodb so far: ${result.length}\r`)
+        (err) ? console.log('Error in artistSeed.find ', err) : process.stdout.write(`Total no. of artist seeds written in mongodb so far: ${result.length}\r`)
       })
     })).subscribe()
 
