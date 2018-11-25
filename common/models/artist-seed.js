@@ -78,6 +78,12 @@ module.exports = function (artistSeed) {
           cb(null, _.compact(allRelevantArtists))
         }
       })
+
+      Rx.Observable.interval(1000 * 10).do(val => {
+        artistSeed.find((err, result) => {
+          (err) ? console.log('Error in artistSeed.find ', err) : process.stdout.write(`Total no. of Artists written in mongodb so far: ${result.length}\r`)
+        })
+      }).subscribe()
     }
 
     function saveToDb (allRelevantArtists) {
@@ -87,10 +93,6 @@ module.exports = function (artistSeed) {
       }, (err) => {
         if (err) {
           console.log('Error in putTopSpotifyArtists.saveToDb ', err)
-        } else {
-          artistSeed.find((err, result) => {
-            (err) ? console.log('Error in artistSeed.find ', err) : process.stdout.write(`Total no. of Artists written in mongodb so far: ${result.length}\r`)
-          })
         }
       })
     }
