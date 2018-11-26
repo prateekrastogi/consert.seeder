@@ -25,7 +25,7 @@ module.exports = function (genre) {
 
     const genreItemsRecommenderWriter = from(genres).pipe(
       concatMap(({ key, value }) => {
-        const recommenderItem = convertGenreToRecommenderGenreItem(value)
+        const recommenderItem = recommenderUtils.convertGenreToRecommenderGenreItem(value)
 
         return recommenderUtils.writeBufferedItemsToRecommender([{ id: key, recommenderItem }])
       })
@@ -57,17 +57,5 @@ module.exports = function (genre) {
     })
 
     return new Promise((resolve, reject) => resolve())
-  }
-
-  function convertGenreToRecommenderGenreItem (genre) {
-    const recommenderGenre = {
-      'itemType': 'genre',
-      'genres': genre.leaves,
-      'childrenItems': genre.children,
-      'snippet-thumbnails': genre.thumbnails,
-      'item-isRemoved': genre.isRemoved
-    }
-
-    return recommenderGenre
   }
 }
