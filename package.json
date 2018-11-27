@@ -24,7 +24,7 @@
     "loopback-connector-mongodb": "^3.9.2",
     "natural": "^0.6.2",
     "predictionio-driver": "^0.5.2",
-    "ramda": "^0.25.0",
+    "ramda": "^0.26.0",
     "rxjs": "^6.3.3",
     "rxjs-compat": "^6.3.3",
     "serve-favicon": "^2.5.0",
