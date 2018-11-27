@@ -101,7 +101,7 @@ module.exports = function (enrichedArtist) {
     const putEnrichedArtistsSubscription = safeEnrichedArtistObservable.subscribe({
       next: async (x) => {
         count++
-        await enrichedArtist.replaceOrCreate(x)
+        from(enrichedArtist.replaceOrCreate(x)).pipe(retry(RETRY_COUNT)).toPromise()
         console.log(`Successfully added/replaced the artist: ${x.artist.name}`)
         console.log(`Total artists added/replaced in the running execution: ${count}`)
       },
