@@ -1,9 +1,10 @@
 'use strict'
 
-const Rx = require('rxjs-compat')
 const _ = require('lodash')
 const loginAssist = require('../../lib/login-assist')
 const app = require('../../server/server')
+const { from, zip, timer, range, concat } = require('rxjs')
+const { concatMap, pluck, map, retry, bufferCount, mergeMap, reduce, tap } = require('rxjs/operators')
 
 const terminateAllActiveInterferingSubscriptions = require('../../lib/misc-utils').terminateAllActiveInterferingSubscriptions
 
@@ -17,62 +18,85 @@ module.exports = function (enrichedArtist) {
     const artistSeed = app.models.artistSeed
     const uncrawledArtists = await artistSeed.find({ where: { or: [{ isCrawled: false }, { isCrawled: { exists: false } }] } })
 
-    const spotifyApi = Rx.Observable.timer(0, 1500).concatMap((i) => Rx.Observable.fromPromise(loginAssist.spotifyLogin()))
-    const artistList = Rx.Observable.from(uncrawledArtists)
+    const spotifyApi = timer(0, 1500).pipe(concatMap((i) => from(loginAssist.spotifyLogin())))
+    const artistList = from(uncrawledArtists)
 
-    const artistListWithSpotifyToken = Rx.Observable.zip(spotifyApi, artistList.pluck('id'))
+    const artistListWithSpotifyToken = zip(spotifyApi, artistList.pipe(pluck('id')))
 
-    const enrichedArtistObservable = artistListWithSpotifyToken
-      .do(async ([spotifyApi, artistId]) => {
-        /* Marking the artist to be crawled here coz if the artist doesn't have any top tracks or albums,then enriched artist
-         zip doesn't emit any values, so the subscribe part is not triggered. Thus, those artist are re-crawled on re-start */
+    const enrichedArtistObservable = artistListWithSpotifyToken.pipe(
+      tap(async ([spotifyApi, artistId]) => {
+      /* Marking the artist to be crawled here coz if the artist doesn't have any top tracks or albums,then enriched artist
+       zip doesn't emit any values, so the subscribe part is not triggered. Thus, those artist are re-crawled on re-start */
         let artistSeedInstance = await artistSeed.findById(artistId)
         artistSeedInstance.isCrawled = true
         await artistSeed.replaceOrCreate(artistSeedInstance)
         console.log(`Crawling the artist: ${artistSeedInstance.name}`)
-      })
-      .mergeMap(([spotifyApi, artistId]) => {
-        const artist = Rx.Observable.fromPromise(spotifyApi.getArtist(artistId)).retry(RETRY_COUNT).pluck('body')
-          .map((artist) => truncateFullArtist(artist))
+      }),
+      mergeMap(([spotifyApi, artistId]) => {
+        const artist = from(spotifyApi.getArtist(artistId)).pipe(
+          retry(RETRY_COUNT),
+          pluck('body'),
+          map((artist) => truncateFullArtist(artist)))
 
-        const id = artist.pluck('id')
+        const id = artist.pipe(pluck('id'))
 
-        const artistTopTracks = Rx.Observable.fromPromise(spotifyApi.getArtistTopTracks(artistId, 'US')).retry(RETRY_COUNT).pluck('body', 'tracks')
-          .map((topTracks) => _.map(topTracks, (topTrack) => truncateFullTrack(topTrack))).concatMap((topTracks) => Rx.Observable.from(topTracks))
+        const artistTopTracks = from(spotifyApi.getArtistTopTracks(artistId, 'US')).pipe(
+          retry(RETRY_COUNT),
+          pluck('body', 'tracks'),
+          map((topTracks) => _.map(topTracks, (topTrack) => truncateFullTrack(topTrack))),
+          concatMap((topTracks) => from(topTracks))
+        )
 
-        const artistTopTrackFeatures = artistTopTracks.pluck('id').bufferCount(100)
-          .concatMap((topTracksId) => Rx.Observable.fromPromise(spotifyApi.getAudioFeaturesForTracks(topTracksId))).retry(RETRY_COUNT).pluck('body', 'audio_features')
-          .concatMap(features => Rx.Observable.from(features))
+        const artistTopTrackFeatures = artistTopTracks.pipe(
+          pluck('id'),
+          bufferCount(100),
+          concatMap((topTracksId) => from(spotifyApi.getAudioFeaturesForTracks(topTracksId))),
+          retry(RETRY_COUNT),
+          pluck('body', 'audio_features'),
+          concatMap(features => from(features))
+        )
 
-        const artistTopTracksWithAudioFeatures = Rx.Observable.zip(artistTopTracks, artistTopTrackFeatures, (track, audioFeatures) => {
+        const artistTopTracksWithAudioFeatures = zip(artistTopTracks, artistTopTrackFeatures, (track, audioFeatures) => {
           return { track, audioFeatures }
-        }).reduce((accum, curr) => _.concat(accum, curr))
+        }).pipe(reduce((accum, curr) => _.concat(accum, curr)))
 
-        const artistRelatedArtists = Rx.Observable.fromPromise(spotifyApi.getArtistRelatedArtists(artistId)).retry(RETRY_COUNT).pluck('body', 'artists')
-          .map((relatedArtists) => _.map(relatedArtists, (relatedArtist) => truncateFullArtist(relatedArtist)))
+        const artistRelatedArtists = from(spotifyApi.getArtistRelatedArtists(artistId)).pipe(
+          retry(RETRY_COUNT),
+          pluck('body', 'artists'),
+          map((relatedArtists) => _.map(relatedArtists, (relatedArtist) => truncateFullArtist(relatedArtist)))
+        )
 
-        const artistAlbums = Rx.Observable.range(0, 3).concatMap((i) => {
-          return Rx.Observable.fromPromise(spotifyApi.getArtistAlbums(artistId, {
-            market: 'US',
-            limit: 50,
-            offset: (i * 50)
-          })).retry(RETRY_COUNT).pluck('body', 'items')
-        })
+        const artistAlbums = range(0, 3).pipe(
+          concatMap((i) => {
+            return from(spotifyApi.getArtistAlbums(artistId, {
+              market: 'US',
+              limit: 50,
+              offset: (i * 50)
+            })).pipe(retry(RETRY_COUNT), pluck('body', 'items'))
+          })
+        )
 
-        const artistDetailedAlbums = artistAlbums.concatMap((albums) => Rx.Observable.from(albums).pluck('id'))
-          .bufferCount(20).concatMap((bufferedAlbums) => {
+        const artistDetailedAlbums = artistAlbums.pipe(
+          concatMap((albums) => from(albums).pipe(pluck('id'))),
+          bufferCount(20),
+          concatMap((bufferedAlbums) => {
             return spotifyApi.getAlbums(bufferedAlbums)
-          }).retry(RETRY_COUNT).pluck('body', 'albums').map((albums) => _.map(_.compact(albums), (album) => truncateFullAlbum(album)))
-          .reduce((accum, curr) => _.concat(accum, curr))
+          }),
+          retry(RETRY_COUNT),
+          pluck('body', 'albums'),
+          map((albums) => _.map(_.compact(albums), (album) => truncateFullAlbum(album))),
+          reduce((accum, curr) => _.concat(accum, curr))
+        )
 
-        const enrichedArtist = Rx.Observable.zip(id, artist, artistDetailedAlbums, artistTopTracksWithAudioFeatures, artistRelatedArtists, (id, artist, albums, topTracks, relatedArtists) => {
+        const enrichedArtist = zip(id, artist, artistDetailedAlbums, artistTopTracksWithAudioFeatures, artistRelatedArtists, (id, artist, albums, topTracks, relatedArtists) => {
           return { id, artist, albums, topTracks, relatedArtists }
         })
 
         return enrichedArtist
       }, 2)
+    )
 
-    const safeEnrichedArtistObservable = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), enrichedArtistObservable)
+    const safeEnrichedArtistObservable = concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), enrichedArtistObservable)
 
     const putEnrichedArtistsSubscription = safeEnrichedArtistObservable.subscribe({
       next: async (x) => {
@@ -101,11 +125,13 @@ module.exports = function (enrichedArtist) {
         return { id, name, isCrawled: false }
       })
 
-      const enrichedArtistReCrawler = Rx.Observable.from(tbCrawled).concatMap((artist) => {
-        return Rx.Observable.fromPromise(artistSeed.replaceOrCreate(artist)).retry(RETRY_COUNT)
-      })
+      const enrichedArtistReCrawler = from(tbCrawled).pipe(
+        concatMap((artist) => {
+          return from(artistSeed.replaceOrCreate(artist)).pipe(retry(RETRY_COUNT))
+        })
+      )
 
-      const safeEnrichedArtistReCrawler = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), enrichedArtistReCrawler)
+      const safeEnrichedArtistReCrawler = concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions), enrichedArtistReCrawler)
 
       const setEnrichedArtistsForReCrawlSubscription = safeEnrichedArtistReCrawler.subscribe(x => {
         count++
