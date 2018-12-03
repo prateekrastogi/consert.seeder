@@ -2,7 +2,7 @@
 
 const fs = require('fs')
 const app = require('../../server/server')
-const { concat, from } = require('rxjs')
+const { concat, from, iif } = require('rxjs')
 const { concatMap, map, bufferCount } = require('rxjs/operators')
 const _ = require('lodash')
 const R = require('ramda')
@@ -89,14 +89,17 @@ module.exports = function (recommender) {
     const seedItem = seedDataObject.seedItem
     const seedItemRecommenderWriter = recommenderUtils.writeBufferedItemsToRecommender([seedItem])
 
+    const syncDoneWarning = from(['seedEvent is already synced. If re-sync is necessary, please set seedData.json for re-sync, hence, creating extra $set events in recommender system'])
+
     const seedEvent = seedDataObject.seedEvent
     const seedEventRecommenderWriter = from(recommenderUtils.pio.createAction(seedEvent))
 
-    const seedDataJsonFileSyncedStatusMarker = recommenderUtils.markJsonFileRecSysSynced('lib/seedData.json', seedDataObject)
+    const seedDataJsonFileSyncedStatusMarker = recommenderUtils.markJsonFileRecSysSynced('lib/seedData.json', { ...seedDataObject })
 
     const seedDataSyncer = concat(seedItemRecommenderWriter, seedEventRecommenderWriter, seedDataJsonFileSyncedStatusMarker)
 
-    seedDataSyncer.subscribe(x => console.log(x))
+    console.log('Starting syncSeedEvent...')
+    iif(() => seedDataObject.isSyntheticSeedRecSysSynced, syncDoneWarning, seedDataSyncer).subscribe(x => console.log(x))
 
     return new Promise((resolve, reject) => resolve())
   }
