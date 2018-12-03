@@ -82,6 +82,10 @@ module.exports = function (recommender) {
     return new Promise((resolve, reject) => resolve())
   }
 
+  recommender.syncSeedEvent = function () {
+    return new Promise((resolve, reject) => resolve())
+  }
+
   recommender.setArtistsByPopularityForRecommenderReSync = function (lowerBound, upperBound) {
     const enrichedArtist = app.models.enrichedArtist
 

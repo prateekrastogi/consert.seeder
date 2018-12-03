@@ -63,6 +63,17 @@
         }
       ]
     },
+    "syncSeedEvent": {
+      "accepts": [],
+      "returns": [],
+      "description": "Seeds the seed event required for executing 'pio train' with no usage events",
+      "http": [
+        {
+          "path": "/syncSeedEvent",
+          "verb": "put"
+        }
+      ]
+    },
     "setArtistsByPopularityForRecommenderReSync": {
       "accepts": [
         {
