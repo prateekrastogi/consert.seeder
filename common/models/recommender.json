@@ -66,7 +66,7 @@
     "syncSeedEvent": {
       "accepts": [],
       "returns": [],
-      "description": "Seeds the seed event required for executing 'pio train' with no usage events",
+      "description": "Publishes the synthetic seed event required for executing 'pio train' with no usage events. ONLY run when 'pio train' is failing due to no usage event i.e. coldest cold-start",
       "http": [
         {
           "path": "/syncSeedEvent",

@@ -1,5 +1,6 @@
 'use strict'
 
+const fs = require('fs')
 const app = require('../../server/server')
 const { concat, from } = require('rxjs')
 const { concatMap, map, bufferCount } = require('rxjs/operators')
@@ -83,6 +84,19 @@ module.exports = function (recommender) {
   }
 
   recommender.syncSeedEvent = function () {
+    const seedDataObject = JSON.parse(fs.readFileSync('lib/seedData.json'))
+
+    const seedItem = seedDataObject.seedItem
+    const seedItemRecommenderWriter = recommenderUtils.writeBufferedItemsToRecommender([seedItem])
+
+    const seedEvent = seedDataObject.seedEvent
+
+    const seedDataJsonFileSyncedStatusMarker = recommenderUtils.markJsonFileRecSysSynced('lib/seedData.json', seedDataObject)
+
+    const seedDataSyncer = concat(seedItemRecommenderWriter, seedDataJsonFileSyncedStatusMarker)
+
+    seedDataSyncer.subscribe(x => console.log(x))
+
     return new Promise((resolve, reject) => resolve())
   }
 
