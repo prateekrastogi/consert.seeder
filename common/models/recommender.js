@@ -83,7 +83,7 @@ module.exports = function (recommender) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  recommender.syncSeedEvent = function () {
+  recommender.syncSyntheticSeedEvent = function () {
     const seedDataObject = JSON.parse(fs.readFileSync('lib/seedData.json'))
 
     const seedItem = seedDataObject.seedItem
