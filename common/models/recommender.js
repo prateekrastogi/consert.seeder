@@ -90,10 +90,11 @@ module.exports = function (recommender) {
     const seedItemRecommenderWriter = recommenderUtils.writeBufferedItemsToRecommender([seedItem])
 
     const seedEvent = seedDataObject.seedEvent
+    const seedEventRecommenderWriter = from(recommenderUtils.pio.createAction(seedEvent))
 
     const seedDataJsonFileSyncedStatusMarker = recommenderUtils.markJsonFileRecSysSynced('lib/seedData.json', seedDataObject)
 
-    const seedDataSyncer = concat(seedItemRecommenderWriter, seedDataJsonFileSyncedStatusMarker)
+    const seedDataSyncer = concat(seedItemRecommenderWriter, seedEventRecommenderWriter, seedDataJsonFileSyncedStatusMarker)
 
     seedDataSyncer.subscribe(x => console.log(x))
 
