@@ -1,3 +1,5 @@
+// Todo: Replace all instances of bufferCount with bufferTime to handle edge case of last unfilled buffer. 
+
 ------ Docker ------
 
 docker build -t seeder .
