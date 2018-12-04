@@ -92,7 +92,7 @@ module.exports = function (recommender) {
     const syncDoneWarning = from(['seedEvent is already synced. If re-sync is necessary, please set seedData.json for re-sync, hence, creating extra $set events in recommender system'])
 
     const seedEvent = seedDataObject.seedEvent
-    const seedEventRecommenderWriter = from(recommenderUtils.pio.createAction(seedEvent))
+    const seedEventRecommenderWriter = from(recommenderUtils.predictionioClient.createAction(seedEvent))
 
     const seedDataJsonFileSyncedStatusMarker = recommenderUtils.markJsonFileRecSysSynced('lib/seedData.json', { ...seedDataObject })
 
