@@ -1,6 +1,6 @@
 {
   "type": "synthetic-seed",
-  "isSyntheticSeedRecSysSynced": false,
+  "isSyntheticSeedRecSysSynced": true,
   "seedItem": {
     "id": "synthetic-seed",
     "recommenderItem": {
