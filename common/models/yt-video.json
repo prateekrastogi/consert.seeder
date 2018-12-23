@@ -14,17 +14,20 @@
     "artists": {
       "type": [
         "string"
-      ]
+      ],
+      "required": false
     },
     "albums": {
       "type": [
         "string"
-      ]
+      ],
+      "required": false
     },
     "tracks": {
       "type": [
         "string"
-      ]
+      ],
+      "required": false
     },
     "isVideoElasticSearchSynced": {
       "type": "boolean",

@@ -156,7 +156,7 @@ module.exports = function (ytVideo) {
     return new Promise((resolve, reject) => resolve())
   }
 
-  async function videoObjectUpdater (video, { artists, albums, tracks }) {
+  async function videoObjectUpdater (video, { artists, albums = [], tracks = [] }) {
     const videoInstance = await ytVideo.findById(video.id)
     if (videoInstance !== null) {
       artists = _.union(artists, videoInstance.artists)
