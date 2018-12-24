@@ -1,47 +1,61 @@
 'use strict'
 
-const genresList = require('../../lib/genres')
+const fs = require('fs')
 const _ = require('lodash')
-const Rx = require('rxjs-compat')
-const recombeeClient = require('../../lib/login-assist').recombeeLogin()
-const recombeeRqs = require('recombee-api-client').requests
+const { from, concat, iif } = require('rxjs')
+const { concatMap } = require('rxjs/operators')
+
+const recommenderUtils = require('../../lib/recommender-utils')
 
 const terminateAllActiveInterferingSubscriptions = require('../../lib/misc-utils').terminateAllActiveInterferingSubscriptions
 
 let activeSubscriptions = []
 
 module.exports = function (genre) {
-  genre.seedGenreItemsToRecombee = function () {
+  genre.syncGenreItemsToRecommender = function () {
+    const genreDataObject = JSON.parse(fs.readFileSync('lib/genreData.json'))
+    let count = 0
+
     let genres = []
-    _.forIn(Object.assign({}, genresList.genreTree), (value, key) => {
+    _.forIn(Object.assign({}, genreDataObject.genreTree), (value, key) => {
       genres = _.concat(genres, { key, value })
     })
 
-    const genreItemsSyncer = Rx.Observable.from(genres).concatMap(({ key, value }) => {
-      const genreItem = convertGenreToRecombeeGenreItem(value)
+    const syncDoneWarning = from(['Genre items are already synced. If re-sync is necessary, please set genre items for re-sync, hence, creating extra $set events in recommender system'])
 
-      return Rx.Observable.fromPromise(recombeeClient.send(new recombeeRqs.SetItemValues(key, genreItem, { 'cascadeCreate': true })))
-    })
+    const genreItemsRecommenderWriter = from(genres).pipe(
+      concatMap(({ key, value }) => {
+        const recommenderItem = recommenderUtils.convertGenreToRecommenderGenreItem(value)
 
-    const safeGenreItemsSyncer = Rx.Observable.concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions),
-      genreItemsSyncer)
+        return recommenderUtils.writeBufferedItemsToRecommender([{ id: key, recommenderItem }])
+      })
+    )
 
-    const seedGenreItemsToRecombeeSubscription = safeGenreItemsSyncer
-      .subscribe(x => console.log(x), err => console.log(err), () => console.log(`All genre items seeded`))
+    const genreJsonFileSyncedStatusMarker = recommenderUtils.markJsonFileRecSysSynced('lib/genreData.json', { ...genreDataObject })
 
-    activeSubscriptions.push(seedGenreItemsToRecombeeSubscription)
+    const genreItemsSyncer = concat(genreItemsRecommenderWriter, genreJsonFileSyncedStatusMarker)
+
+    const safeGenreItemsSyncer = concat(terminateAllActiveInterferingSubscriptions(activeSubscriptions),
+      iif(() => genreDataObject.areGenresRecSysSynced, syncDoneWarning, genreItemsSyncer))
+
+    const genreSyncerSubscription = safeGenreItemsSyncer
+      .subscribe(x => _.isString(x) ? console.log(x) : console.log(`Total genre items seeded in this invocation: ${++count}`), err => console.log(err), () => console.log(`Finished execution of syncGenreItemsToRecommender function invocation.`))
+
+    activeSubscriptions.push(genreSyncerSubscription)
 
     return new Promise((resolve, reject) => resolve())
   }
 
-  function convertGenreToRecombeeGenreItem (genre) {
-    const recombeeGenre = {
-      'itemType': 'genre',
-      'genres': genre.leaves,
-      'childrenItems': genre.children,
-      'snippet-thumbnails': genre.thumbnails
-    }
+  genre.setGenreItemsForRecommenderReSync = function () {
+    const genreDataObject = JSON.parse(fs.readFileSync('lib/genreData.json'))
 
-    return recombeeGenre
+    genreDataObject.areGenresRecSysSynced = false
+
+    fs.writeFile('lib/genreData.json', `${JSON.stringify(genreDataObject, null, 2)}\n`, 'utf8', (err) => {
+      if (err) throw err
+      console.log('Genre Items marked for Re-sync.')
+    })
+
+    return new Promise((resolve, reject) => resolve())
   }
 }

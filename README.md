@@ -1,3 +1,5 @@
+// Todo: Replace all instances of bufferCount with bufferTime to handle edge case of last unfilled buffer. 
+
 ------ Docker ------
 
 docker build -t seeder .
@@ -31,12 +33,12 @@ Hit /users/login endpoint with this credential, and the id property of the respo
 
 - Each model can be run independently as a self-contained microservice if computation pressure forces horizontal scaling.   But, if we need the multiple running instances of same model method/s, then we need code refactoring for concurrency      control    
 
------- Model Description ------
+------ Model Description & Primary Responsibilities ------
 
 artist-seed: Fetches the spotify id and name of artists
 dependent on: nothing
 ---
-genre: Seeds the itemType `genre` to recombee. Also, provides a getter method to fetch the list of genre clusters and cluster keys
+genre: Sync the itemType `genre` to recommender.
 ---
 enriched-artist: Fetches the detailed spotify data of artists from artist-seeds
 dependent on: artist-seed
@@ -51,7 +53,7 @@ model field 'isRemoved': tells whether the video isRemoved from yt
 yt-broadcast: Handles the fetching, updation, and removal of  `live now` yt broadcasts   
 model field 'isRemoved': tells whether the broadcast isRemoved from yt
 ---
-recombee: Continuously Syncs the yt-videos of type 'video' and enriched-artist of type 'artist' to recombee
+recommender: Continuously Syncs the yt-videos of type 'video', 'broadcast', and enriched-artist of type 'artist' to recommender
 dependent on: enriched-artist and yt-video
 ---
 elastic-video: Continuously syncs the modified yt-videos with artists ids replaced by artists 'names' and 'genres' 
@@ -60,60 +62,9 @@ dependent on: enriched-artist and yt-video
 All models set* methods: Mostly used for cleanly restarting/resetting model sync/put methods from scratch, otherwise no usage in running regular system
 
 
------- Recombee Data Model ------
+------ Recommender Data Model ------
 
-Item Properties:
----------------
+`snippet-publishedAt`: dateTime
 
-itemType <string>: ItemType of uploaded recommendation items, can be of multiple types such as 'video', 'broadcast',
-'artist','genre' 
-kind <string>: Youtube resource kind
-etag <string>: Http etag of the resource
-contentDetails-duration <string>
-contentDetails-dimension <string>
-contentDetails-definition <string>
-contentDetails-caption <string>
-contentDetails-licensedContent <boolean>
-contentDetails-regionRestriction <string>
-contentDetails-contentRating <string>
-contentDetails-projection <string>
-contentDetails-hasCustomThumbnail <boolean>
-statistics-viewCount <string>
-statistics-likeCount <string>
-statistics-dislikeCount <string>
-statistics-favoriteCount <string>
-statistics-commentCount <string>
-snippet-publishedAt <timestamp>
-snippet-channelId <string>
-snippet-title <string>
-snippet-description <string>
-snippet-channelTitle <string>
-snippet-thumbnails <string>
-snippet-tags <set>
-snippet-liveBroadcastContent <string>: flag indicating the status of broadcast i.e. upcoming, live, completed, or none. 
-snippet-defaultLanguage <string>
-snippet-localized <string>
-snippet-defaultAudioLanguage <string>
-liveStreamingDetails-actualStartTime <timestamp>
-liveStreamingDetails-actualEndTime <timestamp>
-liveStreamingDetails-scheduledStartTime <timestamp>
-liveStreamingDetails-scheduledEndTime <timestamp>
-liveStreamingDetails-concurrentViewers <string>
-liveStreamingDetails-activeLiveChatId <string>
-artists-ids <set>: Id's of all the artists that returns that particular video
-genres <set>: Genres associated with that item
-childrenItems <set>: children of the item(sub-genres etc.)
-artists-names <set>: Names of all the artists involved in any particular video
-artists-popularity <set>: Popularity of all the artists involved in any particular video
-artists-followers <set>: Followers of all the artists involved in any particular video
-relatedItems <set>: Related artists, radio stations, genres etc. of the item
-artists-type <set>: Types of all the artists involved in any particular video
-item-isRemoved <boolean>: flag indicating whether item is removed
+All other item metadata fields are array of strings serialized via binning. 
 
-Not including artist top tracks in metadata due to biases in spotify top tracks algo. Similarly, excluding album meta data as un-necessary result matching in youtube search makes it a very weak correlation signal. 
-
-User Properties:
----------------
-
-userType <string>: Type of user accessing the site such as 'guest', 'spotify' signed up etc. Guest user's primary                       id is generated via cuid library from frontend
-browser-ids <set>: Browser Id's of the browsers from which user has accessed us so far 

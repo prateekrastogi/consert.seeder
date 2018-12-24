@@ -1,0 +1,20 @@
+{
+  "type": "synthetic-seed",
+  "isSyntheticSeedRecSysSynced": true,
+  "seedItem": {
+    "id": "synthetic-seed",
+    "recommenderItem": {
+      "itemType": [
+        "synthetic-seed"
+      ],
+      "item-isRemoved": [
+        "true"
+      ]
+    }
+  },
+  "seedEvent": {
+    "event": "watch",
+    "uid": "synthetic-seed",
+    "iid": "synthetic-seed"
+  }
+}

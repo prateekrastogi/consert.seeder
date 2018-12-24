@@ -1,5 +1,6 @@
 {
-  "name": "recombee",
+  "name": "recommender",
+  "plural": "recommender",
   "base": "Model",
   "idInjection": true,
   "options": {
@@ -13,7 +14,7 @@
     "syncPastShows": {
       "accepts": [],
       "returns": [],
-      "description": "Synchronizes the past recorded concerts with recombee for recommendations",
+      "description": "Synchronizes the past recorded concerts with recommender system for recommendations",
       "http": [
         {
           "path": "/syncPastShows",
@@ -24,7 +25,7 @@
     "syncBroadcasts": {
       "accepts": [],
       "returns": [],
-      "description": "Synchronizes the broadcasts with recombee for recommendations",
+      "description": "Synchronizes the broadcasts with recommender system for recommendations",
       "http": [
         {
           "path": "/syncBroadcasts",
@@ -62,29 +63,18 @@
         }
       ]
     },
-    "setItemProperties": {
+    "syncSyntheticSeedEvent": {
       "accepts": [],
       "returns": [],
-      "description": "sets the itemProperties of recombee database items",
+      "description": "Publishes the synthetic seed event required for executing 'pio train' with no usage events. ONLY run when 'pio train' is failing due to no usage event i.e. coldest cold-start",
       "http": [
         {
-          "path": "/setItemProperties",
-          "verb": "post"
+          "path": "/syncSyntheticSeedEvent",
+          "verb": "put"
         }
       ]
     },
-    "setUserProperties": {
-      "accepts": [],
-      "returns": [],
-      "description": "sets the userProperties of recombee user type",
-      "http": [
-        {
-          "path": "/setUserProperties",
-          "verb": "post"
-        }
-      ]
-    },
-    "setArtistsByPopularityForRecombeeReSync": {
+    "setArtistsByPopularityForRecommenderReSync": {
       "accepts": [
         {
           "arg": "lowerBound",
@@ -106,44 +96,54 @@
         }
       ],
       "returns": [],
-      "description": "sets the artists in a popularity range for re-sync with recombee item catalog",
+      "description": "sets the artists in a popularity range for re-sync with recommender system",
       "http": [
         {
-          "path": "/setArtistsByPopularityForRecombeeReSync",
+          "path": "/setArtistsByPopularityForRecommenderReSync",
           "verb": "put"
         }
       ]
     },
-    "setVideosForRecombeeReSync": {
+    "setVideosForRecommenderReSync": {
       "accepts": [],
       "returns": [],
-      "description": "sets the previously seeded videos for re-sync with recombee item catalog",
+      "description": "sets the previously seeded videos for re-sync with recommender system",
       "http": [
         {
-          "path": "/setVideosForRecombeeReSync",
+          "path": "/setVideosForRecommenderReSync",
           "verb": "put"
         }
       ]
     },
-    "setBroadcastsForRecombeeReSync": {
+    "setBroadcastsForRecommenderReSync": {
       "accepts": [],
       "returns": [],
-      "description": "sets the broadcasts for re-sync with recombee item catalog",
+      "description": "sets the broadcasts for re-sync with recommender system",
       "http": [
         {
-          "path": "/setBroadcastsForRecombeeReSync",
+          "path": "/setBroadcastsForRecommenderReSync",
           "verb": "put"
         }
       ]
     },
-    "miscOperations": {
-      "accepts": [],
+    "peekEvents": {
+      "accepts": [
+        {
+          "arg": "optionalParams",
+          "required": false,
+          "description": "Events filter parameters",
+          "type": "object",
+          "http": {
+            "source": "query"
+          }
+        }
+      ],
       "returns": [],
-      "description": "Remote method for performing miscellaneous operations in recombee",
+      "description": "Peek events logged in the EventServer on server console output for security.",
       "http": [
         {
-          "path": "/miscOperations",
-          "verb": "put"
+          "path": "/peekEvents",
+          "verb": "get"
         }
       ]
     }

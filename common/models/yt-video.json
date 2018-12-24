@@ -14,17 +14,20 @@
     "artists": {
       "type": [
         "string"
-      ]
+      ],
+      "required": false
     },
     "albums": {
       "type": [
         "string"
-      ]
+      ],
+      "required": false
     },
     "tracks": {
       "type": [
         "string"
-      ]
+      ],
+      "required": false
     },
     "isVideoElasticSearchSynced": {
       "type": "boolean",
@@ -109,7 +112,7 @@
     "markUnpublishedVideos": {
       "accepts": [],
       "returns": [],
-      "description": "sets the userProperties of recombee user type",
+      "description": "sets the userProperties of recommender user type",
       "http": [
         {
           "path": "/markUnpublishedVideos",

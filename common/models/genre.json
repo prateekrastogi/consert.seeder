@@ -10,13 +10,24 @@
   "relations": {},
   "acls": [],
   "methods": {
-    "seedGenreItemsToRecombee": {
+    "syncGenreItemsToRecommender": {
       "accepts": [],
       "returns": [],
-      "description": "seeds the genres as recombee items to get item based recommendation",
+      "description": "seeds the genres to recommender system",
       "http": [
         {
-          "path": "/seedGenreItemsToRecombee",
+          "path": "/syncGenreItemsToRecommender",
+          "verb": "put"
+        }
+      ]
+    },
+    "setGenreItemsForRecommenderReSync": {
+      "accepts": [],
+      "returns": [],
+      "description": "sets the genre items for re-sync with recommender system",
+      "http": [
+        {
+          "path": "/setGenreItemsForRecommenderReSync",
           "verb": "put"
         }
       ]
