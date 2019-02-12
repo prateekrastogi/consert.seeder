@@ -6,8 +6,8 @@ const async = require('async')
 const { from, interval } = require('rxjs')
 const { concatMap, take, tap, retry } = require('rxjs/operators')
 
-const RETRY_COUNT = 10
 const MAX_CONCURRENCY = 1
+const RETRY_COUNT = 10
 const REQUEST_INTERVAL = 50
 const LOGGING_INTERVAL = 1000 * 60 * 5
 
@@ -16,7 +16,9 @@ module.exports = function (artistSeed) {
     const spotifyApi = await loginAssist.spotifyLogin()
     const { genres } = (await spotifyApi.getAvailableGenreSeeds()).body
 
-    async.waterfall([pullRecommendedArtists, pullRelatedArtists, pullRelatedArtists])
+    async.waterfall([pullRecommendedArtists,
+      pullRelatedArtists, pullRelatedArtists, pullRelatedArtists,
+      pullRelatedArtists, pullRelatedArtists, pullRelatedArtists])
 
     function pullRecommendedArtists (cb) {
       let recommendedArtists
