@@ -18,6 +18,7 @@ module.exports = function (artistSeed) {
 
     async.waterfall([pullRecommendedArtists,
       pullRelatedArtists, pullRelatedArtists, pullRelatedArtists,
+      pullRelatedArtists, pullRelatedArtists, pullRelatedArtists,
       pullRelatedArtists, pullRelatedArtists, pullRelatedArtists])
 
     function pullRecommendedArtists (cb) {
