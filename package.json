@@ -12,7 +12,7 @@
     "lint": "standard --fix"
   },
   "dependencies": {
-    "async": "^2.6.1",
+    "async": "^2.6.2",
     "compression": "^1.7.3",
     "cors": "^2.8.5",
     "cross-env": "^5.2.0",
