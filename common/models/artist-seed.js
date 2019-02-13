@@ -16,10 +16,11 @@ module.exports = function (artistSeed) {
     const spotifyApi = await loginAssist.spotifyLogin()
     const { genres } = (await spotifyApi.getAvailableGenreSeeds()).body
 
-    async.waterfall([pullRecommendedArtists,
-      pullRelatedArtists, pullRelatedArtists, pullRelatedArtists,
-      pullRelatedArtists, pullRelatedArtists, pullRelatedArtists,
-      pullRelatedArtists, pullRelatedArtists, pullRelatedArtists])
+    async.waterfall([
+      pullRecommendedArtists, pullRelatedArtists,
+      pullRelatedArtists, pullRelatedArtists,
+      pullRelatedArtists, pullRelatedArtists
+    ])
 
     function pullRecommendedArtists (cb) {
       let recommendedArtists

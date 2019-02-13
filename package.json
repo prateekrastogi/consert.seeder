@@ -6,8 +6,9 @@
     "node": ">=4"
   },
   "scripts": {
-    "dev": "nodemon --inspect=0.0.0.0:3201 --max-old-space-size=8192 .",
-    "start": "cross-env NODE_ENV=production node --max-old-space-size=8192 .",
+    "dev": "nodemon --inspect=0.0.0.0:3201 .",
+    "stage": "node .",
+    "start": "cross-env NODE_ENV=production node .",
     "lint": "standard --fix"
   },
   "dependencies": {
